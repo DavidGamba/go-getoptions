@@ -320,7 +320,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 	if argument != "" {
 		iArg, err := strconv.Atoi(argument)
 		if err != nil {
-			return fmt.Errorf("Can't convert string to int: %q", err)
+			return fmt.Errorf("Can't convert string to int: '%s'", argument)
 		}
 		opt.Option[optName] = iArg
 		if opt.obj[optName].pInt != nil {

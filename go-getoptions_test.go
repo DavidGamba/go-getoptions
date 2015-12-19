@@ -323,6 +323,17 @@ func TestGetOptInt(t *testing.T) {
 			t.Errorf("Wrong value: %v != %v", c.opt.Option[c.option], c.value)
 		}
 	}
+
+	// Cast errors
+	opt := GetOptions()
+	opt.Int("int")
+	_, err := opt.Parse([]string{"--int=hello"})
+	if err == nil {
+		t.Errorf("Int cast didn't raise errors")
+	}
+	if err != nil && err.Error() != "Can't convert string to int: 'hello'" {
+		t.Errorf("Error string didn't match expected value '%s'", err)
+	}
 }
 
 func TestGetOptStringRepeat(t *testing.T) {
