@@ -432,12 +432,13 @@ func TestGetOptStringMap(t *testing.T) {
 func TestVars(t *testing.T) {
 	opt := GetOptions()
 	var flag, nflag, nflag2 bool
-	var str string
+	var str, str2 string
 	var integer int
 	opt.FlagVar(&flag, "flag")
 	opt.NFlagVar(&nflag, "nflag")
 	opt.NFlagVar(&nflag2, "n2")
 	opt.StringVar(&str, "stringVar")
+	opt.StringVar(&str2, "stringVar2")
 	opt.IntVar(&integer, "intVar")
 
 	_, err := opt.Parse([]string{
@@ -445,6 +446,7 @@ func TestVars(t *testing.T) {
 		"-nf",
 		"--no-n2",
 		"--stringVar", "hello",
+		"--stringVar2=world",
 		"--intVar", "123",
 	})
 	if err != nil {
@@ -462,6 +464,9 @@ func TestVars(t *testing.T) {
 	}
 	if str != "hello" {
 		t.Errorf("str didn't have expected value: %v != %v", str, "hello")
+	}
+	if str2 != "world" {
+		t.Errorf("str2 didn't have expected value: %v != %v", str, "world")
 	}
 	if integer != 123 {
 		t.Errorf("integer didn't have expected value: %v != %v", integer, 123)
