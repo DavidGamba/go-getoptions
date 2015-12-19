@@ -76,7 +76,7 @@ func TestWarningOrErrorOnUnknown(t *testing.T) {
 	}
 }
 
-func TestMissingArgument(t *testing.T) {
+func TestOptionals(t *testing.T) {
 	// Missing argument without default
 	opt := GetOptions()
 	opt.String("string")
@@ -97,6 +97,17 @@ func TestMissingArgument(t *testing.T) {
 	}
 	if opt.Option["string"] != "default" {
 		t.Errorf("Default value not set for 'string'")
+	}
+
+	// Argument given
+	opt = GetOptions()
+	opt.StringOptional("string", "default")
+	_, err = opt.Parse([]string{"--string=arg"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.Option["string"] != "arg" {
+		t.Errorf("string Optional didn't take argument")
 	}
 }
 
