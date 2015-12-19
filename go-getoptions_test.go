@@ -141,6 +141,20 @@ func TestGetOptFlag(t *testing.T) {
 	}
 }
 
+func TestEndOfParsing(t *testing.T) {
+	opt := GetOptions()
+	opt.Flag("hello")
+	opt.Flag("world")
+	remaining, err := opt.Parse([]string{"hola", "--hello", "--", "mundo", "--world"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if !reflect.DeepEqual(remaining, []string{"hola", "mundo", "--world"}) {
+		t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"hola", "mundo", "--world"})
+	}
+}
+
 func TestGetOptAliases(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := GetOptions()
