@@ -9,7 +9,8 @@ Go option parser inspired on the flexibility of Perl’s GetOpt::Long.
 
 This REAMDE is WIP. Please review the link:http://godoc.org/github.com/davidgamba/go-getoptions[godoc] for the most up to date information.
 
-image::https://godoc.org/github.com/davidgamba/go-getoptions?status.svg[link="http://godoc.org/github.com/davidgamba/go-getoptions"]
+image:https://godoc.org/github.com/davidgamba/go-getoptions?status.svg[link="http://godoc.org/github.com/davidgamba/go-getoptions"]
+image:https://travis-ci.org/DavidGamba/go-getoptions.svg["Build Status", link="https://travis-ci.org/DavidGamba/go-getoptions"]
 
 toc::[]
 
