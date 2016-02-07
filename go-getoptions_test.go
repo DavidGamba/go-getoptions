@@ -152,6 +152,42 @@ func TestGetOptBool(t *testing.T) {
 	}
 }
 
+func TestCalled(t *testing.T) {
+	opt := GetOptions()
+	opt.Bool("hello", false)
+	opt.Bool("happy", false)
+	opt.Bool("world", false)
+	opt.String("string")
+	opt.String("string2")
+	opt.Int("int")
+	opt.Int("int2")
+	_, err := opt.Parse([]string{"--hello", "--world", "--string2", "str", "--int2", "123"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !opt.Called["hello"] {
+		t.Errorf("hello didn't have expected value %v", false)
+	}
+	if opt.Called["happy"] {
+		t.Errorf("happy didn't have expected value %v", true)
+	}
+	if !opt.Called["world"] {
+		t.Errorf("world didn't have expected value %v", false)
+	}
+	if opt.Called["string"] {
+		t.Errorf("string didn't have expected value %v", true)
+	}
+	if !opt.Called["string2"] {
+		t.Errorf("string2 didn't have expected value %v", false)
+	}
+	if opt.Called["int"] {
+		t.Errorf("int didn't have expected value %v", true)
+	}
+	if !opt.Called["int2"] {
+		t.Errorf("int2 didn't have expected value %v", false)
+	}
+}
+
 func TestEndOfParsing(t *testing.T) {
 	opt := GetOptions()
 	opt.Bool("hello", false)

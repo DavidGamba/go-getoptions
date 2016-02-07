@@ -20,10 +20,18 @@ The following is a basic example:
 		import "github.com/davidgamba/go-getoptions" // As getoptions
 
 		opt := getoptions.GetOptions()
-		opt.Bool("flag")
-		opt.Int("int")
-		opt.String("string")
-		remaining, error := opt.Parse(os.Args[1:])
+		b := opt.Bool("flag", false)
+		i := opt.Int("int")
+		s := opt.String("string")
+		remaining, err := opt.Parse(os.Args[1:])
+
+		if *b {
+			// ... do something
+		}
+
+		if opt.Called["int"] {
+			// ... do something with i
+		}
 
 Features
 
@@ -37,6 +45,8 @@ Features
 
 * Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
+
+* opt.Called indicates if the parameter was passed on the command line.
 
 
 Common Issues
@@ -93,6 +103,7 @@ type Options map[string]interface{}
 type GetOpt struct {
 	Option    Options // Map with resulting variables
 	Mode      string  // Operation mode for short options: normal, bundling, singleDash
+	Called    map[string]bool
 	Writer    io.Writer
 	config    map[string]string
 	obj       map[string]option
@@ -123,6 +134,7 @@ func GetOptions() *GetOpt {
 	opt := &GetOpt{
 		Option: Options{},
 		Mode:   "normal",
+		Called: make(map[string]bool),
 		obj:    make(map[string]option),
 	}
 	return opt
@@ -169,6 +181,7 @@ func (opt *GetOpt) BoolVar(p *bool, name string, def bool, aliases ...string) {
 
 func (opt *GetOpt) handleBool(optName string, argument string, usedAlias string) error {
 	Debug.Println("handleBool")
+	opt.Called[optName] = true
 	opt.Option[optName] = !opt.obj[optName].def.(bool)
 	*opt.obj[optName].pBool = !opt.obj[optName].def.(bool)
 	return nil
@@ -216,6 +229,7 @@ func (opt *GetOpt) NBoolVar(p *bool, name string, def bool, aliases ...string) {
 
 func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string) error {
 	Debug.Println("handleNBool")
+	opt.Called[optName] = true
 	if strings.HasPrefix(usedAlias, "no-") {
 		opt.Option[optName] = opt.obj[optName].def.(bool)
 		*opt.obj[optName].pBool = opt.obj[optName].def.(bool)
@@ -254,6 +268,7 @@ func (opt *GetOpt) StringVar(p *string, name string, aliases ...string) {
 
 func (opt *GetOpt) handleString(optName string, argument string, usedAlias string) error {
 	Debug.Printf("handleString opt.args: %v(%d)\n", opt.args, len(opt.args))
+	opt.Called[optName] = true
 	if argument != "" {
 		opt.Option[optName] = argument
 		if opt.obj[optName].pString != nil {
@@ -295,6 +310,7 @@ func (opt *GetOpt) StringOptional(name string, def string, aliases ...string) *s
 }
 
 func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAlias string) error {
+	opt.Called[optName] = true
 	if argument != "" {
 		opt.Option[optName] = argument
 		Debug.Printf("handleOption option: %v, Option: %v\n", opt.obj[optName].optType, opt.Option)
@@ -334,6 +350,7 @@ func (opt *GetOpt) IntVar(p *int, name string, aliases ...string) {
 }
 
 func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) error {
+	opt.Called[optName] = true
 	if argument != "" {
 		iArg, err := strconv.Atoi(argument)
 		if err != nil {
@@ -382,6 +399,7 @@ func (opt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 }
 
 func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias string) error {
+	opt.Called[optName] = true
 	return nil
 }
 
@@ -405,6 +423,7 @@ func (opt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
 }
 
 func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias string) error {
+	opt.Called[optName] = true
 	if _, ok := opt.Option[optName]; !ok {
 		opt.Option[optName] = []string{}
 	}
@@ -443,6 +462,7 @@ func (opt *GetOpt) StringMap(name string, aliases ...string) *map[string]string 
 }
 
 func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias string) error {
+	opt.Called[optName] = true
 	if _, ok := opt.Option[optName]; !ok {
 		opt.Option[optName] = make(map[string]string)
 	}

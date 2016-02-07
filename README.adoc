@@ -251,10 +251,18 @@ Don't be lazy, write a man page for your program and create the program's synops
 import "github.com/davidgamba/go-getoptions" // As getoptions
 
 opt := getoptions.GetOptions()
-opt.Flag("flag")
-opt.Int("int")
-opt.String("string")
-remaining, error := opt.Parse(os.Args[1:])
+b := opt.Bool("flag")
+i := opt.Int("int")
+s := opt.String("string")
+remaining, err := opt.Parse(os.Args[1:])
+
+if *b {
+  // ... do something
+}
+
+if opt.Called["int"] {
+  // ... do something with i
+}
 ----
 
 . Pass cmdline arguments:
@@ -283,7 +291,10 @@ $ ./myscript non-option -f --string=mystring -i 7 --float 3.14 --p --version non
 
 * Supports both Array and Key Value options.
 
-* Supports command line options with `=`. e.g. You can use `--string=mystring` and `--string mystring`.
+* Supports command line options with '='.
+For example: You can use `--string=mystring` and `--string mystring`.
+
+* opt.Called indicates if the parameter was passed on the command line.
 
 == How to install it
 
