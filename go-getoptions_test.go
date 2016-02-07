@@ -60,8 +60,8 @@ func TestIsOption(t *testing.T) {
 // Verifies that a panic is reached when the same option is defined twice.
 func TestDuplicateDefinition(t *testing.T) {
 	opt := GetOptions()
-	opt.Bool("flag", []string{"f"})
-	opt.Bool("flag", []string{"f"})
+	opt.Bool("flag", false, "f")
+	opt.Bool("flag", false, "f")
 }
 */
 
@@ -114,8 +114,8 @@ func TestOptionals(t *testing.T) {
 func TestGetOptBool(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := GetOptions()
-		opt.Bool("flag")
-		opt.NBool("nflag")
+		opt.Bool("flag", false)
+		opt.NBool("nflag", false)
 		return opt
 	}
 
@@ -154,8 +154,8 @@ func TestGetOptBool(t *testing.T) {
 
 func TestEndOfParsing(t *testing.T) {
 	opt := GetOptions()
-	opt.Bool("hello")
-	opt.Bool("world")
+	opt.Bool("hello", false)
+	opt.Bool("world", false)
 	remaining, err := opt.Parse([]string{"hola", "--hello", "--", "mundo", "--world"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -169,7 +169,7 @@ func TestEndOfParsing(t *testing.T) {
 func TestGetOptAliases(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := GetOptions()
-		opt.Bool("flag", "f", "h")
+		opt.Bool("flag", false, "f", "h")
 		return opt
 	}
 
@@ -212,8 +212,8 @@ func TestGetOptAliases(t *testing.T) {
 	}
 
 	opt := GetOptions()
-	opt.Bool("flag")
-	opt.Bool("fleg")
+	opt.Bool("flag", false)
+	opt.Bool("fleg", false)
 	_, err := opt.Parse([]string{"--fl"})
 	if err == nil {
 		t.Errorf("Ambiguous argument 'fl' didn't raise unknown option error")
@@ -453,18 +453,31 @@ func TestGetOptStringMap(t *testing.T) {
 
 func TestVars(t *testing.T) {
 	opt := GetOptions()
-	var flag, nflag, nflag2 bool
+
+	var flag, flag2, flag5, flag6 bool
+	opt.BoolVar(&flag, "flag", false)
+	opt.BoolVar(&flag2, "flag2", true)
+	flag3 := opt.Bool("flag3", false)
+	flag4 := opt.Bool("flag4", true)
+	opt.BoolVar(&flag5, "flag5", false)
+	opt.BoolVar(&flag6, "flag6", true)
+
+	var nflag, nflag2 bool
+	opt.NBoolVar(&nflag, "nflag", false)
+	opt.NBoolVar(&nflag2, "n2", false)
+
 	var str, str2 string
-	var integer int
-	opt.BoolVar(&flag, "flag")
-	opt.NBoolVar(&nflag, "nflag")
-	opt.NBoolVar(&nflag2, "n2")
 	opt.StringVar(&str, "stringVar")
 	opt.StringVar(&str2, "stringVar2")
+
+	var integer int
 	opt.IntVar(&integer, "intVar")
 
 	_, err := opt.Parse([]string{
-		"-f",
+		"-flag",
+		"-flag2",
+		"-flag3",
+		"-flag4",
 		"-nf",
 		"--no-n2",
 		"--stringVar", "hello",
@@ -478,6 +491,22 @@ func TestVars(t *testing.T) {
 	if flag != true {
 		t.Errorf("flag didn't have expected value: %v != %v", flag, true)
 	}
+	if flag2 != false {
+		t.Errorf("flag2 didn't have expected value: %v != %v", flag2, false)
+	}
+	if *flag3 != true {
+		t.Errorf("flag3 didn't have expected value: %v != %v", *flag3, true)
+	}
+	if *flag4 != false {
+		t.Errorf("flag4 didn't have expected value: %v != %v", *flag4, false)
+	}
+	if flag5 != false {
+		t.Errorf("flag5 didn't have expected value: %v != %v", flag5, false)
+	}
+	if flag6 != true {
+		t.Errorf("flag6 didn't have expected value: %v != %v", flag6, true)
+	}
+
 	if nflag != true {
 		t.Errorf("nflag didn't have expected value: %v != %v", nflag, true)
 	}
@@ -501,10 +530,10 @@ func TestDefaultValues(t *testing.T) {
 	var integer int
 
 	opt := GetOptions()
-	opt.Bool("flag")
-	opt.BoolVar(&flag, "varflag")
-	opt.NBool("nflag")
-	opt.NBoolVar(&nflag, "varnflag")
+	opt.Bool("flag", false)
+	opt.BoolVar(&flag, "varflag", false)
+	opt.NBool("nflag", false)
+	opt.NBoolVar(&nflag, "varnflag", false)
 	opt.String("string")
 	opt.StringVar(&str, "stringVar")
 	opt.Int("int")
@@ -570,14 +599,14 @@ func TestAll(t *testing.T) {
 	var str string
 	var integer int
 	opt := GetOptions()
-	opt.Bool("flag")
-	opt.BoolVar(&flag, "varflag")
-	opt.Bool("non-used-flag")
-	opt.NBool("nflag")
-	opt.NBool("nftrue")
-	opt.NBool("nfnil")
-	opt.NBoolVar(&nflag, "varnflag")
-	opt.NBoolVar(&nflag2, "varnflag2")
+	opt.Bool("flag", false)
+	opt.BoolVar(&flag, "varflag", false)
+	opt.Bool("non-used-flag", false)
+	opt.NBool("nflag", false)
+	opt.NBool("nftrue", false)
+	opt.NBool("nfnil", false)
+	opt.NBoolVar(&nflag, "varnflag", false)
+	opt.NBoolVar(&nflag2, "varnflag2", false)
 	opt.String("string")
 	opt.StringVar(&str, "stringVar")
 	opt.Int("int")

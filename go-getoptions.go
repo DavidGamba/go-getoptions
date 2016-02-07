@@ -138,20 +138,29 @@ func (opt *GetOpt) failIfDefined(name string) {
 }
 
 // Bool - define a `bool` option and its aliases.
-// The result will be available through the `Option` map.
-func (opt *GetOpt) Bool(name string, aliases ...string) {
+// It returnns a `*bool` pointing to the variable holding the result.
+// Additionally, the result will be available through the `Option` map.
+// If the option is found, the result will be the opposite of the provided default.
+func (opt *GetOpt) Bool(name string, def bool, aliases ...string) *bool {
+	var b bool
+	b = def
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		optType: "flag",
 		aliases: aliases,
+		pBool:   &b,
+		def:     def,
 		handler: opt.handleBool}
+	return &b
 }
 
 // BoolVar - define a `bool` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
-func (opt *GetOpt) BoolVar(p *bool, name string, aliases ...string) {
-	opt.Bool(name, aliases...)
+// If the option is found, the result will be the opposite of the provided default.
+func (opt *GetOpt) BoolVar(p *bool, name string, def bool, aliases ...string) {
+	opt.Bool(name, def, aliases...)
+	*p = def
 	var tmp = opt.obj[name]
 	tmp.optType = "varflag"
 	tmp.pBool = p
@@ -160,10 +169,8 @@ func (opt *GetOpt) BoolVar(p *bool, name string, aliases ...string) {
 
 func (opt *GetOpt) handleBool(optName string, argument string, usedAlias string) error {
 	Debug.Println("handleBool")
-	opt.Option[optName] = true
-	if opt.obj[optName].pBool != nil {
-		*opt.obj[optName].pBool = true
-	}
+	opt.Option[optName] = !opt.obj[optName].def.(bool)
+	*opt.obj[optName].pBool = !opt.obj[optName].def.(bool)
 	return nil
 }
 
@@ -171,9 +178,10 @@ func (opt *GetOpt) handleBool(optName string, argument string, usedAlias string)
 // The result will be available through the `Option` map.
 //
 // NBool automatically makes aliases with the prefix 'no' and 'no-' to the given name and aliases.
-// When the argument is prefixed by 'no' (or by 'no-'), for example '--no-nflag', the value is set to false.
-// Otherwise, with a regular call, for example '--nflag', it is set to true.
-func (opt *GetOpt) NBool(name string, aliases ...string) {
+// If the option is found, when the argument is prefixed by 'no' (or by 'no-'), for example '--no-nflag', the value is set to the provided default.
+// Otherwise, with a regular call, for example '--nflag', it is set to the opposite of the default.
+func (opt *GetOpt) NBool(name string, def bool, aliases ...string) *bool {
+	var b bool
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	aliases = append(aliases, "no"+name)
@@ -185,17 +193,21 @@ func (opt *GetOpt) NBool(name string, aliases ...string) {
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
 		optType: "nflag",
+		pBool:   &b,
+		def:     def,
 		handler: opt.handleNBool}
+	return &b
 }
 
 // NBoolVar - define a *Negatable* `bool` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
 //
 // NBoolVar automatically makes aliases with the prefix 'no' and 'no-' to the given name and aliases.
-// When the argument is prefixed by 'no' (or by 'no-'), for example '--no-nflag', the value is set to false.
-// Otherwise, with a regular call, for example '--nflag', it is set to true.
-func (opt *GetOpt) NBoolVar(p *bool, name string, aliases ...string) {
-	opt.NBool(name, aliases...)
+// If the option is found, when the argument is prefixed by 'no' (or by 'no-'), for example '--no-nflag', the value is set to the provided default.
+// Otherwise, with a regular call, for example '--nflag', it is set to the opposite of the default.
+func (opt *GetOpt) NBoolVar(p *bool, name string, def bool, aliases ...string) {
+	opt.NBool(name, def, aliases...)
+	*p = def
 	var tmp = opt.obj[name]
 	tmp.optType = "varnflag"
 	tmp.pBool = p
@@ -205,15 +217,11 @@ func (opt *GetOpt) NBoolVar(p *bool, name string, aliases ...string) {
 func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string) error {
 	Debug.Println("handleNBool")
 	if strings.HasPrefix(usedAlias, "no-") {
-		opt.Option[optName] = false
-		if opt.obj[optName].pBool != nil {
-			*opt.obj[optName].pBool = false
-		}
+		opt.Option[optName] = opt.obj[optName].def.(bool)
+		*opt.obj[optName].pBool = opt.obj[optName].def.(bool)
 	} else {
-		opt.Option[optName] = true
-		if opt.obj[optName].pBool != nil {
-			*opt.obj[optName].pBool = true
-		}
+		opt.Option[optName] = !opt.obj[optName].def.(bool)
+		*opt.obj[optName].pBool = !opt.obj[optName].def.(bool)
 	}
 	return nil
 }
