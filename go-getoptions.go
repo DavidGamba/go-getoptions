@@ -373,15 +373,13 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 	return nil
 }
 
-// TODO: Change name to StringSlice?
-
-// StringRepeat - define a `[]string` option and its aliases.
+// StringSlice - define a `[]string` option and its aliases.
 // The result will be available through the `Option` map.
 //
-// StringRepeat will accept multiple calls to the same option and append them
+// StringSlice will accept multiple calls to the same option and append them
 // to the `[]string`.
 // For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
-func (opt *GetOpt) StringRepeat(name string, aliases ...string) {
+func (opt *GetOpt) StringSlice(name string, aliases ...string) {
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	opt.obj[name] = option{

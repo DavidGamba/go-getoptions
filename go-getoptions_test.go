@@ -339,7 +339,7 @@ func TestGetOptInt(t *testing.T) {
 func TestGetOptStringRepeat(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := GetOptions()
-		opt.StringRepeat("string")
+		opt.StringSlice("string")
 		return opt
 	}
 
@@ -538,7 +538,7 @@ func TestDefaultValues(t *testing.T) {
 	opt.StringVar(&str, "stringVar")
 	opt.Int("int")
 	opt.IntVar(&integer, "intVar")
-	opt.StringRepeat("string-repeat")
+	opt.StringSlice("string-repeat")
 	opt.StringMap("string-map")
 
 	_, err := opt.Parse([]string{})
@@ -611,7 +611,7 @@ func TestAll(t *testing.T) {
 	opt.StringVar(&str, "stringVar")
 	opt.Int("int")
 	opt.IntVar(&integer, "intVar")
-	opt.StringRepeat("string-repeat")
+	opt.StringSlice("string-repeat")
 	opt.StringMap("string-map")
 
 	// log.Println(opt)
