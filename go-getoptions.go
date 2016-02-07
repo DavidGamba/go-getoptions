@@ -20,7 +20,7 @@ The following is a basic example:
 		import "github.com/davidgamba/go-getoptions" // As getoptions
 
 		opt := getoptions.GetOptions()
-		opt.Flag("flag")
+		opt.Bool("flag")
 		opt.Int("int")
 		opt.String("string")
 		remaining, error := opt.Parse(os.Args[1:])
@@ -137,29 +137,29 @@ func (opt *GetOpt) failIfDefined(name string) {
 	}
 }
 
-// Flag - define a `bool` option and its aliases.
+// Bool - define a `bool` option and its aliases.
 // The result will be available through the `Option` map.
-func (opt *GetOpt) Flag(name string, aliases ...string) {
+func (opt *GetOpt) Bool(name string, aliases ...string) {
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		optType: "flag",
 		aliases: aliases,
-		handler: opt.handleFlag}
+		handler: opt.handleBool}
 }
 
-// FlagVar - define a `bool` option and its aliases.
+// BoolVar - define a `bool` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
-func (opt *GetOpt) FlagVar(p *bool, name string, aliases ...string) {
-	opt.Flag(name, aliases...)
+func (opt *GetOpt) BoolVar(p *bool, name string, aliases ...string) {
+	opt.Bool(name, aliases...)
 	var tmp = opt.obj[name]
 	tmp.optType = "varflag"
 	tmp.pBool = p
 	opt.obj[name] = tmp
 }
 
-func (opt *GetOpt) handleFlag(optName string, argument string, usedAlias string) error {
-	Debug.Println("handlerFlag")
+func (opt *GetOpt) handleBool(optName string, argument string, usedAlias string) error {
+	Debug.Println("handleBool")
 	opt.Option[optName] = true
 	if opt.obj[optName].pBool != nil {
 		*opt.obj[optName].pBool = true
@@ -167,13 +167,13 @@ func (opt *GetOpt) handleFlag(optName string, argument string, usedAlias string)
 	return nil
 }
 
-// NFlag - define a *Negatable* `bool` option and its aliases.
+// NBool - define a *Negatable* `bool` option and its aliases.
 // The result will be available through the `Option` map.
 //
-// NFlag automatically makes aliases with the prefix 'no' and 'no-' to the given name and aliases.
+// NBool automatically makes aliases with the prefix 'no' and 'no-' to the given name and aliases.
 // When the argument is prefixed by 'no' (or by 'no-'), for example '--no-nflag', the value is set to false.
 // Otherwise, with a regular call, for example '--nflag', it is set to true.
-func (opt *GetOpt) NFlag(name string, aliases ...string) {
+func (opt *GetOpt) NBool(name string, aliases ...string) {
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	aliases = append(aliases, "no"+name)
@@ -185,25 +185,25 @@ func (opt *GetOpt) NFlag(name string, aliases ...string) {
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
 		optType: "nflag",
-		handler: opt.handleNFlag}
+		handler: opt.handleNBool}
 }
 
-// NFlagVar - define a *Negatable* `bool` option and its aliases.
+// NBoolVar - define a *Negatable* `bool` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
 //
-// NFlagVar automatically makes aliases with the prefix 'no' and 'no-' to the given name and aliases.
+// NBoolVar automatically makes aliases with the prefix 'no' and 'no-' to the given name and aliases.
 // When the argument is prefixed by 'no' (or by 'no-'), for example '--no-nflag', the value is set to false.
 // Otherwise, with a regular call, for example '--nflag', it is set to true.
-func (opt *GetOpt) NFlagVar(p *bool, name string, aliases ...string) {
-	opt.NFlag(name, aliases...)
+func (opt *GetOpt) NBoolVar(p *bool, name string, aliases ...string) {
+	opt.NBool(name, aliases...)
 	var tmp = opt.obj[name]
 	tmp.optType = "varnflag"
 	tmp.pBool = p
 	opt.obj[name] = tmp
 }
 
-func (opt *GetOpt) handleNFlag(optName string, argument string, usedAlias string) error {
-	Debug.Println("handleNFlag")
+func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string) error {
+	Debug.Println("handleNBool")
 	if strings.HasPrefix(usedAlias, "no-") {
 		opt.Option[optName] = false
 		if opt.obj[optName].pBool != nil {
