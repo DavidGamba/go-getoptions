@@ -228,15 +228,18 @@ func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string
 
 // String - define a `string` option and its aliases.
 // The result will be available through the `Option` map.
-func (opt *GetOpt) String(name string, aliases ...string) {
+func (opt *GetOpt) String(name string, aliases ...string) *string {
+	var s string
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	opt.obj[name] = option{
 		name:    name,
 		aliases: aliases,
 		optType: "string",
+		pString: &s,
 		handler: opt.handleString,
 	}
+	return &s
 }
 
 // StringVar - define a `string` option and its aliases.
@@ -277,15 +280,18 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 // StringOptional will set the string to the provided default value when no value is given.
 // For example, when called with `--strOpt value`, the value is `value`.
 // when called with `--strOpt` the value is the given default.
-func (opt *GetOpt) StringOptional(name string, def string, aliases ...string) {
+func (opt *GetOpt) StringOptional(name string, def string, aliases ...string) *string {
+	var s string
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
 		optType: "stringOptional",
 		def:     def,
+		pString: &s,
 		handler: opt.handleStringOptional,
 	}
+	return &s
 }
 
 func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAlias string) error {
@@ -304,14 +310,17 @@ func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAli
 
 // Int - define an `int` option and its aliases.
 // The result will be available through the `Option` map.
-func (opt *GetOpt) Int(name string, aliases ...string) {
+func (opt *GetOpt) Int(name string, aliases ...string) *int {
+	var i int
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
 		optType: "int",
+		pInt:    &i,
 		handler: opt.handleInt,
 	}
+	return &i
 }
 
 // IntVar - define an `int` option and its aliases.
@@ -358,15 +367,18 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 // IntOptional will set the int to the provided default value when no value is given.
 // For example, when called with `--intOpt 123`, the value is `123`.
 // when called with `--intOpt` the value is the given default.
-func (opt *GetOpt) IntOptional(name string, def int, aliases ...string) {
+func (opt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
+	var i int
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
 		optType: "intOptional",
+		pInt:    &i,
 		def:     def,
 	}
 	panic(fmt.Sprintf("Not implemented IntOptional"))
+	// return &i
 }
 
 func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias string) error {
@@ -379,7 +391,8 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 // StringSlice will accept multiple calls to the same option and append them
 // to the `[]string`.
 // For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
-func (opt *GetOpt) StringSlice(name string, aliases ...string) {
+func (opt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
+	var s []string
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	opt.obj[name] = option{
@@ -388,6 +401,7 @@ func (opt *GetOpt) StringSlice(name string, aliases ...string) {
 		optType: "stringRepeat",
 		handler: opt.handleStringRepeat,
 	}
+	return &s
 }
 
 func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias string) error {
@@ -415,7 +429,8 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 // and add them to the `map[string]string` result.
 // For example, when called with `--strMap k=v --strMap k2=v2`, the value is
 // `map[string]string{"k":"v", "k2": "v2"}`.
-func (opt *GetOpt) StringMap(name string, aliases ...string) {
+func (opt *GetOpt) StringMap(name string, aliases ...string) *map[string]string {
+	var s map[string]string
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	opt.obj[name] = option{
@@ -424,6 +439,7 @@ func (opt *GetOpt) StringMap(name string, aliases ...string) {
 		optType: "stringMap",
 		handler: opt.handleStringMap,
 	}
+	return &s
 }
 
 func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias string) error {
