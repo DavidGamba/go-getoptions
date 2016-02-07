@@ -113,7 +113,6 @@ type GetOpt struct {
 
 type option struct {
 	name    string
-	optType string // String indicating the type of option
 	aliases []string
 	def     interface{} // default value
 	handler func(optName string,
@@ -159,7 +158,6 @@ func (opt *GetOpt) Bool(name string, def bool, aliases ...string) *bool {
 	opt.failIfDefined(name)
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
-		optType: "flag",
 		aliases: aliases,
 		pBool:   &b,
 		def:     def,
@@ -174,7 +172,6 @@ func (opt *GetOpt) BoolVar(p *bool, name string, def bool, aliases ...string) {
 	opt.Bool(name, def, aliases...)
 	*p = def
 	var tmp = opt.obj[name]
-	tmp.optType = "varflag"
 	tmp.pBool = p
 	opt.obj[name] = tmp
 }
@@ -205,7 +202,6 @@ func (opt *GetOpt) NBool(name string, def bool, aliases ...string) *bool {
 	}
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
-		optType: "nflag",
 		pBool:   &b,
 		def:     def,
 		handler: opt.handleNBool}
@@ -222,7 +218,6 @@ func (opt *GetOpt) NBoolVar(p *bool, name string, def bool, aliases ...string) {
 	opt.NBool(name, def, aliases...)
 	*p = def
 	var tmp = opt.obj[name]
-	tmp.optType = "varnflag"
 	tmp.pBool = p
 	opt.obj[name] = tmp
 }
@@ -249,7 +244,6 @@ func (opt *GetOpt) String(name string, aliases ...string) *string {
 	opt.obj[name] = option{
 		name:    name,
 		aliases: aliases,
-		optType: "string",
 		pString: &s,
 		handler: opt.handleString,
 	}
@@ -261,7 +255,6 @@ func (opt *GetOpt) String(name string, aliases ...string) *string {
 func (opt *GetOpt) StringVar(p *string, name string, aliases ...string) {
 	opt.String(name, aliases...)
 	var tmp = opt.obj[name]
-	tmp.optType = "stringVar"
 	tmp.pString = p
 	opt.obj[name] = tmp
 }
@@ -274,7 +267,7 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 		if opt.obj[optName].pString != nil {
 			*opt.obj[optName].pString = argument
 		}
-		Debug.Printf("handleOption option: %v, Option: %v\n", opt.obj[optName].optType, opt.Option)
+		Debug.Printf("handleOption Option: %v\n", opt.Option)
 		return nil
 	}
 	opt.argsIndex++
@@ -301,7 +294,6 @@ func (opt *GetOpt) StringOptional(name string, def string, aliases ...string) *s
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
-		optType: "stringOptional",
 		def:     def,
 		pString: &s,
 		handler: opt.handleStringOptional,
@@ -313,7 +305,7 @@ func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAli
 	opt.Called[optName] = true
 	if argument != "" {
 		opt.Option[optName] = argument
-		Debug.Printf("handleOption option: %v, Option: %v\n", opt.obj[optName].optType, opt.Option)
+		Debug.Printf("handleOption Option: %v\n", opt.Option)
 		return nil
 	}
 	if len(opt.args) < opt.argsIndex+2 {
@@ -332,7 +324,6 @@ func (opt *GetOpt) Int(name string, aliases ...string) *int {
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
-		optType: "int",
 		pInt:    &i,
 		handler: opt.handleInt,
 	}
@@ -344,7 +335,6 @@ func (opt *GetOpt) Int(name string, aliases ...string) *int {
 func (opt *GetOpt) IntVar(p *int, name string, aliases ...string) {
 	opt.Int(name, aliases...)
 	var tmp = opt.obj[name]
-	tmp.optType = "intVar"
 	tmp.pInt = p
 	opt.obj[name] = tmp
 }
@@ -360,7 +350,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 		if opt.obj[optName].pInt != nil {
 			*opt.obj[optName].pInt = iArg
 		}
-		Debug.Printf("handleOption option: %v, Option: %v\n", opt.obj[optName].optType, opt.Option)
+		Debug.Printf("handleOption Option: %v\n", opt.Option)
 		return nil
 	}
 	opt.argsIndex++
@@ -390,7 +380,6 @@ func (opt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
-		optType: "intOptional",
 		pInt:    &i,
 		def:     def,
 	}
@@ -416,7 +405,6 @@ func (opt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
 	opt.obj[name] = option{
 		name:    name,
 		aliases: aliases,
-		optType: "stringRepeat",
 		handler: opt.handleStringRepeat,
 	}
 	return &s
@@ -429,7 +417,7 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 	}
 	if argument != "" {
 		opt.Option[optName] = append(opt.Option[optName].([]string), argument)
-		Debug.Printf("handleOption option: %v, Option: %v\n", opt.obj[optName].optType, opt.Option)
+		Debug.Printf("handleOption Option: %v\n", opt.Option)
 		return nil
 	}
 	opt.argsIndex++
@@ -455,7 +443,6 @@ func (opt *GetOpt) StringMap(name string, aliases ...string) *map[string]string 
 	opt.obj[name] = option{
 		name:    name,
 		aliases: aliases,
-		optType: "stringMap",
 		handler: opt.handleStringMap,
 	}
 	return &s
@@ -472,7 +459,7 @@ func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias st
 			return fmt.Errorf("Argument for option '%s' should be of type 'key=value'!", optName)
 		}
 		opt.Option[optName].(map[string]string)[keyValue[0]] = keyValue[1]
-		Debug.Printf("handleOption option: %v, Option: %v\n", opt.obj[optName].optType, opt.Option)
+		Debug.Printf("handleOption Option: %v\n", opt.Option)
 		return nil
 	}
 	opt.argsIndex++
