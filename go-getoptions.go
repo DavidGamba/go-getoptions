@@ -13,6 +13,7 @@ GetOpt::Long.
 It will operate on any given slice of strings and return the remaining (non
 used) command line arguments. This allows to easily subcommand.
 
+
 Usage
 
 The following is a basic example:
@@ -33,6 +34,7 @@ The following is a basic example:
 			// ... do something with i
 		}
 
+
 Features
 
 * Support for `--long` options.
@@ -48,20 +50,6 @@ For example: You can use `--string=mystring` and `--string mystring`.
 
 * opt.Called indicates if the parameter was passed on the command line.
 
-
-Common Issues
-
-The `opt.Option` map will have a value of `nil` when the argument is not passed
-as a `Parse` parameter. The map needs to be checked to ensure it is not `nil`
-before attempting a type assertion.
-
-Wrong:
-
-    if opt.Option["flag"].(bool) {
-
-Correct:
-
-    if opt.Option["flag"] != nil && opt.Option["flag"].(bool) {
 
 Panic
 
@@ -89,12 +77,6 @@ var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfil
 // Type assertions are required when using the elements of the map in cases
 // where the compiler can't determine the type by context.
 // For example: `opt.Options["flag"].(bool)`.
-//
-// The default value for un-called options is `nil` within this map.
-// Make sure to check for `nil` before trying the type assertion.
-// For example:
-//
-//   if opt.Option["flag"] != nil && opt.Option["flag"].(bool) {
 type Options map[string]interface{}
 
 // GetOpt - main struct with Option map result and global configuration settings.
@@ -156,6 +138,7 @@ func (opt *GetOpt) Bool(name string, def bool, aliases ...string) *bool {
 	var b bool
 	b = def
 	opt.failIfDefined(name)
+	opt.Option[name] = def
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
@@ -192,7 +175,9 @@ func (opt *GetOpt) handleBool(optName string, argument string, usedAlias string)
 // Otherwise, with a regular call, for example '--nflag', it is set to the opposite of the default.
 func (opt *GetOpt) NBool(name string, def bool, aliases ...string) *bool {
 	var b bool
+	b = def
 	opt.failIfDefined(name)
+	opt.Option[name] = def
 	aliases = append(aliases, name)
 	aliases = append(aliases, "no"+name)
 	aliases = append(aliases, "no-"+name)
@@ -240,6 +225,7 @@ func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string
 func (opt *GetOpt) String(name string, aliases ...string) *string {
 	var s string
 	opt.failIfDefined(name)
+	opt.Option[name] = s
 	aliases = append(aliases, name)
 	opt.obj[name] = option{
 		name:    name,
@@ -291,6 +277,7 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 func (opt *GetOpt) StringOptional(name string, def string, aliases ...string) *string {
 	var s string
 	opt.failIfDefined(name)
+	opt.Option[name] = s
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
@@ -321,6 +308,7 @@ func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAli
 func (opt *GetOpt) Int(name string, aliases ...string) *int {
 	var i int
 	opt.failIfDefined(name)
+	opt.Option[name] = i
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
@@ -377,6 +365,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 func (opt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 	var i int
 	opt.failIfDefined(name)
+	opt.Option[name] = i
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
@@ -399,8 +388,9 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 // to the `[]string`.
 // For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
 func (opt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
-	var s []string
 	opt.failIfDefined(name)
+	s := []string{}
+	opt.Option[name] = s
 	aliases = append(aliases, name)
 	opt.obj[name] = option{
 		name:    name,
@@ -437,8 +427,9 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 // For example, when called with `--strMap k=v --strMap k2=v2`, the value is
 // `map[string]string{"k":"v", "k2": "v2"}`.
 func (opt *GetOpt) StringMap(name string, aliases ...string) *map[string]string {
-	var s map[string]string
 	opt.failIfDefined(name)
+	s := make(map[string]string)
+	opt.Option[name] = s
 	aliases = append(aliases, name)
 	opt.obj[name] = option{
 		name:    name,

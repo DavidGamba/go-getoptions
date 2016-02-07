@@ -584,17 +584,21 @@ func TestDefaultValues(t *testing.T) {
 	}
 
 	expected := map[string]interface{}{
-		"flag":          nil,
-		"nflag":         nil,
-		"string":        nil,
-		"int":           nil,
-		"string-repeat": nil,
-		"string-map":    nil,
+		"flag":          false,
+		"varflag":       false,
+		"nflag":         false,
+		"varnflag":      false,
+		"string":        "",
+		"stringVar":     "",
+		"int":           0,
+		"intVar":        0,
+		"string-repeat": []string{},
+		"string-map":    map[string]string{},
 	}
 
 	for k := range expected {
 		if !reflect.DeepEqual(opt.Option[k], expected[k]) {
-			t.Errorf("Wrong value: %v != %v", opt.Option, expected)
+			t.Errorf("Wrong value: %s\n%v !=\n%v", k, opt.Option[k], expected[k])
 		}
 	}
 
@@ -613,8 +617,8 @@ func TestDefaultValues(t *testing.T) {
 
 	// Tested above, but it gives me a feel for how it would be used
 
-	if opt.Option["flag"] != nil && !opt.Option["flag"].(bool) {
-		t.Errorf("flag didn't have expected value: %v != %v", opt.Option["flag"], nil)
+	if opt.Option["flag"].(bool) {
+		t.Errorf("flag didn't have expected value: %v != %v", opt.Option["flag"], false)
 	}
 	if opt.Option["non-used-flag"] != nil && opt.Option["non-used-flag"].(bool) {
 		t.Errorf("non-used-flag didn't have expected value: %v != %v", opt.Option["non-used-flag"], nil)
@@ -622,11 +626,11 @@ func TestDefaultValues(t *testing.T) {
 	if opt.Option["flag"] != nil && opt.Option["nflag"].(bool) {
 		t.Errorf("nflag didn't have expected value: %v != %v", opt.Option["nflag"], nil)
 	}
-	if opt.Option["string"] != nil {
-		t.Errorf("str didn't have expected value: %v != %v", opt.Option["string"], nil)
+	if opt.Option["string"] != "" {
+		t.Errorf("str didn't have expected value: %v != %v", opt.Option["string"], "")
 	}
-	if opt.Option["int"] != nil {
-		t.Errorf("int didn't have expected value: %v != %v", opt.Option["int"], nil)
+	if opt.Option["int"] != 0 {
+		t.Errorf("int didn't have expected value: %v != %v", opt.Option["int"], 0)
 	}
 }
 
