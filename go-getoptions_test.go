@@ -109,6 +109,49 @@ func TestOptionals(t *testing.T) {
 	if opt.Option["string"] != "arg" {
 		t.Errorf("string Optional didn't take argument")
 	}
+	opt = GetOptions()
+	opt.StringOptional("string", "default")
+	_, err = opt.Parse([]string{"--string", "arg"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.Option["string"] != "arg" {
+		t.Errorf("string Optional didn't take argument")
+	}
+
+	// VarOptional
+	var result string
+	opt = GetOptions()
+	opt.StringVarOptional(&result, "string", "default")
+	_, err = opt.Parse([]string{"--string=arg"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if result != "arg" {
+		t.Errorf("StringVarOptional didn't take argument")
+	}
+
+	result = ""
+	opt = GetOptions()
+	opt.StringVarOptional(&result, "string", "default")
+	_, err = opt.Parse([]string{"--string=arg"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if result != "arg" {
+		t.Errorf("StringVarOptional didn't take argument")
+	}
+
+	result = ""
+	opt = GetOptions()
+	opt.StringVarOptional(&result, "string", "default")
+	_, err = opt.Parse([]string{"--string"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if result != "default" {
+		t.Errorf("Default value not set for 'string'")
+	}
 }
 
 func TestGetOptBool(t *testing.T) {

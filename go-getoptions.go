@@ -276,6 +276,7 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 // when called with `--strOpt` the value is the given default.
 func (opt *GetOpt) StringOptional(name string, def string, aliases ...string) *string {
 	var s string
+	s = def
 	opt.failIfDefined(name)
 	opt.Option[name] = s
 	aliases = append(aliases, name)
@@ -288,18 +289,36 @@ func (opt *GetOpt) StringOptional(name string, def string, aliases ...string) *s
 	return &s
 }
 
+// StringVarOptional - define a `string` option and its aliases.
+// The result will be available through the variable marked by the given pointer.
+// StringVarOptional will set the string to the provided default value when no value is given.
+// For example, when called with `--strOpt value`, the value is `value`.
+// when called with `--strOpt` the value is the given default.
+func (opt *GetOpt) StringVarOptional(p *string, name, def string, aliases ...string) {
+	opt.StringOptional(name, def, aliases...)
+	*p = def
+	var tmp = opt.obj[name]
+	tmp.pString = p
+	opt.obj[name] = tmp
+}
+
 func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAlias string) error {
 	opt.Called[optName] = true
 	if argument != "" {
 		opt.Option[optName] = argument
+		*opt.obj[optName].pString = argument
 		Debug.Printf("handleOption Option: %v\n", opt.Option)
 		return nil
 	}
-	if len(opt.args) < opt.argsIndex+2 {
+	opt.argsIndex++
+	if len(opt.args) < opt.argsIndex+1 {
 		opt.Option[optName] = opt.obj[optName].def
-	} else {
-		// TODO: Check if next arg is option
+		*opt.obj[optName].pString = opt.obj[optName].def.(string)
+		return nil
 	}
+	// TODO: Check if next arg is option
+	opt.Option[optName] = opt.args[opt.argsIndex]
+	*opt.obj[optName].pString = opt.args[opt.argsIndex]
 	return nil
 }
 
