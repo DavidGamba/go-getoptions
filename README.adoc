@@ -251,9 +251,9 @@ Don't be lazy, write a man page for your program and create the program's synops
 import "github.com/davidgamba/go-getoptions" // As getoptions
 
 opt := getoptions.GetOptions()
-b := opt.Bool("flag")
+b := opt.Bool("flag", false)
+s := opt.String("string", "")
 i := opt.Int("int")
-s := opt.String("string")
 remaining, err := opt.Parse(os.Args[1:])
 
 if *b {

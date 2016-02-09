@@ -22,8 +22,8 @@ The following is a basic example:
 
 		opt := getoptions.GetOptions()
 		b := opt.Bool("flag", false)
+		s := opt.String("string", "")
 		i := opt.Int("int")
-		s := opt.String("string")
 		remaining, err := opt.Parse(os.Args[1:])
 
 		if *b {
@@ -222,9 +222,11 @@ func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string
 
 // String - define a `string` option and its aliases.
 // The result will be available through the `Option` map.
-func (opt *GetOpt) String(name string, aliases ...string) *string {
+// If not called, the return value will be that of the given default `def`.
+func (opt *GetOpt) String(name, def string, aliases ...string) *string {
 	var s string
 	opt.failIfDefined(name)
+	s = def
 	opt.Option[name] = s
 	aliases = append(aliases, name)
 	opt.obj[name] = option{
@@ -238,8 +240,9 @@ func (opt *GetOpt) String(name string, aliases ...string) *string {
 
 // StringVar - define a `string` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
-func (opt *GetOpt) StringVar(p *string, name string, aliases ...string) {
-	opt.String(name, aliases...)
+// If not called, the return value will be that of the given default `def`.
+func (opt *GetOpt) StringVar(p *string, name, def string, aliases ...string) {
+	opt.String(name, def, aliases...)
 	var tmp = opt.obj[name]
 	tmp.pString = p
 	opt.obj[name] = tmp
@@ -250,9 +253,7 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 	opt.Called[optName] = true
 	if argument != "" {
 		opt.Option[optName] = argument
-		if opt.obj[optName].pString != nil {
-			*opt.obj[optName].pString = argument
-		}
+		*opt.obj[optName].pString = argument
 		Debug.Printf("handleOption Option: %v\n", opt.Option)
 		return nil
 	}
@@ -262,9 +263,7 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 		return fmt.Errorf("Missing argument for option '%s'!", optName)
 	}
 	opt.Option[optName] = opt.args[opt.argsIndex]
-	if opt.obj[optName].pString != nil {
-		*opt.obj[optName].pString = opt.args[opt.argsIndex]
-	}
+	*opt.obj[optName].pString = opt.args[opt.argsIndex]
 	return nil
 }
 

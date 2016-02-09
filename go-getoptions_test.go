@@ -79,7 +79,7 @@ func TestWarningOrErrorOnUnknown(t *testing.T) {
 func TestOptionals(t *testing.T) {
 	// Missing argument without default
 	opt := GetOptions()
-	opt.String("string")
+	opt.String("string", "")
 	_, err := opt.Parse([]string{"--string"})
 	if err == nil {
 		t.Errorf("Missing argument for option 'string' didn't raise error")
@@ -200,8 +200,8 @@ func TestCalled(t *testing.T) {
 	opt.Bool("hello", false)
 	opt.Bool("happy", false)
 	opt.Bool("world", false)
-	opt.String("string")
-	opt.String("string2")
+	opt.String("string", "")
+	opt.String("string2", "")
 	opt.Int("int")
 	opt.Int("int2")
 	_, err := opt.Parse([]string{"--hello", "--world", "--string2", "str", "--int2", "123"})
@@ -305,7 +305,7 @@ func TestGetOptAliases(t *testing.T) {
 func TestGetOptString(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := GetOptions()
-		opt.String("string")
+		opt.String("string", "")
 		return opt
 	}
 
@@ -546,8 +546,8 @@ func TestVars(t *testing.T) {
 	opt.NBoolVar(&nflag2, "n2", false)
 
 	var str, str2 string
-	opt.StringVar(&str, "stringVar")
-	opt.StringVar(&str2, "stringVar2")
+	opt.StringVar(&str, "stringVar", "")
+	opt.StringVar(&str2, "stringVar2", "")
 
 	var integer int
 	opt.IntVar(&integer, "intVar")
@@ -613,8 +613,11 @@ func TestDefaultValues(t *testing.T) {
 	opt.BoolVar(&flag, "varflag", false)
 	opt.NBool("nflag", false)
 	opt.NBoolVar(&nflag, "varnflag", false)
-	opt.String("string")
-	opt.StringVar(&str, "stringVar")
+	opt.String("string", "")
+	opt.String("string2", "default")
+	str3 := opt.String("string3", "default")
+	opt.StringVar(&str, "stringVar", "")
+	opt.StringVar(&str, "stringVar2", "default")
 	opt.Int("int")
 	opt.IntVar(&integer, "intVar")
 	opt.StringSlice("string-repeat")
@@ -632,7 +635,9 @@ func TestDefaultValues(t *testing.T) {
 		"nflag":         false,
 		"varnflag":      false,
 		"string":        "",
+		"string2":       "default",
 		"stringVar":     "",
+		"stringVar2":    "default",
 		"int":           0,
 		"intVar":        0,
 		"string-repeat": []string{},
@@ -653,6 +658,9 @@ func TestDefaultValues(t *testing.T) {
 	}
 	if str != "" {
 		t.Errorf("str didn't have expected value: %v != %v", str, "hello")
+	}
+	if *str3 != "default" {
+		t.Errorf("str didn't have expected value: %v != %v", str3, "default")
 	}
 	if integer != 0 {
 		t.Errorf("integer didn't have expected value: %v != %v", integer, 123)
@@ -690,8 +698,8 @@ func TestAll(t *testing.T) {
 	opt.NBool("nfnil", false)
 	opt.NBoolVar(&nflag, "varnflag", false)
 	opt.NBoolVar(&nflag2, "varnflag2", false)
-	opt.String("string")
-	opt.StringVar(&str, "stringVar")
+	opt.String("string", "")
+	opt.StringVar(&str, "stringVar", "")
 	opt.Int("int")
 	opt.IntVar(&integer, "intVar")
 	opt.StringSlice("string-repeat")
