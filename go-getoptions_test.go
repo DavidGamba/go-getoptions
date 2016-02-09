@@ -202,8 +202,8 @@ func TestCalled(t *testing.T) {
 	opt.Bool("world", false)
 	opt.String("string", "")
 	opt.String("string2", "")
-	opt.Int("int")
-	opt.Int("int2")
+	opt.Int("int", 0)
+	opt.Int("int2", 0)
 	_, err := opt.Parse([]string{"--hello", "--world", "--string2", "str", "--int2", "123"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -362,7 +362,7 @@ func TestGetOptString(t *testing.T) {
 func TestGetOptInt(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := GetOptions()
-		opt.Int("int")
+		opt.Int("int", 0)
 		return opt
 	}
 
@@ -405,7 +405,7 @@ func TestGetOptInt(t *testing.T) {
 
 	// Cast errors
 	opt := GetOptions()
-	opt.Int("int")
+	opt.Int("int", 0)
 	_, err := opt.Parse([]string{"--int=hello"})
 	if err == nil {
 		t.Errorf("Int cast didn't raise errors")
@@ -550,7 +550,7 @@ func TestVars(t *testing.T) {
 	opt.StringVar(&str2, "stringVar2", "")
 
 	var integer int
-	opt.IntVar(&integer, "intVar")
+	opt.IntVar(&integer, "intVar", 0)
 
 	_, err := opt.Parse([]string{
 		"-flag",
@@ -606,7 +606,7 @@ func TestVars(t *testing.T) {
 func TestDefaultValues(t *testing.T) {
 	var flag, nflag bool
 	var str string
-	var integer int
+	var integer, integer2 int
 
 	opt := GetOptions()
 	opt.Bool("flag", false)
@@ -618,8 +618,10 @@ func TestDefaultValues(t *testing.T) {
 	str3 := opt.String("string3", "default")
 	opt.StringVar(&str, "stringVar", "")
 	opt.StringVar(&str, "stringVar2", "default")
-	opt.Int("int")
-	opt.IntVar(&integer, "intVar")
+	opt.Int("int", 0)
+	int2 := opt.Int("int2", 5)
+	opt.IntVar(&integer, "intVar", 0)
+	opt.IntVar(&integer2, "intVar2", 5)
 	opt.StringSlice("string-repeat")
 	opt.StringMap("string-map")
 
@@ -665,6 +667,12 @@ func TestDefaultValues(t *testing.T) {
 	if integer != 0 {
 		t.Errorf("integer didn't have expected value: %v != %v", integer, 123)
 	}
+	if integer2 != 5 {
+		t.Errorf("integer2 didn't have expected value: %v != %v", integer2, 5)
+	}
+	if *int2 != 5 {
+		t.Errorf("int2 didn't have expected value: %v != %v", int2, 5)
+	}
 
 	// Tested above, but it gives me a feel for how it would be used
 
@@ -700,8 +708,8 @@ func TestAll(t *testing.T) {
 	opt.NBoolVar(&nflag2, "varnflag2", false)
 	opt.String("string", "")
 	opt.StringVar(&str, "stringVar", "")
-	opt.Int("int")
-	opt.IntVar(&integer, "intVar")
+	opt.Int("int", 0)
+	opt.IntVar(&integer, "intVar", 0)
 	opt.StringSlice("string-repeat")
 	opt.StringMap("string-map")
 

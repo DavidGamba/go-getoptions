@@ -23,7 +23,7 @@ The following is a basic example:
 		opt := getoptions.GetOptions()
 		b := opt.Bool("flag", false)
 		s := opt.String("string", "")
-		i := opt.Int("int")
+		i := opt.Int("int", 0)
 		remaining, err := opt.Parse(os.Args[1:])
 
 		if *b {
@@ -323,10 +323,11 @@ func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAli
 
 // Int - define an `int` option and its aliases.
 // The result will be available through the `Option` map.
-func (opt *GetOpt) Int(name string, aliases ...string) *int {
+func (opt *GetOpt) Int(name string, def int, aliases ...string) *int {
 	var i int
 	opt.failIfDefined(name)
-	opt.Option[name] = i
+	i = def
+	opt.Option[name] = def
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
@@ -338,8 +339,9 @@ func (opt *GetOpt) Int(name string, aliases ...string) *int {
 
 // IntVar - define an `int` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
-func (opt *GetOpt) IntVar(p *int, name string, aliases ...string) {
-	opt.Int(name, aliases...)
+func (opt *GetOpt) IntVar(p *int, name string, def int, aliases ...string) {
+	opt.Int(name, def, aliases...)
+	*p = def
 	var tmp = opt.obj[name]
 	tmp.pInt = p
 	opt.obj[name] = tmp
@@ -353,9 +355,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 			return fmt.Errorf("Can't convert string to int: '%s'", argument)
 		}
 		opt.Option[optName] = iArg
-		if opt.obj[optName].pInt != nil {
-			*opt.obj[optName].pInt = iArg
-		}
+		*opt.obj[optName].pInt = iArg
 		Debug.Printf("handleOption Option: %v\n", opt.Option)
 		return nil
 	}
@@ -368,9 +368,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 		return fmt.Errorf("Can't convert string to int: %q", err)
 	}
 	opt.Option[optName] = iArg
-	if opt.obj[optName].pInt != nil {
-		*opt.obj[optName].pInt = iArg
-	}
+	*opt.obj[optName].pInt = iArg
 	return nil
 }
 
@@ -383,6 +381,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 func (opt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 	var i int
 	opt.failIfDefined(name)
+	i = def
 	opt.Option[name] = i
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,

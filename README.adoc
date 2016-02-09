@@ -253,7 +253,7 @@ import "github.com/davidgamba/go-getoptions" // As getoptions
 opt := getoptions.GetOptions()
 b := opt.Bool("flag", false)
 s := opt.String("string", "")
-i := opt.Int("int")
+i := opt.Int("int", 0)
 remaining, err := opt.Parse(os.Args[1:])
 
 if *b {
