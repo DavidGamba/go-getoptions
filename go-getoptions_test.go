@@ -605,7 +605,7 @@ func TestVars(t *testing.T) {
 
 func TestDefaultValues(t *testing.T) {
 	var flag, nflag bool
-	var str string
+	var str, str2 string
 	var integer, integer2 int
 
 	opt := GetOptions()
@@ -617,7 +617,7 @@ func TestDefaultValues(t *testing.T) {
 	opt.String("string2", "default")
 	str3 := opt.String("string3", "default")
 	opt.StringVar(&str, "stringVar", "")
-	opt.StringVar(&str, "stringVar2", "default")
+	opt.StringVar(&str2, "stringVar2", "default")
 	opt.Int("int", 0)
 	int2 := opt.Int("int2", 5)
 	opt.IntVar(&integer, "intVar", 0)
@@ -659,7 +659,10 @@ func TestDefaultValues(t *testing.T) {
 		t.Errorf("nflag didn't have expected value: %v != %v", nflag, true)
 	}
 	if str != "" {
-		t.Errorf("str didn't have expected value: %v != %v", str, "hello")
+		t.Errorf("str didn't have expected value: %v != %v", str, "")
+	}
+	if str2 != "default" {
+		t.Errorf("str2 didn't have expected value: %v != %v", str, "default")
 	}
 	if *str3 != "default" {
 		t.Errorf("str didn't have expected value: %v != %v", str3, "default")

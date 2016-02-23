@@ -243,6 +243,7 @@ func (opt *GetOpt) String(name, def string, aliases ...string) *string {
 // If not called, the return value will be that of the given default `def`.
 func (opt *GetOpt) StringVar(p *string, name, def string, aliases ...string) {
 	opt.String(name, def, aliases...)
+	*p = def
 	var tmp = opt.obj[name]
 	tmp.pString = p
 	opt.obj[name] = tmp
