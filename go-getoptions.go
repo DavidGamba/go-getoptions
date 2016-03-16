@@ -123,10 +123,21 @@ func GetOptions() *GetOpt {
 
 // failIfDefined will *panic* if an option is defined twice.
 // This is not an error because the programmer has to fix this!
-func (opt *GetOpt) failIfDefined(name string) {
-	// TODO: Add support for checking aliases
+func (opt *GetOpt) failIfDefined(name string, aliases []string) {
+	Debug.Printf("checking option %s", name)
 	if _, ok := opt.Option[name]; ok {
 		panic(fmt.Sprintf("Option '%s' is already defined", name))
+	}
+	for _, a := range aliases {
+		Debug.Printf("checking alias %s", a)
+		if _, ok := opt.Option[a]; ok {
+			panic(fmt.Sprintf("Alias '%s' is already defined as an option", a))
+		}
+		if optName, ok := opt.getOptionFromAliases(a); ok {
+			if _, ok := opt.Option[optName]; ok {
+				panic(fmt.Sprintf("Alias '%s' is already defined for option '%s'", a, optName))
+			}
+		}
 	}
 }
 
@@ -137,7 +148,7 @@ func (opt *GetOpt) failIfDefined(name string) {
 func (opt *GetOpt) Bool(name string, def bool, aliases ...string) *bool {
 	var b bool
 	b = def
-	opt.failIfDefined(name)
+	opt.failIfDefined(name, aliases)
 	opt.Option[name] = def
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
@@ -176,7 +187,7 @@ func (opt *GetOpt) handleBool(optName string, argument string, usedAlias string)
 func (opt *GetOpt) NBool(name string, def bool, aliases ...string) *bool {
 	var b bool
 	b = def
-	opt.failIfDefined(name)
+	opt.failIfDefined(name, aliases)
 	opt.Option[name] = def
 	aliases = append(aliases, name)
 	aliases = append(aliases, "no"+name)
@@ -225,7 +236,7 @@ func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string
 // If not called, the return value will be that of the given default `def`.
 func (opt *GetOpt) String(name, def string, aliases ...string) *string {
 	var s string
-	opt.failIfDefined(name)
+	opt.failIfDefined(name, aliases)
 	s = def
 	opt.Option[name] = s
 	aliases = append(aliases, name)
@@ -277,7 +288,7 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 func (opt *GetOpt) StringOptional(name string, def string, aliases ...string) *string {
 	var s string
 	s = def
-	opt.failIfDefined(name)
+	opt.failIfDefined(name, aliases)
 	opt.Option[name] = s
 	aliases = append(aliases, name)
 	opt.obj[name] = option{name: name,
@@ -326,7 +337,7 @@ func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAli
 // The result will be available through the `Option` map.
 func (opt *GetOpt) Int(name string, def int, aliases ...string) *int {
 	var i int
-	opt.failIfDefined(name)
+	opt.failIfDefined(name, aliases)
 	i = def
 	opt.Option[name] = def
 	aliases = append(aliases, name)
@@ -381,7 +392,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 // when called with `--intOpt` the value is the given default.
 func (opt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 	var i int
-	opt.failIfDefined(name)
+	opt.failIfDefined(name, aliases)
 	i = def
 	opt.Option[name] = i
 	aliases = append(aliases, name)
@@ -406,7 +417,7 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 // to the `[]string`.
 // For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
 func (opt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
-	opt.failIfDefined(name)
+	opt.failIfDefined(name, aliases)
 	s := []string{}
 	opt.Option[name] = s
 	aliases = append(aliases, name)
@@ -445,7 +456,7 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 // For example, when called with `--strMap k=v --strMap k2=v2`, the value is
 // `map[string]string{"k":"v", "k2": "v2"}`.
 func (opt *GetOpt) StringMap(name string, aliases ...string) *map[string]string {
-	opt.failIfDefined(name)
+	opt.failIfDefined(name, aliases)
 	s := make(map[string]string)
 	opt.Option[name] = s
 	aliases = append(aliases, name)

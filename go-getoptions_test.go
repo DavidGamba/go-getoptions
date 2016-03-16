@@ -56,14 +56,41 @@ func TestIsOption(t *testing.T) {
 	}
 }
 
-/*
 // Verifies that a panic is reached when the same option is defined twice.
 func TestDuplicateDefinition(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Duplicate definition did not panic")
+		}
+	}()
 	opt := GetOptions()
-	opt.Bool("flag", false, "f")
-	opt.Bool("flag", false, "f")
+	opt.Bool("flag", false)
+	opt.Bool("flag", false)
 }
-*/
+
+// Verifies that a panic is reached when the same alias is defined twice.
+func TestDuplicateAlias(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Duplicate alias definition did not panic")
+		}
+	}()
+	opt := GetOptions()
+	opt.Bool("flag", false, "t")
+	opt.Bool("bool", false, "t")
+}
+
+// Verifies that a panic is reached when an alias is name after an option.
+func TestAliasMatchesOption(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Duplicate alias definition did not panic")
+		}
+	}()
+	opt := GetOptions()
+	opt.Bool("flag", false)
+	opt.Bool("bool", false, "flag")
+}
 
 func TestWarningOrErrorOnUnknown(t *testing.T) {
 	opt := GetOptions()
