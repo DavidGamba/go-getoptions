@@ -250,19 +250,37 @@ Don't be lazy, write a man page for your program and create the program's synops
 ----
 import "github.com/davidgamba/go-getoptions" // As getoptions
 
+// Declare the GetOptions object
 opt := getoptions.GetOptions()
-b := opt.Bool("flag", false)
-s := opt.String("string", "")
-i := opt.Int("int", 0)
+
+// Use methods that return pointers
+bp := opt.Bool("bp", false)
+sp := opt.String("sp", "")
+ip := opt.Int("ip", 0)
+
+// Use methods by passing pointers
+var b bool
+var s string
+var i int
+opt.BoolVar(&b, "b", true, "alias", "alias2") // Aliases can be defined
+opt.StringVar(&s, "s", "")
+opt.IntVar(&i, "i", 456)
+
+// Parse cmdline arguments or any provided []string
 remaining, err := opt.Parse(os.Args[1:])
 
-if *b {
+if *bp {
   // ... do something
 }
 
-if opt.Called["int"] {
+if opt.Called["i"] {
   // ... do something with i
 }
+
+// Use subcommands by operating on the remaining items
+opt2 := getoptions.GetOptions()
+// ...
+remaining2, err := opt.Parse(remaining)
 ----
 
 . Pass cmdline arguments:
