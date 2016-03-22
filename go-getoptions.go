@@ -345,7 +345,12 @@ func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAli
 		*opt.obj[optName].pString = opt.obj[optName].def.(string)
 		return nil
 	}
-	// TODO: Check if next arg is option
+	// Check if next arg is option
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.Mode); len(optList) > 0 {
+		opt.Option[optName] = opt.obj[optName].def
+		*opt.obj[optName].pString = opt.obj[optName].def.(string)
+		return nil
+	}
 	opt.Option[optName] = opt.args[opt.argsIndex]
 	*opt.obj[optName].pString = opt.args[opt.argsIndex]
 	return nil
@@ -454,7 +459,12 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 		*opt.obj[optName].pInt = opt.obj[optName].def.(int)
 		return nil
 	}
-	// TODO: Check if next arg is option
+	// Check if next arg is option
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.Mode); len(optList) > 0 {
+		opt.Option[optName] = opt.obj[optName].def
+		*opt.obj[optName].pInt = opt.obj[optName].def.(int)
+		return nil
+	}
 	iArg, err := strconv.Atoi(opt.args[opt.argsIndex])
 	if err != nil {
 		return fmt.Errorf("Can't convert string to int: %q", err)

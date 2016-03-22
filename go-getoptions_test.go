@@ -125,9 +125,32 @@ func TestOptionals(t *testing.T) {
 	if opt.Option["string"] != "default" {
 		t.Errorf("Default value not set for 'string'")
 	}
+
 	opt = GetOptions()
 	opt.IntOptional("int", 123)
 	_, err = opt.Parse([]string{"--int"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.Option["int"] != 123 {
+		t.Errorf("Default value not set for 'int'")
+	}
+
+	// Missing argument, next argument is option
+	opt = GetOptions()
+	opt.StringOptional("string", "default")
+	opt.IntOptional("int", 123)
+	_, err = opt.Parse([]string{"--string", "--int"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.Option["string"] != "default" {
+		t.Errorf("Default value not set for 'string'")
+	}
+	opt = GetOptions()
+	opt.StringOptional("string", "default")
+	opt.IntOptional("int", 123)
+	_, err = opt.Parse([]string{"--int", "--string"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
