@@ -251,7 +251,7 @@ Don't be lazy, write a man page for your program and create the program's synops
 import "github.com/davidgamba/go-getoptions" // As getoptions
 
 // Declare the GetOptions object
-opt := getoptions.GetOptions()
+opt := getoptions.New()
 
 // Use methods that return pointers
 bp := opt.Bool("bp", false)
@@ -278,7 +278,7 @@ if opt.Called("i") {
 }
 
 // Use subcommands by operating on the remaining items
-opt2 := getoptions.GetOptions()
+opt2 := getoptions.New()
 // ...
 remaining2, err := opt.Parse(remaining)
 ----

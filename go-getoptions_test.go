@@ -64,7 +64,7 @@ func TestDuplicateDefinition(t *testing.T) {
 			t.Errorf("Duplicate definition did not panic")
 		}
 	}()
-	opt := GetOptions()
+	opt := New()
 	opt.Bool("flag", false)
 	opt.Bool("flag", false)
 }
@@ -76,7 +76,7 @@ func TestDuplicateAlias(t *testing.T) {
 			t.Errorf("Duplicate alias definition did not panic")
 		}
 	}()
-	opt := GetOptions()
+	opt := New()
 	opt.Bool("flag", false, "t")
 	opt.Bool("bool", false, "t")
 }
@@ -88,13 +88,13 @@ func TestAliasMatchesOption(t *testing.T) {
 			t.Errorf("Duplicate alias definition did not panic")
 		}
 	}()
-	opt := GetOptions()
+	opt := New()
 	opt.Bool("flag", false)
 	opt.Bool("bool", false, "flag")
 }
 
 func TestWarningOrErrorOnUnknown(t *testing.T) {
-	opt := GetOptions()
+	opt := New()
 	_, err := opt.Parse([]string{"--flags"})
 	if err == nil {
 		t.Errorf("Unknown option 'flags' didn't raise error")
@@ -106,7 +106,7 @@ func TestWarningOrErrorOnUnknown(t *testing.T) {
 
 func TestOptionals(t *testing.T) {
 	// Missing argument without default
-	opt := GetOptions()
+	opt := New()
 	opt.String("string", "")
 	_, err := opt.Parse([]string{"--string"})
 	if err == nil {
@@ -117,7 +117,7 @@ func TestOptionals(t *testing.T) {
 	}
 
 	// Missing argument with default
-	opt = GetOptions()
+	opt = New()
 	opt.StringOptional("string", "default")
 	_, err = opt.Parse([]string{"--string"})
 	if err != nil {
@@ -127,7 +127,7 @@ func TestOptionals(t *testing.T) {
 		t.Errorf("Default value not set for 'string'")
 	}
 
-	opt = GetOptions()
+	opt = New()
 	opt.IntOptional("int", 123)
 	_, err = opt.Parse([]string{"--int"})
 	if err != nil {
@@ -138,7 +138,7 @@ func TestOptionals(t *testing.T) {
 	}
 
 	// Missing argument, next argument is option
-	opt = GetOptions()
+	opt = New()
 	opt.StringOptional("string", "default")
 	opt.IntOptional("int", 123)
 	_, err = opt.Parse([]string{"--string", "--int"})
@@ -148,7 +148,7 @@ func TestOptionals(t *testing.T) {
 	if opt.Option("string") != "default" {
 		t.Errorf("Default value not set for 'string'")
 	}
-	opt = GetOptions()
+	opt = New()
 	opt.StringOptional("string", "default")
 	opt.IntOptional("int", 123)
 	_, err = opt.Parse([]string{"--int", "--string"})
@@ -160,7 +160,7 @@ func TestOptionals(t *testing.T) {
 	}
 
 	// Argument given
-	opt = GetOptions()
+	opt = New()
 	opt.StringOptional("string", "default")
 	opt.IntOptional("int", 123)
 	_, err = opt.Parse([]string{"--string=arg", "--int=456"})
@@ -173,7 +173,7 @@ func TestOptionals(t *testing.T) {
 	if opt.Option("int") != 456 {
 		t.Errorf("int Optional didn't take argument")
 	}
-	opt = GetOptions()
+	opt = New()
 	opt.StringOptional("string", "default")
 	opt.IntOptional("int", 123)
 	_, err = opt.Parse([]string{"--string", "arg", "--int", "456"})
@@ -190,7 +190,7 @@ func TestOptionals(t *testing.T) {
 	// VarOptional
 	var result string
 	var i int
-	opt = GetOptions()
+	opt = New()
 	opt.StringVarOptional(&result, "string", "default")
 	opt.IntVarOptional(&i, "int", 123)
 	_, err = opt.Parse([]string{"--string=arg", "--int=456"})
@@ -205,7 +205,7 @@ func TestOptionals(t *testing.T) {
 	}
 
 	result = ""
-	opt = GetOptions()
+	opt = New()
 	opt.StringVarOptional(&result, "string", "default")
 	_, err = opt.Parse([]string{"--string=arg"})
 	if err != nil {
@@ -216,7 +216,7 @@ func TestOptionals(t *testing.T) {
 	}
 
 	i = 0
-	opt = GetOptions()
+	opt = New()
 	opt.IntVarOptional(&i, "int", 123)
 	_, err = opt.Parse([]string{"--int=456"})
 	if err != nil {
@@ -227,7 +227,7 @@ func TestOptionals(t *testing.T) {
 	}
 
 	result = ""
-	opt = GetOptions()
+	opt = New()
 	opt.StringVarOptional(&result, "string", "default")
 	_, err = opt.Parse([]string{"--string"})
 	if err != nil {
@@ -238,7 +238,7 @@ func TestOptionals(t *testing.T) {
 	}
 
 	i = 0
-	opt = GetOptions()
+	opt = New()
 	opt.IntVarOptional(&i, "int", 123)
 	_, err = opt.Parse([]string{"--int"})
 	if err != nil {
@@ -251,7 +251,7 @@ func TestOptionals(t *testing.T) {
 
 func TestGetOptBool(t *testing.T) {
 	setup := func() *GetOpt {
-		opt := GetOptions()
+		opt := New()
 		opt.Bool("flag", false)
 		opt.NBool("nflag", false)
 		return opt
@@ -291,7 +291,7 @@ func TestGetOptBool(t *testing.T) {
 }
 
 func TestCalled(t *testing.T) {
-	opt := GetOptions()
+	opt := New()
 	opt.Bool("hello", false)
 	opt.Bool("happy", false)
 	opt.Bool("world", false)
@@ -327,7 +327,7 @@ func TestCalled(t *testing.T) {
 }
 
 func TestEndOfParsing(t *testing.T) {
-	opt := GetOptions()
+	opt := New()
 	opt.Bool("hello", false)
 	opt.Bool("world", false)
 	remaining, err := opt.Parse([]string{"hola", "--hello", "--", "mundo", "--world"})
@@ -342,7 +342,7 @@ func TestEndOfParsing(t *testing.T) {
 
 func TestGetOptAliases(t *testing.T) {
 	setup := func() *GetOpt {
-		opt := GetOptions()
+		opt := New()
 		opt.Bool("flag", false, "f", "h")
 		return opt
 	}
@@ -385,7 +385,7 @@ func TestGetOptAliases(t *testing.T) {
 		}
 	}
 
-	opt := GetOptions()
+	opt := New()
 	opt.Bool("flag", false)
 	opt.Bool("fleg", false)
 	_, err := opt.Parse([]string{"--fl"})
@@ -399,7 +399,7 @@ func TestGetOptAliases(t *testing.T) {
 
 func TestGetOptString(t *testing.T) {
 	setup := func() *GetOpt {
-		opt := GetOptions()
+		opt := New()
 		opt.String("string", "")
 		return opt
 	}
@@ -454,7 +454,7 @@ func TestGetOptString(t *testing.T) {
 		}
 	}
 
-	opt := GetOptions()
+	opt := New()
 	opt.String("string", "")
 	_, err := opt.Parse([]string{"--string", "--hello"})
 	if err == nil {
@@ -467,7 +467,7 @@ func TestGetOptString(t *testing.T) {
 
 func TestGetOptInt(t *testing.T) {
 	setup := func() *GetOpt {
-		opt := GetOptions()
+		opt := New()
 		opt.Int("int", 0)
 		return opt
 	}
@@ -510,7 +510,7 @@ func TestGetOptInt(t *testing.T) {
 	}
 
 	// Cast errors
-	opt := GetOptions()
+	opt := New()
 	opt.Int("int", 0)
 	_, err := opt.Parse([]string{"--int=hello"})
 	if err == nil {
@@ -520,7 +520,7 @@ func TestGetOptInt(t *testing.T) {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 
-	opt = GetOptions()
+	opt = New()
 	opt.Int("int", 0)
 	_, err = opt.Parse([]string{"--int", "-123"})
 	if err == nil {
@@ -533,7 +533,7 @@ func TestGetOptInt(t *testing.T) {
 
 func TestGetOptStringRepeat(t *testing.T) {
 	setup := func() *GetOpt {
-		opt := GetOptions()
+		opt := New()
 		opt.StringSlice("string")
 		return opt
 	}
@@ -590,7 +590,7 @@ func TestGetOptStringRepeat(t *testing.T) {
 // TODO: Allow passig : as the map divider
 func TestGetOptStringMap(t *testing.T) {
 	setup := func() *GetOpt {
-		opt := GetOptions()
+		opt := New()
 		opt.StringMap("string")
 		return opt
 	}
@@ -647,7 +647,7 @@ func TestGetOptStringMap(t *testing.T) {
 }
 
 func TestVars(t *testing.T) {
-	opt := GetOptions()
+	opt := New()
 
 	var flag, flag2, flag5, flag6 bool
 	opt.BoolVar(&flag, "flag", false)
@@ -724,7 +724,7 @@ func TestDefaultValues(t *testing.T) {
 	var str, str2 string
 	var integer, integer2 int
 
-	opt := GetOptions()
+	opt := New()
 	opt.Bool("flag", false)
 	opt.BoolVar(&flag, "varflag", false)
 	opt.NBool("nflag", false)
@@ -815,7 +815,7 @@ func TestDefaultValues(t *testing.T) {
 func TestBundling(t *testing.T) {
 	var o, p bool
 	var s string
-	opt := GetOptions()
+	opt := New()
 	opt.BoolVar(&o, "o", false)
 	opt.BoolVar(&p, "p", false)
 	opt.StringVar(&s, "t", "")
@@ -841,7 +841,7 @@ func TestSingleDash(t *testing.T) {
 	var o string
 	var p bool
 	var s string
-	opt := GetOptions()
+	opt := New()
 	opt.StringVar(&o, "o", "")
 	opt.BoolVar(&p, "p", false)
 	opt.StringVar(&s, "t", "")
@@ -867,7 +867,7 @@ func TestAll(t *testing.T) {
 	var flag, nflag, nflag2 bool
 	var str string
 	var integer int
-	opt := GetOptions()
+	opt := New()
 	opt.Bool("flag", false)
 	opt.BoolVar(&flag, "varflag", false)
 	opt.Bool("non-used-flag", false)

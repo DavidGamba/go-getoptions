@@ -21,7 +21,7 @@ The following is a basic example:
 		import "github.com/davidgamba/go-getoptions" // As getoptions
 
 		// Declare the GetOptions object
-		opt := getoptions.GetOptions()
+		opt := getoptions.New()
 
 		// Use methods that return pointers
 		bp := opt.Bool("bp", false)
@@ -48,7 +48,7 @@ The following is a basic example:
 		}
 
 		// Use subcommands by operating on the remaining items
-		opt2 := getoptions.GetOptions()
+		opt2 := getoptions.New()
 		// ...
 		remaining2, err := opt.Parse(remaining)
 
@@ -97,9 +97,7 @@ import (
 // Enable debug logging by setting: `Debug.SetOutput(os.Stderr)`
 var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
-// GetOpt - main struct with Option map result and global configuration settings.
-//
-// * Mode: Operation mode for short options: normal (default), bundling, singleDash.
+// GetOpt - main object
 type GetOpt struct {
 	value     map[string]interface{} // Map with resulting variables
 	mode      string                 // Operation mode for short options: normal, bundling, singleDash
@@ -123,12 +121,12 @@ type option struct {
 	pString *string // receiver for string pointer
 }
 
-// GetOptions returns an empty object of type GetOpt.
+// New returns an empty object of type GetOpt.
 // This is the starting point when using go-getoptions.
 // For example:
 //
-//   opt := getoptions.GetOptions()
-func GetOptions() *GetOpt {
+//   opt := getoptions.New()
+func New() *GetOpt {
 	opt := &GetOpt{
 		value: make(map[string]interface{}),
 		obj:   make(map[string]option),

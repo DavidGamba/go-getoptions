@@ -16,7 +16,7 @@ import (
 
 func Example() {
 	// Declare the GetOptions object
-	opt := getoptions.GetOptions()
+	opt := getoptions.New()
 
 	// Use methods that return pointers
 	bp := opt.Bool("bp", false)
