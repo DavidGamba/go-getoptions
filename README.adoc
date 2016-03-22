@@ -273,7 +273,7 @@ if *bp {
   // ... do something
 }
 
-if opt.Called["i"] {
+if opt.Called("i") {
   // ... do something with i
 }
 
@@ -312,7 +312,7 @@ $ ./myscript non-option -f --string=mystring -i 7 --float 3.14 --p --version non
 * Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
 
-* opt.Called indicates if the parameter was passed on the command line.
+* Called method indicates if the option was passed on the command line.
 
 == How to install it
 

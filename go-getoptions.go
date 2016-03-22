@@ -43,7 +43,7 @@ The following is a basic example:
 			// ... do something
 		}
 
-		if opt.Called["i"] {
+		if opt.Called("i") {
 			// ... do something with i
 		}
 
@@ -66,13 +66,12 @@ Features
 * Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
 
-* opt.Called indicates if the parameter was passed on the command line.
+* Called method indicates if the option was passed on the command line.
 
 
 Panic
 
-The library will panic during compile time if it finds that the programmer
-defined the same alias twice.
+The library will panic if it finds that the programmer defined the same alias twice.
 */
 package getoptions
 
@@ -103,7 +102,6 @@ type Option map[string]interface{}
 type GetOpt struct {
 	Option           // Map with resulting variables
 	Mode      string // Operation mode for short options: normal, bundling, singleDash
-	Called    map[string]bool
 	Writer    io.Writer
 	config    map[string]string
 	obj       map[string]option
@@ -115,6 +113,7 @@ type option struct {
 	name    string
 	aliases []string
 	def     interface{} // default value
+	called  bool        // Indicates if the option was passed on the command line.
 	handler func(optName string,
 		argument string,
 		usedAlias string) error // method used to handle the option
@@ -133,7 +132,6 @@ func GetOptions() *GetOpt {
 	opt := &GetOpt{
 		Option: Option{},
 		Mode:   "normal",
-		Called: make(map[string]bool),
 		obj:    make(map[string]option),
 	}
 	return opt
@@ -170,6 +168,11 @@ func (opt *GetOpt) failIfDefined(name string, aliases []string) {
 	}
 }
 
+// Called - Indicates if the option was passed on the command line.
+func (opt *GetOpt) Called(name string) bool {
+	return opt.obj[name].called
+}
+
 // Bool - define a `bool` option and its aliases.
 // It returnns a `*bool` pointing to the variable holding the result.
 // Additionally, the result will be available through the `Option` map.
@@ -201,9 +204,11 @@ func (opt *GetOpt) BoolVar(p *bool, name string, def bool, aliases ...string) {
 
 func (opt *GetOpt) handleBool(optName string, argument string, usedAlias string) error {
 	Debug.Println("handleBool")
-	opt.Called[optName] = true
 	opt.Option[optName] = !opt.obj[optName].def.(bool)
 	*opt.obj[optName].pBool = !opt.obj[optName].def.(bool)
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
 	return nil
 }
 
@@ -249,7 +254,6 @@ func (opt *GetOpt) NBoolVar(p *bool, name string, def bool, aliases ...string) {
 
 func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string) error {
 	Debug.Println("handleNBool")
-	opt.Called[optName] = true
 	if strings.HasPrefix(usedAlias, "no-") {
 		opt.Option[optName] = opt.obj[optName].def.(bool)
 		*opt.obj[optName].pBool = opt.obj[optName].def.(bool)
@@ -257,6 +261,9 @@ func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string
 		opt.Option[optName] = !opt.obj[optName].def.(bool)
 		*opt.obj[optName].pBool = !opt.obj[optName].def.(bool)
 	}
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
 	return nil
 }
 
@@ -291,7 +298,9 @@ func (opt *GetOpt) StringVar(p *string, name, def string, aliases ...string) {
 
 func (opt *GetOpt) handleString(optName string, argument string, usedAlias string) error {
 	Debug.Printf("handleString opt.args: %v(%d)\n", opt.args, len(opt.args))
-	opt.Called[optName] = true
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
 	if argument != "" {
 		opt.Option[optName] = argument
 		*opt.obj[optName].pString = argument
@@ -347,7 +356,9 @@ func (opt *GetOpt) StringVarOptional(p *string, name, def string, aliases ...str
 }
 
 func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAlias string) error {
-	opt.Called[optName] = true
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
 	if argument != "" {
 		opt.Option[optName] = argument
 		*opt.obj[optName].pString = argument
@@ -398,7 +409,9 @@ func (opt *GetOpt) IntVar(p *int, name string, def int, aliases ...string) {
 }
 
 func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) error {
-	opt.Called[optName] = true
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
 	if argument != "" {
 		iArg, err := strconv.Atoi(argument)
 		if err != nil {
@@ -461,7 +474,9 @@ func (opt *GetOpt) IntVarOptional(p *int, name string, def int, aliases ...strin
 }
 
 func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias string) error {
-	opt.Called[optName] = true
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
 	if argument != "" {
 		iArg, err := strconv.Atoi(argument)
 		if err != nil {
@@ -513,7 +528,9 @@ func (opt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
 }
 
 func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias string) error {
-	opt.Called[optName] = true
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
 	if _, ok := opt.Option[optName]; !ok {
 		opt.Option[optName] = []string{}
 	}
@@ -552,7 +569,9 @@ func (opt *GetOpt) StringMap(name string, aliases ...string) *map[string]string 
 }
 
 func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias string) error {
-	opt.Called[optName] = true
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
 	if _, ok := opt.Option[optName]; !ok {
 		opt.Option[optName] = make(map[string]string)
 	}

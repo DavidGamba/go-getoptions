@@ -62,7 +62,7 @@ func Example() {
 	}
 
 	// Called Map tells you if an option was actually called or not
-	if opt.Called["ip"] {
+	if opt.Called("ip") {
 		fmt.Printf("*ip is %d\n", *ip)
 	}
 
@@ -70,7 +70,7 @@ func Example() {
 	fmt.Printf("s is %s\n", s)
 
 	// When the option is not called, it will have the provided default
-	if !opt.Called["i"] {
+	if !opt.Called("i") {
 		fmt.Printf("i is %d\n", i)
 	}
 

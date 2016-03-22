@@ -303,25 +303,25 @@ func TestCalled(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	if !opt.Called["hello"] {
+	if !opt.Called("hello") {
 		t.Errorf("hello didn't have expected value %v", false)
 	}
-	if opt.Called["happy"] {
+	if opt.Called("happy") {
 		t.Errorf("happy didn't have expected value %v", true)
 	}
-	if !opt.Called["world"] {
+	if !opt.Called("world") {
 		t.Errorf("world didn't have expected value %v", false)
 	}
-	if opt.Called["string"] {
+	if opt.Called("string") {
 		t.Errorf("string didn't have expected value %v", true)
 	}
-	if !opt.Called["string2"] {
+	if !opt.Called("string2") {
 		t.Errorf("string2 didn't have expected value %v", false)
 	}
-	if opt.Called["int"] {
+	if opt.Called("int") {
 		t.Errorf("int didn't have expected value %v", true)
 	}
-	if !opt.Called["int2"] {
+	if !opt.Called("int2") {
 		t.Errorf("int2 didn't have expected value %v", false)
 	}
 }
