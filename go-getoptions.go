@@ -181,7 +181,23 @@ func (opt *GetOpt) Option(name string) interface{} {
 }
 
 // SetMode - Sets the Operation Mode.
-// normal, bundling or singleDash
+// The operation mode only affects options starting with a single dash '-'.
+// The available operation modes are: normal, bundling or singleDash
+//
+// The following table shows the different operation modes given the string "-opt=arg"
+//
+//     .Operation Modes for string "-opt=arg"
+//     |===
+//     |normal           |bundling       |singleDash
+//
+//     |option: "opt"    |option: o      |option: o
+//     | argument: "arg" | argument: nil | argument: pt=arg
+//     |                 |option: p      |
+//     |                 | argument: nil |
+//     |                 |option: t      |
+//     |                 | argument: arg |
+//
+//     |===
 func (opt *GetOpt) SetMode(mode string) {
 	opt.mode = mode
 }
