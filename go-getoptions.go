@@ -418,13 +418,49 @@ func (opt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 		aliases: aliases,
 		pInt:    &i,
 		def:     def,
+		handler: opt.handleIntOptional,
 	}
-	panic(fmt.Sprintf("Not implemented IntOptional"))
-	// return &i
+	return &i
+}
+
+// IntVarOptional - define a `int` option and its aliases.
+// The result will be available through the variable marked by the given pointer.
+// IntOptional will set the int to the provided default value when no value is given.
+// For example, when called with `--intOpt 123`, the value is `123`.
+// when called with `--intOpt` the value is the given default.
+func (opt *GetOpt) IntVarOptional(p *int, name string, def int, aliases ...string) {
+	opt.IntOptional(name, def, aliases...)
+	*p = def
+	var tmp = opt.obj[name]
+	tmp.pInt = p
+	opt.obj[name] = tmp
 }
 
 func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias string) error {
 	opt.Called[optName] = true
+	if argument != "" {
+		iArg, err := strconv.Atoi(argument)
+		if err != nil {
+			return fmt.Errorf("Can't convert string to int: '%s'", argument)
+		}
+		opt.Option[optName] = iArg
+		*opt.obj[optName].pInt = iArg
+		Debug.Printf("handleOption Option: %v\n", opt.Option)
+		return nil
+	}
+	opt.argsIndex++
+	if len(opt.args) < opt.argsIndex+1 {
+		opt.Option[optName] = opt.obj[optName].def
+		*opt.obj[optName].pInt = opt.obj[optName].def.(int)
+		return nil
+	}
+	// TODO: Check if next arg is option
+	iArg, err := strconv.Atoi(opt.args[opt.argsIndex])
+	if err != nil {
+		return fmt.Errorf("Can't convert string to int: %q", err)
+	}
+	opt.Option[optName] = iArg
+	*opt.obj[optName].pInt = iArg
 	return nil
 }
 

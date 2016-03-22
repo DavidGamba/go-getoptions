@@ -125,37 +125,59 @@ func TestOptionals(t *testing.T) {
 	if opt.Option["string"] != "default" {
 		t.Errorf("Default value not set for 'string'")
 	}
+	opt = GetOptions()
+	opt.IntOptional("int", 123)
+	_, err = opt.Parse([]string{"--int"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.Option["int"] != 123 {
+		t.Errorf("Default value not set for 'int'")
+	}
 
 	// Argument given
 	opt = GetOptions()
 	opt.StringOptional("string", "default")
-	_, err = opt.Parse([]string{"--string=arg"})
+	opt.IntOptional("int", 123)
+	_, err = opt.Parse([]string{"--string=arg", "--int=456"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	if opt.Option["string"] != "arg" {
 		t.Errorf("string Optional didn't take argument")
+	}
+	if opt.Option["int"] != 456 {
+		t.Errorf("int Optional didn't take argument")
 	}
 	opt = GetOptions()
 	opt.StringOptional("string", "default")
-	_, err = opt.Parse([]string{"--string", "arg"})
+	opt.IntOptional("int", 123)
+	_, err = opt.Parse([]string{"--string", "arg", "--int", "456"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	if opt.Option["string"] != "arg" {
 		t.Errorf("string Optional didn't take argument")
+	}
+	if opt.Option["int"] != 456 {
+		t.Errorf("int Optional didn't take argument")
 	}
 
 	// VarOptional
 	var result string
+	var i int
 	opt = GetOptions()
 	opt.StringVarOptional(&result, "string", "default")
-	_, err = opt.Parse([]string{"--string=arg"})
+	opt.IntVarOptional(&i, "int", 123)
+	_, err = opt.Parse([]string{"--string=arg", "--int=456"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	if result != "arg" {
 		t.Errorf("StringVarOptional didn't take argument")
+	}
+	if i != 456 {
+		t.Errorf("IntVarOptional didn't take argument")
 	}
 
 	result = ""
@@ -167,6 +189,17 @@ func TestOptionals(t *testing.T) {
 	}
 	if result != "arg" {
 		t.Errorf("StringVarOptional didn't take argument")
+	}
+
+	i = 0
+	opt = GetOptions()
+	opt.IntVarOptional(&i, "int", 123)
+	_, err = opt.Parse([]string{"--int=456"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if i != 456 {
+		t.Errorf("IntVarOptional didn't take argument")
 	}
 
 	result = ""
@@ -178,6 +211,17 @@ func TestOptionals(t *testing.T) {
 	}
 	if result != "default" {
 		t.Errorf("Default value not set for 'string'")
+	}
+
+	i = 0
+	opt = GetOptions()
+	opt.IntVarOptional(&i, "int", 123)
+	_, err = opt.Parse([]string{"--int"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if i != 123 {
+		t.Errorf("Default value not set for 'int'")
 	}
 }
 
