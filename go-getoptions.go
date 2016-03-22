@@ -292,6 +292,12 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 	if len(opt.args) < opt.argsIndex+1 {
 		return fmt.Errorf("Missing argument for option '%s'!", optName)
 	}
+	// Check if next arg is option
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.Mode); len(optList) > 0 {
+		return fmt.Errorf("Missing argument for option '%s'!\n"+
+			"If passing arguments that start with '-' use --option=-argument",
+			optName)
+	}
 	opt.Option[optName] = opt.args[opt.argsIndex]
 	*opt.obj[optName].pString = opt.args[opt.argsIndex]
 	return nil
@@ -397,6 +403,12 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 	opt.argsIndex++
 	if len(opt.args) < opt.argsIndex+1 {
 		return fmt.Errorf("Missing argument for option '%s'!", optName)
+	}
+	// Check if next arg is option
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.Mode); len(optList) > 0 {
+		return fmt.Errorf("Missing argument for option '%s'!\n"+
+			"If passing arguments that start with '-' use --option=-argument",
+			optName)
 	}
 	iArg, err := strconv.Atoi(opt.args[opt.argsIndex])
 	if err != nil {

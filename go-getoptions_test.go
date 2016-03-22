@@ -429,13 +429,14 @@ func TestGetOptString(t *testing.T) {
 			[]string{"--string", "hello", "world"},
 			"hello",
 		},
-		// TODO: Set a flag to decide wheter or not to allow this
+		// String should only accept an option looking string as an argument when pased after =
 		{setup(),
 			"string",
-			[]string{"--string", "--hello", "world"},
+			[]string{"--string=--hello", "world"},
 			"--hello",
 		},
 		// TODO: Set up a flag to decide wheter or not to err on this
+		// To have the definition of string overriden. This should probably fail since it is most likely not what the user intends.
 		{setup(),
 			"string",
 			[]string{"--string", "hello", "--string", "world"},
@@ -450,6 +451,16 @@ func TestGetOptString(t *testing.T) {
 		if c.opt.Option[c.option] != c.value {
 			t.Errorf("Wrong value: %v != %v", c.opt.Option[c.option], c.value)
 		}
+	}
+
+	opt := GetOptions()
+	opt.String("string", "")
+	_, err := opt.Parse([]string{"--string", "--hello"})
+	if err == nil {
+		t.Errorf("Passing option where argument expected didn't raise error")
+	}
+	if err != nil && err.Error() != "Missing argument for option 'string'!\nIf passing arguments that start with '-' use --option=-argument" {
+		t.Errorf("Error string didn't match expected value")
 	}
 }
 
@@ -468,13 +479,13 @@ func TestGetOptInt(t *testing.T) {
 	}{
 		{setup(),
 			"int",
-			[]string{"--int=123"},
-			123,
+			[]string{"--int=-123"},
+			-123,
 		},
 		{setup(),
 			"int",
-			[]string{"--int=123", "world"},
-			123,
+			[]string{"--int=-123", "world"},
+			-123,
 		},
 		{setup(),
 			"int",
@@ -506,6 +517,16 @@ func TestGetOptInt(t *testing.T) {
 	}
 	if err != nil && err.Error() != "Can't convert string to int: 'hello'" {
 		t.Errorf("Error string didn't match expected value '%s'", err)
+	}
+
+	opt = GetOptions()
+	opt.Int("int", 0)
+	_, err = opt.Parse([]string{"--int", "-123"})
+	if err == nil {
+		t.Errorf("Passing option where argument expected didn't raise error")
+	}
+	if err != nil && err.Error() != "Missing argument for option 'int'!\nIf passing arguments that start with '-' use --option=-argument" {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 }
 
