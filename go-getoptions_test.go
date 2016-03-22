@@ -10,7 +10,6 @@ package getoptions
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -744,7 +743,7 @@ func TestDefaultValues(t *testing.T) {
 	_, err := opt.Parse([]string{})
 
 	if err != nil {
-		log.Println(err)
+		t.Errorf("Unexpected error: %s", err)
 	}
 
 	expected := map[string]interface{}{
@@ -832,8 +831,6 @@ func TestAll(t *testing.T) {
 	opt.StringSlice("string-repeat")
 	opt.StringMap("string-map")
 
-	// log.Println(opt)
-
 	remaining, err := opt.Parse([]string{
 		"hello",
 		"--flag",
@@ -853,7 +850,7 @@ func TestAll(t *testing.T) {
 	})
 
 	if err != nil {
-		log.Println(err)
+		t.Errorf("Unexpected error: %s", err)
 	}
 
 	if !reflect.DeepEqual(remaining, []string{"hello", "happy", "world"}) {
@@ -872,7 +869,7 @@ func TestAll(t *testing.T) {
 
 	for k := range expected {
 		if !reflect.DeepEqual(opt.Option(k), expected[k]) {
-			t.Errorf("Wrong value: %v != %v", opt.Option, expected)
+			t.Errorf("Wrong value: %v != %v", opt.Option(k), expected[k])
 		}
 	}
 
@@ -894,13 +891,13 @@ func TestAll(t *testing.T) {
 
 	// Tested above, but it gives me a feel for how it would be used
 
-	if opt.Option("flag") != nil && !opt.Option("flag").(bool) {
+	if !opt.Option("flag").(bool) {
 		t.Errorf("flag didn't have expected value: %v != %v", opt.Option("flag"), true)
 	}
-	if opt.Option("non-used-flag") != nil && opt.Option("non-used-flag").(bool) {
+	if opt.Option("non-used-flag").(bool) {
 		t.Errorf("non-used-flag didn't have expected value: %v != %v", opt.Option("non-used-flag"), false)
 	}
-	if opt.Option("flag") != nil && opt.Option("nflag").(bool) {
+	if opt.Option("nflag").(bool) {
 		t.Errorf("nflag didn't have expected value: %v != %v", opt.Option("nflag"), true)
 	}
 	if opt.Option("string") != "hello" {
