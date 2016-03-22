@@ -63,6 +63,14 @@ Features
  - Bundling
  - SingleDash
 
+* Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
+
+* Multiple aliases for the same option. e.g. `help`, `man`.
+
+* Multiple argument types.
+
+* Supports both Array and Key Value options.
+
 * Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
 
@@ -94,7 +102,7 @@ var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfil
 // * Mode: Operation mode for short options: normal (default), bundling, singleDash.
 type GetOpt struct {
 	value     map[string]interface{} // Map with resulting variables
-	Mode      string                 // Operation mode for short options: normal, bundling, singleDash
+	mode      string                 // Operation mode for short options: normal, bundling, singleDash
 	Writer    io.Writer
 	obj       map[string]option
 	args      []string
@@ -123,7 +131,6 @@ type option struct {
 func GetOptions() *GetOpt {
 	opt := &GetOpt{
 		value: make(map[string]interface{}),
-		Mode:  "normal",
 		obj:   make(map[string]option),
 	}
 	return opt
@@ -171,6 +178,12 @@ func (opt *GetOpt) Called(name string) bool {
 // For example: `opt.Option("flag").(bool)`.
 func (opt *GetOpt) Option(name string) interface{} {
 	return opt.value[name]
+}
+
+// SetMode - Sets the Operation Mode.
+// normal, bundling or singleDash
+func (opt *GetOpt) SetMode(mode string) {
+	opt.mode = mode
 }
 
 // Bool - define a `bool` option and its aliases.
@@ -313,7 +326,7 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 		return fmt.Errorf(ErrorMissingArgument, optName)
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(opt.args[opt.argsIndex], opt.Mode); len(optList) > 0 {
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.mode); len(optList) > 0 {
 		return fmt.Errorf(ErrorArgumentWithDash, optName)
 	}
 	opt.value[optName] = opt.args[opt.argsIndex]
@@ -372,7 +385,7 @@ func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAli
 		return nil
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(opt.args[opt.argsIndex], opt.Mode); len(optList) > 0 {
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.mode); len(optList) > 0 {
 		opt.value[optName] = opt.obj[optName].def
 		*opt.obj[optName].pString = opt.obj[optName].def.(string)
 		return nil
@@ -427,7 +440,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 		return fmt.Errorf(ErrorMissingArgument, optName)
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(opt.args[opt.argsIndex], opt.Mode); len(optList) > 0 {
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.mode); len(optList) > 0 {
 		return fmt.Errorf(ErrorArgumentWithDash, optName)
 	}
 	iArg, err := strconv.Atoi(opt.args[opt.argsIndex])
@@ -494,7 +507,7 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 		return nil
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(opt.args[opt.argsIndex], opt.Mode); len(optList) > 0 {
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.mode); len(optList) > 0 {
 		opt.value[optName] = opt.obj[optName].def
 		*opt.obj[optName].pInt = opt.obj[optName].def.(int)
 		return nil
@@ -645,7 +658,7 @@ var isOptionRegexEquals = regexp.MustCompile(`^=`)
 /*
 func isOption - Check if the given string is an option (starts with - or --).
 Return the option(s) without the starting dash and an argument if the string contained one.
-The behaviour changes depending on the mode: normal, bundling or SingleDash.
+The behaviour changes depending on the mode: normal, bundling or singleDash.
 Also, handle the single dash '-' and double dash '--' especial options.
 */
 func isOption(s string, mode string) (options []string, argument string) {
@@ -690,7 +703,7 @@ func (opt *GetOpt) Parse(args []string) ([]string, error) {
 	for opt.argsIndex = 0; opt.argsIndex < len(args); opt.argsIndex++ {
 		arg := args[opt.argsIndex]
 		Debug.Printf("Parse input arg: %s\n", arg)
-		if optList, argument := isOption(arg, opt.Mode); len(optList) > 0 {
+		if optList, argument := isOption(arg, opt.mode); len(optList) > 0 {
 			Debug.Printf("Parse opt_list: %v, argument: %v\n", optList, argument)
 			// Check for termination: '--'
 			if optList[0] == "--" {
@@ -701,23 +714,25 @@ func (opt *GetOpt) Parse(args []string) ([]string, error) {
 				return remaining, nil
 			}
 			Debug.Printf("Parse continue\n")
-			// TODO: Handle bundling options. Only index 0 is handled.
-			if optName, ok := opt.getOptionFromAliases(optList[0]); ok {
-				Debug.Printf("Parse found opt_list\n")
-				handler := opt.obj[optName].handler
-				Debug.Printf("handler found: %s, %s, %d, %s\n", optName, argument, opt.argsIndex, optList[0])
-				err := handler(optName, argument, optList[0])
-				if err != nil {
+			for _, optElement := range optList {
+				if optName, ok := opt.getOptionFromAliases(optElement); ok {
+					Debug.Printf("Parse found opt_list\n")
+					handler := opt.obj[optName].handler
+					Debug.Printf("handler found: %s, %s, %d, %s\n", optName, argument, opt.argsIndex, optList[0])
+					err := handler(optName, argument, optElement)
+					if err != nil {
+						Debug.Println(opt.value)
+						Debug.Printf("return %v, %v", nil, err)
+						return nil, err
+					}
+				} else {
+					Debug.Printf("opt_list not found for '%s'\n", optElement)
 					Debug.Println(opt.value)
+					// TODO: Add mode to only warn on unknown option
+					err := fmt.Errorf("Unknown option '%s'", optElement)
 					Debug.Printf("return %v, %v", nil, err)
 					return nil, err
 				}
-			} else {
-				Debug.Printf("opt_list not found for '%s'\n", optList[0])
-				Debug.Println(opt.value)
-				err := fmt.Errorf("Unknown option '%s'", optList[0])
-				Debug.Printf("return %v, %v", nil, err)
-				return nil, err
 			}
 		} else {
 			remaining = append(remaining, arg)

@@ -37,6 +37,7 @@ func TestIsOption(t *testing.T) {
 		{"--opt", "singleDash", []string{"opt"}, ""},
 		{"--opt=arg", "singleDash", []string{"opt"}, "arg"},
 		{"-opt", "singleDash", []string{"o"}, "pt"},
+		{"-opt=arg", "singleDash", []string{"o"}, "pt=arg"},
 		{"-", "singleDash", []string{"-"}, ""},
 		{"--", "singleDash", []string{"--"}, ""},
 
@@ -808,6 +809,57 @@ func TestDefaultValues(t *testing.T) {
 	}
 	if opt.Option("int") != 0 {
 		t.Errorf("int didn't have expected value: %v != %v", opt.Option("int"), 0)
+	}
+}
+
+func TestBundling(t *testing.T) {
+	var o, p bool
+	var s string
+	opt := GetOptions()
+	opt.BoolVar(&o, "o", false)
+	opt.BoolVar(&p, "p", false)
+	opt.StringVar(&s, "t", "")
+	opt.SetMode("bundling")
+	_, err := opt.Parse([]string{
+		"-opt=arg",
+	})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if o != true {
+		t.Errorf("o didn't have expected value: %v != %v", o, true)
+	}
+	if p != true {
+		t.Errorf("p didn't have expected value: %v != %v", p, true)
+	}
+	if s != "arg" {
+		t.Errorf("t didn't have expected value: %v != %v", s, "arg")
+	}
+}
+
+func TestSingleDash(t *testing.T) {
+	var o string
+	var p bool
+	var s string
+	opt := GetOptions()
+	opt.StringVar(&o, "o", "")
+	opt.BoolVar(&p, "p", false)
+	opt.StringVar(&s, "t", "")
+	opt.SetMode("singleDash")
+	_, err := opt.Parse([]string{
+		"-opt=arg",
+	})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if o != "pt=arg" {
+		t.Errorf("o didn't have expected value: %v != %v", o, "pt=arg")
+	}
+	if opt.Called("p") || p != false {
+		t.Errorf("p didn't have expected value: %v != %v", p, false)
+	}
+	if opt.Called("t") || s != "" {
+		t.Errorf("t didn't have expected value: %v != %v", s, "")
 	}
 }
 

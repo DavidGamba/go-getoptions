@@ -191,7 +191,7 @@ a|option: `"opt"`, argument: `"arg"` footnote:[Argument gets type casted dependi
 
 === Bundling Mode
 
-Set by defining `{mode: "bundling"}` in the options hash.
+Set by defining `opt.SetMode("bundling")`.
 
 |===
 |Given option |Interpretation
@@ -216,7 +216,7 @@ option: `"t"`, argument: `"arg"` footnote:[Argument gets type casted depending o
 
 === Enforce Single Dash Mode
 
-Set by defining `{mode: "enforce_single_dash"}` or `{mode: "single_dash"}` in the options hash.
+Set by defining `opt.SetMode("singleDash")`.
 
 |===
 |Given option |Interpretation
