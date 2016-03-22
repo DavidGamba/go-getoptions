@@ -139,6 +139,17 @@ func GetOptions() *GetOpt {
 	return opt
 }
 
+// User facing errors
+
+// ErrorMissingArgument holds the text for missing argument error.
+// It has a string placeholder '%s' for the name of the option missing the argument.
+var ErrorMissingArgument = "Missing argument for option '%s'!"
+
+// ErrorArgumentWithDash holds the text for missing argument error in cases where the next argument looks like an option (starts with '-').
+// It has a string placeholder '%s' for the name of the option missing the argument.
+var ErrorArgumentWithDash = "Missing argument for option '%s'!\n" +
+	"If passing arguments that start with '-' use --option=-argument"
+
 // failIfDefined will *panic* if an option is defined twice.
 // This is not an error because the programmer has to fix this!
 func (opt *GetOpt) failIfDefined(name string, aliases []string) {
@@ -290,13 +301,11 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 	opt.argsIndex++
 	Debug.Printf("len: %d, %d", len(opt.args), opt.argsIndex)
 	if len(opt.args) < opt.argsIndex+1 {
-		return fmt.Errorf("Missing argument for option '%s'!", optName)
+		return fmt.Errorf(ErrorMissingArgument, optName)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(opt.args[opt.argsIndex], opt.Mode); len(optList) > 0 {
-		return fmt.Errorf("Missing argument for option '%s'!\n"+
-			"If passing arguments that start with '-' use --option=-argument",
-			optName)
+		return fmt.Errorf(ErrorArgumentWithDash, optName)
 	}
 	opt.Option[optName] = opt.args[opt.argsIndex]
 	*opt.obj[optName].pString = opt.args[opt.argsIndex]
@@ -402,13 +411,11 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 	}
 	opt.argsIndex++
 	if len(opt.args) < opt.argsIndex+1 {
-		return fmt.Errorf("Missing argument for option '%s'!", optName)
+		return fmt.Errorf(ErrorMissingArgument, optName)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(opt.args[opt.argsIndex], opt.Mode); len(optList) > 0 {
-		return fmt.Errorf("Missing argument for option '%s'!\n"+
-			"If passing arguments that start with '-' use --option=-argument",
-			optName)
+		return fmt.Errorf(ErrorArgumentWithDash, optName)
 	}
 	iArg, err := strconv.Atoi(opt.args[opt.argsIndex])
 	if err != nil {
@@ -518,7 +525,7 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 	opt.argsIndex++
 	Debug.Printf("len: %d, %d", len(opt.args), opt.argsIndex)
 	if len(opt.args) < opt.argsIndex+1 {
-		return fmt.Errorf("Missing argument for option '%s'!", optName)
+		return fmt.Errorf(ErrorMissingArgument, optName)
 	}
 	opt.Option[optName] = append(opt.Option[optName].([]string), opt.args[opt.argsIndex])
 	return nil
@@ -561,7 +568,7 @@ func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias st
 	opt.argsIndex++
 	Debug.Printf("len: %d, %d", len(opt.args), opt.argsIndex)
 	if len(opt.args) < opt.argsIndex+1 {
-		return fmt.Errorf("Missing argument for option '%s'!", optName)
+		return fmt.Errorf(ErrorMissingArgument, optName)
 	}
 	keyValue := strings.Split(opt.args[opt.argsIndex], "=")
 	opt.Option[optName].(map[string]string)[keyValue[0]] = keyValue[1]

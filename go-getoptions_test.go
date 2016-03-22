@@ -8,6 +8,7 @@
 package getoptions
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -111,7 +112,7 @@ func TestOptionals(t *testing.T) {
 	if err == nil {
 		t.Errorf("Missing argument for option 'string' didn't raise error")
 	}
-	if err != nil && err.Error() != "Missing argument for option 'string'!" {
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
 		t.Errorf("Error string didn't match expected value")
 	}
 
@@ -459,7 +460,7 @@ func TestGetOptString(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing option where argument expected didn't raise error")
 	}
-	if err != nil && err.Error() != "Missing argument for option 'string'!\nIf passing arguments that start with '-' use --option=-argument" {
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "string") {
 		t.Errorf("Error string didn't match expected value")
 	}
 }
@@ -525,7 +526,7 @@ func TestGetOptInt(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing option where argument expected didn't raise error")
 	}
-	if err != nil && err.Error() != "Missing argument for option 'int'!\nIf passing arguments that start with '-' use --option=-argument" {
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "int") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 }
