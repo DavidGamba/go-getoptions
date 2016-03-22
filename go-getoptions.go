@@ -432,7 +432,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 	}
 	iArg, err := strconv.Atoi(opt.args[opt.argsIndex])
 	if err != nil {
-		return fmt.Errorf("Can't convert string to int: %q", err)
+		return fmt.Errorf("Can't convert string to int: '%s'", opt.args[opt.argsIndex])
 	}
 	opt.value[optName] = iArg
 	*opt.obj[optName].pInt = iArg
@@ -501,7 +501,7 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 	}
 	iArg, err := strconv.Atoi(opt.args[opt.argsIndex])
 	if err != nil {
-		return fmt.Errorf("Can't convert string to int: %q", err)
+		return fmt.Errorf("Can't convert string to int: '%s'", opt.args[opt.argsIndex])
 	}
 	opt.value[optName] = iArg
 	*opt.obj[optName].pInt = iArg
