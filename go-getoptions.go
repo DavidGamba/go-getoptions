@@ -90,19 +90,19 @@ import (
 // Enable debug logging by setting: `Debug.SetOutput(os.Stderr)`
 var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
-// Options - map that contains the parsed arguments.
+// Option - map that contains the parsed arguments.
 //
 // Type assertions are required when using the elements of the map in cases
 // where the compiler can't determine the type by context.
-// For example: `opt.Options["flag"].(bool)`.
-type Options map[string]interface{}
+// For example: `opt.Option["flag"].(bool)`.
+type Option map[string]interface{}
 
 // GetOpt - main struct with Option map result and global configuration settings.
 //
 // * Mode: Operation mode for short options: normal (default), bundling, singleDash.
 type GetOpt struct {
-	Option    Options // Map with resulting variables
-	Mode      string  // Operation mode for short options: normal, bundling, singleDash
+	Option           // Map with resulting variables
+	Mode      string // Operation mode for short options: normal, bundling, singleDash
 	Called    map[string]bool
 	Writer    io.Writer
 	config    map[string]string
@@ -131,7 +131,7 @@ type option struct {
 //   opt := getoptions.GetOptions()
 func GetOptions() *GetOpt {
 	opt := &GetOpt{
-		Option: Options{},
+		Option: Option{},
 		Mode:   "normal",
 		Called: make(map[string]bool),
 		obj:    make(map[string]option),
