@@ -293,26 +293,75 @@ $ ./myscript non-option -f --string=mystring -i 7 --float 3.14 --p --version non
 
 == Features
 
+* Allow passing options and non-options in any order.
+
 * Support for `--long` options.
 
-* Support for short (`-s`) options with flexible behaviour:
+* Support for short (`-s`) options with flexible behaviour (see the <<operation_modes>> section for details):
 
   - Normal (default)
   - Bundling
   - SingleDash
 
-* Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
+* Boolean, String, Int and Float64 type options.
 
 * Multiple aliases for the same option. e.g. `help`, `man`.
 
-* Multiple argument types.
+* Negatable Boolean options.
+For example: `--verbose`, `--no-verbose` or `--noverbose`.
 
-* Supports both Array and Key Value options.
+* Options with Array arguments.
+The same option can be used multiple times with different arguments.
+The list of arguments will be saved into an Array like structure inside the program.
+
+* Options with Key Value arguments.
+This allows the same option to be used multiple times with arguments of key value type.
+For example: `rpmbuild --define name=myrpm --define version=123`
+
+* Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
 
 * Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
 
+* Options with optional arguments.
+If the default argument is not passed the default is set.
+
+* Allows abbreviations when the provided option is not ambiguous.
+
 * Called method indicates if the option was passed on the command line.
+
+* Errors exposed as variables to allow overriding them for internationalization.
+
+== ROADMAP
+
+* Support for the lonesome dash "-".
+To indicate, for example, when to read input from STDIO.
+
+* Options with array arguments and multiple entries.
+
+* Options with key value arguments and multiple entries.
+
+* Allow unknown options:
+  - [] Pass through
+  - [x] Fail on unknown
+  - [] Warn on unknown.
+
+* Incremental options.
+
+* Option that runs a function?
+
+* Case insensitive matching.
+
+* Option values in the bundle: `-h1024w800` -> `-h 1024 -w 800`
+
+* Require order.
+
+* prefix and prefix_pattern.
+The string that starts options.
+Defaults to "--" and "-" but could include "/" to support Win32 style argument handling.
+
+* Supports argument dividers other than '='.
+For example: You could define ':' and use `--string=mystring`, `--string:mystring` and `--string mystring`.
 
 == How to install it
 

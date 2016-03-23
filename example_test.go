@@ -61,7 +61,7 @@ func Example() {
 		fmt.Println("b is false")
 	}
 
-	// Called Map tells you if an option was actually called or not
+	// Called method tells you if an option was actually called or not
 	if opt.Called("ip") {
 		fmt.Printf("*ip is %d\n", *ip)
 	}

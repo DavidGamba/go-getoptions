@@ -55,26 +55,44 @@ The following is a basic example:
 
 Features
 
+* Allow passing options and non-options in any order.
+
 * Support for `--long` options.
 
-* Support for short (`-s`) options with flexible behaviour:
+* Support for short (`-s`) options with flexible behaviour (see https://github.com/DavidGamba/go-getoptions#operation_modes for details):
 
  - Normal (default)
  - Bundling
  - SingleDash
 
-* Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
+* Boolean, String, Int and Float64 type options.
 
 * Multiple aliases for the same option. e.g. `help`, `man`.
 
-* Multiple argument types.
+* Negatable Boolean options.
+For example: `--verbose`, `--no-verbose` or `--noverbose`.
 
-* Supports both Array and Key Value options.
+* Options with Array arguments.
+The same option can be used multiple times with different arguments.
+The list of arguments will be saved into an Array like structure inside the program.
+
+* Options with Key Value arguments.
+This allows the same option to be used multiple times with arguments of key value type.
+For example: `rpmbuild --define name=myrpm --define version=123`
+
+* Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
 
 * Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
 
+* Options with optional arguments.
+If the default argument is not passed the default is set.
+
+* Allows abbreviations when the provided option is not ambiguous.
+
 * Called method indicates if the option was passed on the command line.
+
+* Errors exposed as variables to allow overriding them for internationalization.
 
 
 Panic
@@ -691,6 +709,7 @@ func (opt *GetOpt) Stringer() string {
 	return fmt.Sprintf("%v", opt.value)
 }
 
+// TODO: Add case insensitive matching.
 func (opt *GetOpt) getOptionFromAliases(alias string) (optName string, found bool) {
 	found = false
 	for name, option := range opt.obj {
