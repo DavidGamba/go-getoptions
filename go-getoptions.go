@@ -116,9 +116,10 @@ type option struct {
 		argument string,
 		usedAlias string) error // method used to handle the option
 	// Pointer receivers:
-	pBool   *bool   // receiver for bool pointer
-	pInt    *int    // receiver for int pointer
-	pString *string // receiver for string pointer
+	pBool    *bool    // receiver for bool pointer
+	pInt     *int     // receiver for int pointer
+	pString  *string  // receiver for string pointer
+	pFloat64 *float64 // receiver for float64 pointer
 }
 
 // New returns an empty object of type GetOpt.
@@ -148,6 +149,10 @@ var ErrorArgumentWithDash = "Missing argument for option '%s'!\n" +
 // ErrorConvertToInt holds the text for Int Coversion argument error.
 // It has two string placeholders ('%s'). The first one for the name of the option with the wrong argument and the second one for the argument that could not be converted.
 var ErrorConvertToInt = "Argument error for option '%s': Can't convert string to int: '%s'"
+
+// ErrorConvertToFloat64 holds the text for Float64 Coversion argument error.
+// It has two string placeholders ('%s'). The first one for the name of the option with the wrong argument and the second one for the argument that could not be converted.
+var ErrorConvertToFloat64 = "Argument error for option '%s': Can't convert string to float64: '%s'"
 
 // failIfDefined will *panic* if an option is defined twice.
 // This is not an error because the programmer has to fix this!
@@ -530,6 +535,63 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 	}
 	opt.value[optName] = iArg
 	*opt.obj[optName].pInt = iArg
+	return nil
+}
+
+// Float64 - define an `float64` option and its aliases.
+func (opt *GetOpt) Float64(name string, def float64, aliases ...string) *float64 {
+	var i float64
+	opt.failIfDefined(name, aliases)
+	i = def
+	opt.value[name] = def
+	aliases = append(aliases, name)
+	opt.obj[name] = option{name: name,
+		aliases:  aliases,
+		pFloat64: &i,
+		handler:  opt.handleFloat64,
+	}
+	return &i
+}
+
+// Float64Var - define an `float64` option and its aliases.
+// The result will be available through the variable marked by the given pointer.
+func (opt *GetOpt) Float64Var(p *float64, name string, def float64, aliases ...string) {
+	opt.Float64(name, def, aliases...)
+	*p = def
+	var tmp = opt.obj[name]
+	tmp.pFloat64 = p
+	opt.obj[name] = tmp
+}
+
+func (opt *GetOpt) handleFloat64(optName string, argument string, usedAlias string) error {
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
+	if argument != "" {
+		// TODO: Read the different errors when parsing float
+		iArg, err := strconv.ParseFloat(argument, 64)
+		if err != nil {
+			return fmt.Errorf(ErrorConvertToFloat64, optName, argument)
+		}
+		opt.value[optName] = iArg
+		*opt.obj[optName].pFloat64 = iArg
+		Debug.Printf("handleOption Option: %v\n", opt.value)
+		return nil
+	}
+	opt.argsIndex++
+	if len(opt.args) < opt.argsIndex+1 {
+		return fmt.Errorf(ErrorMissingArgument, optName)
+	}
+	// Check if next arg is option
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.mode); len(optList) > 0 {
+		return fmt.Errorf(ErrorArgumentWithDash, optName)
+	}
+	iArg, err := strconv.ParseFloat(opt.args[opt.argsIndex], 64)
+	if err != nil {
+		return fmt.Errorf(ErrorConvertToFloat64, optName, opt.args[opt.argsIndex])
+	}
+	opt.value[optName] = iArg
+	*opt.obj[optName].pFloat64 = iArg
 	return nil
 }
 

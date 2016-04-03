@@ -93,6 +93,7 @@ func TestAliasMatchesOption(t *testing.T) {
 	opt.Bool("bool", false, "flag")
 }
 
+// TODO
 func TestWarningOrErrorOnUnknown(t *testing.T) {
 	opt := New()
 	_, err := opt.Parse([]string{"--flags"})
@@ -573,6 +574,93 @@ func TestGetOptInt(t *testing.T) {
 	}
 }
 
+func TestGetOptFloat64(t *testing.T) {
+	setup := func() *GetOpt {
+		opt := New()
+		opt.Float64("float", 0)
+		return opt
+	}
+
+	cases := []struct {
+		opt    *GetOpt
+		option string
+		input  []string
+		value  float64
+	}{
+		{setup(),
+			"float",
+			[]string{"--float=-1.23"},
+			-1.23,
+		},
+		{setup(),
+			"float",
+			[]string{"--float=-1.23", "world"},
+			-1.23,
+		},
+		{setup(),
+			"float",
+			[]string{"--float", "1.23"},
+			1.23,
+		},
+		{setup(),
+			"float",
+			[]string{"--float", "1.23", "world"},
+			1.23,
+		},
+	}
+	for _, c := range cases {
+		_, err := c.opt.Parse(c.input)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if c.opt.Option(c.option) != c.value {
+			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		}
+	}
+
+	// Missing Argument errors
+	opt := New()
+	opt.Float64("float", 0)
+	_, err := opt.Parse([]string{"--float"})
+	if err == nil {
+		t.Errorf("Float64 didn't raise errors")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "float") {
+		t.Errorf("Error string didn't match expected value '%s'", err)
+	}
+
+	// Cast errors
+	opt = New()
+	opt.Float64("float", 0)
+	_, err = opt.Parse([]string{"--float=hello"})
+	if err == nil {
+		t.Errorf("Float cast didn't raise errors")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToFloat64, "float", "hello") {
+		t.Errorf("Error string didn't match expected value '%s'", err)
+	}
+
+	opt = New()
+	opt.Float64("float", 0)
+	_, err = opt.Parse([]string{"--float", "hello"})
+	if err == nil {
+		t.Errorf("Int cast didn't raise errors")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToFloat64, "float", "hello") {
+		t.Errorf("Error string didn't match expected value '%s'", err)
+	}
+
+	opt = New()
+	opt.Float64("float", 0)
+	_, err = opt.Parse([]string{"--float", "-123"})
+	if err == nil {
+		t.Errorf("Passing option where argument expected didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "float") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+}
+
 func TestGetOptStringRepeat(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
@@ -710,6 +798,9 @@ func TestVars(t *testing.T) {
 	var integer int
 	opt.IntVar(&integer, "intVar", 0)
 
+	var float float64
+	opt.Float64Var(&float, "float64Var", 0)
+
 	_, err := opt.Parse([]string{
 		"-flag",
 		"-flag2",
@@ -720,6 +811,7 @@ func TestVars(t *testing.T) {
 		"--stringVar", "hello",
 		"--stringVar2=world",
 		"--intVar", "123",
+		"--float64Var", "1.23",
 	})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -758,6 +850,9 @@ func TestVars(t *testing.T) {
 	}
 	if integer != 123 {
 		t.Errorf("integer didn't have expected value: %v != %v", integer, 123)
+	}
+	if float != 1.23 {
+		t.Errorf("float didn't have expected value: %v != %v", float, 1.23)
 	}
 }
 
