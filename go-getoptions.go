@@ -206,7 +206,6 @@ func (opt *GetOpt) SetMode(mode string) {
 
 // Bool - define a `bool` option and its aliases.
 // It returnns a `*bool` pointing to the variable holding the result.
-// Additionally, the result will be available through the `Option` map.
 // If the option is found, the result will be the opposite of the provided default.
 func (opt *GetOpt) Bool(name string, def bool, aliases ...string) *bool {
 	var b bool
@@ -244,7 +243,6 @@ func (opt *GetOpt) handleBool(optName string, argument string, usedAlias string)
 }
 
 // NBool - define a *Negatable* `bool` option and its aliases.
-// The result will be available through the `Option` map.
 //
 // NBool automatically makes aliases with the prefix 'no' and 'no-' to the given name and aliases.
 // If the option is found, when the argument is prefixed by 'no' (or by 'no-'), for example '--no-nflag', the value is set to the provided default.
@@ -299,7 +297,6 @@ func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string
 }
 
 // String - define a `string` option and its aliases.
-// The result will be available through the `Option` map.
 // If not called, the return value will be that of the given default `def`.
 func (opt *GetOpt) String(name, def string, aliases ...string) *string {
 	var s string
@@ -353,7 +350,6 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 }
 
 // StringOptional - define a `string` option and its aliases.
-// The result will be available through the `Option` map.
 //
 // StringOptional will set the string to the provided default value when no value is given.
 // For example, when called with `--strOpt value`, the value is `value`.
@@ -414,7 +410,6 @@ func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAli
 }
 
 // Int - define an `int` option and its aliases.
-// The result will be available through the `Option` map.
 func (opt *GetOpt) Int(name string, def int, aliases ...string) *int {
 	var i int
 	opt.failIfDefined(name, aliases)
@@ -471,7 +466,6 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 }
 
 // IntOptional - define a `int` option and its aliases.
-// The result will be available through the `Option` map.
 //
 // IntOptional will set the int to the provided default value when no value is given.
 // For example, when called with `--intOpt 123`, the value is `123`.
