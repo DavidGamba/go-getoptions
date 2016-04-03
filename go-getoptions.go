@@ -145,6 +145,10 @@ var ErrorMissingArgument = "Missing argument for option '%s'!"
 var ErrorArgumentWithDash = "Missing argument for option '%s'!\n" +
 	"If passing arguments that start with '-' use --option=-argument"
 
+// ErrorConvertToInt holds the text for Int Coversion argument error.
+// It has two string placeholders ('%s'). The first one for the name of the option with the wrong argument and the second one for the argument that could not be converted.
+var ErrorConvertToInt = "Argument error for option '%s': Can't convert string to int: '%s'"
+
 // failIfDefined will *panic* if an option is defined twice.
 // This is not an error because the programmer has to fix this!
 func (opt *GetOpt) failIfDefined(name string, aliases []string) {
@@ -442,7 +446,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 	if argument != "" {
 		iArg, err := strconv.Atoi(argument)
 		if err != nil {
-			return fmt.Errorf("Can't convert string to int: '%s'", argument)
+			return fmt.Errorf(ErrorConvertToInt, optName, argument)
 		}
 		opt.value[optName] = iArg
 		*opt.obj[optName].pInt = iArg
@@ -459,7 +463,7 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 	}
 	iArg, err := strconv.Atoi(opt.args[opt.argsIndex])
 	if err != nil {
-		return fmt.Errorf("Can't convert string to int: '%s'", opt.args[opt.argsIndex])
+		return fmt.Errorf(ErrorConvertToInt, optName, opt.args[opt.argsIndex])
 	}
 	opt.value[optName] = iArg
 	*opt.obj[optName].pInt = iArg
@@ -507,7 +511,7 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 	if argument != "" {
 		iArg, err := strconv.Atoi(argument)
 		if err != nil {
-			return fmt.Errorf("Can't convert string to int: '%s'", argument)
+			return fmt.Errorf(ErrorConvertToInt, optName, argument)
 		}
 		opt.value[optName] = iArg
 		*opt.obj[optName].pInt = iArg
@@ -528,7 +532,7 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 	}
 	iArg, err := strconv.Atoi(opt.args[opt.argsIndex])
 	if err != nil {
-		return fmt.Errorf("Can't convert string to int: '%s'", opt.args[opt.argsIndex])
+		return fmt.Errorf(ErrorConvertToInt, optName, opt.args[opt.argsIndex])
 	}
 	opt.value[optName] = iArg
 	*opt.obj[optName].pInt = iArg

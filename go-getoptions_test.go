@@ -247,6 +247,27 @@ func TestOptionals(t *testing.T) {
 	if i != 123 {
 		t.Errorf("Default value not set for 'int'")
 	}
+
+	// Cast errors
+	opt = New()
+	opt.IntOptional("int", 0)
+	_, err = opt.Parse([]string{"--int=hello"})
+	if err == nil {
+		t.Errorf("Int cast didn't raise errors")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
+		t.Errorf("Error string didn't match expected value '%s'", err)
+	}
+
+	opt = New()
+	opt.IntOptional("int", 0)
+	_, err = opt.Parse([]string{"--int", "hello"})
+	if err == nil {
+		t.Errorf("Int cast didn't raise errors")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
+		t.Errorf("Error string didn't match expected value '%s'", err)
+	}
 }
 
 func TestGetOptBool(t *testing.T) {
@@ -509,14 +530,35 @@ func TestGetOptInt(t *testing.T) {
 		}
 	}
 
-	// Cast errors
+	// Missing Argument errors
 	opt := New()
 	opt.Int("int", 0)
-	_, err := opt.Parse([]string{"--int=hello"})
+	_, err := opt.Parse([]string{"--int"})
+	if err == nil {
+		t.Errorf("Int didn't raise errors")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "int") {
+		t.Errorf("Error string didn't match expected value '%s'", err)
+	}
+
+	// Cast errors
+	opt = New()
+	opt.Int("int", 0)
+	_, err = opt.Parse([]string{"--int=hello"})
 	if err == nil {
 		t.Errorf("Int cast didn't raise errors")
 	}
-	if err != nil && err.Error() != "Can't convert string to int: 'hello'" {
+	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
+		t.Errorf("Error string didn't match expected value '%s'", err)
+	}
+
+	opt = New()
+	opt.Int("int", 0)
+	_, err = opt.Parse([]string{"--int", "hello"})
+	if err == nil {
+		t.Errorf("Int cast didn't raise errors")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 
