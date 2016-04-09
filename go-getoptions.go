@@ -175,18 +175,13 @@ var ErrorConvertToFloat64 = "Argument error for option '%s': Can't convert strin
 // failIfDefined will *panic* if an option is defined twice.
 // This is not an error because the programmer has to fix this!
 func (opt *GetOpt) failIfDefined(name string, aliases []string) {
-	Debug.Printf("checking option %s", name)
-	if _, ok := opt.value[name]; ok {
-		panic(fmt.Sprintf("Option '%s' is already defined", name))
-	}
+	aliases = append(aliases, name)
 	for _, a := range aliases {
-		Debug.Printf("checking alias %s", a)
-		if _, ok := opt.value[a]; ok {
-			panic(fmt.Sprintf("Alias '%s' is already defined as an option", a))
-		}
-		if optName, ok := opt.getOptionFromAliases(a); ok {
-			if _, ok := opt.value[optName]; ok {
-				panic(fmt.Sprintf("Alias '%s' is already defined for option '%s'", a, optName))
+		for _, option := range opt.obj {
+			for _, v := range option.aliases {
+				if v == a {
+					panic(fmt.Sprintf("Option/Alias '%s' is already defined", a))
+				}
 			}
 		}
 	}
