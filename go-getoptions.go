@@ -174,8 +174,7 @@ var ErrorConvertToFloat64 = "Argument error for option '%s': Can't convert strin
 
 // failIfDefined will *panic* if an option is defined twice.
 // This is not an error because the programmer has to fix this!
-func (opt *GetOpt) failIfDefined(name string, aliases []string) {
-	aliases = append(aliases, name)
+func (opt *GetOpt) failIfDefined(aliases []string) {
 	for _, a := range aliases {
 		for _, option := range opt.obj {
 			for _, v := range option.aliases {
@@ -228,9 +227,9 @@ func (opt *GetOpt) SetMode(mode string) {
 func (opt *GetOpt) Bool(name string, def bool, aliases ...string) *bool {
 	var b bool
 	b = def
-	opt.failIfDefined(name, aliases)
 	opt.value[name] = def
 	aliases = append(aliases, name)
+	opt.failIfDefined(aliases)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
 		pBool:   &b,
@@ -268,15 +267,13 @@ func (opt *GetOpt) handleBool(optName string, argument string, usedAlias string)
 func (opt *GetOpt) NBool(name string, def bool, aliases ...string) *bool {
 	var b bool
 	b = def
-	opt.failIfDefined(name, aliases)
 	opt.value[name] = def
 	aliases = append(aliases, name)
-	aliases = append(aliases, "no"+name)
-	aliases = append(aliases, "no-"+name)
 	for _, a := range aliases {
 		aliases = append(aliases, "no"+a)
 		aliases = append(aliases, "no-"+a)
 	}
+	opt.failIfDefined(aliases)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
 		pBool:   &b,
@@ -318,10 +315,10 @@ func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string
 // If not called, the return value will be that of the given default `def`.
 func (opt *GetOpt) String(name, def string, aliases ...string) *string {
 	var s string
-	opt.failIfDefined(name, aliases)
 	s = def
 	opt.value[name] = s
 	aliases = append(aliases, name)
+	opt.failIfDefined(aliases)
 	opt.obj[name] = option{
 		name:    name,
 		aliases: aliases,
@@ -375,9 +372,9 @@ func (opt *GetOpt) handleString(optName string, argument string, usedAlias strin
 func (opt *GetOpt) StringOptional(name string, def string, aliases ...string) *string {
 	var s string
 	s = def
-	opt.failIfDefined(name, aliases)
 	opt.value[name] = s
 	aliases = append(aliases, name)
+	opt.failIfDefined(aliases)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
 		def:     def,
@@ -430,10 +427,10 @@ func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAli
 // Int - define an `int` option and its aliases.
 func (opt *GetOpt) Int(name string, def int, aliases ...string) *int {
 	var i int
-	opt.failIfDefined(name, aliases)
 	i = def
 	opt.value[name] = def
 	aliases = append(aliases, name)
+	opt.failIfDefined(aliases)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
 		pInt:    &i,
@@ -490,10 +487,10 @@ func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) 
 // when called with `--intOpt` the value is the given default.
 func (opt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 	var i int
-	opt.failIfDefined(name, aliases)
 	i = def
 	opt.value[name] = i
 	aliases = append(aliases, name)
+	opt.failIfDefined(aliases)
 	opt.obj[name] = option{name: name,
 		aliases: aliases,
 		pInt:    &i,
@@ -554,10 +551,10 @@ func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias 
 // Float64 - define an `float64` option and its aliases.
 func (opt *GetOpt) Float64(name string, def float64, aliases ...string) *float64 {
 	var i float64
-	opt.failIfDefined(name, aliases)
 	i = def
 	opt.value[name] = def
 	aliases = append(aliases, name)
+	opt.failIfDefined(aliases)
 	opt.obj[name] = option{name: name,
 		aliases:  aliases,
 		pFloat64: &i,
@@ -615,10 +612,10 @@ func (opt *GetOpt) handleFloat64(optName string, argument string, usedAlias stri
 // to the `[]string`.
 // For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
 func (opt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
-	opt.failIfDefined(name, aliases)
 	s := []string{}
 	opt.value[name] = s
 	aliases = append(aliases, name)
+	opt.failIfDefined(aliases)
 	opt.obj[name] = option{
 		name:    name,
 		aliases: aliases,
@@ -656,10 +653,10 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 // For example, when called with `--strMap k=v --strMap k2=v2`, the value is
 // `map[string]string{"k":"v", "k2": "v2"}`.
 func (opt *GetOpt) StringMap(name string, aliases ...string) *map[string]string {
-	opt.failIfDefined(name, aliases)
 	s := make(map[string]string)
 	opt.value[name] = s
 	aliases = append(aliases, name)
+	opt.failIfDefined(aliases)
 	opt.obj[name] = option{
 		name:    name,
 		aliases: aliases,
