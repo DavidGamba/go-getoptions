@@ -48,6 +48,7 @@ The following is a basic example:
 		}
 
 		// Use subcommands by operating on the remaining items
+		// Requires `opt.SetUnknownMode("pass")` before the initial `opt.Parse` call.
 		opt2 := getoptions.New()
 		// ...
 		remaining2, err := opt.Parse(remaining)
@@ -94,6 +95,10 @@ If the default argument is not passed the default is set.
 
 * Errors exposed as variables to allow overriding them for internationalization.
 
+* Multiple ways of managing unknown options:
+  - Fail on unknown (default).
+  - Warn on unknown.
+  - Pass through, allows for subcommands.
 
 Panic
 
@@ -106,6 +111,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -117,12 +123,13 @@ var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfil
 
 // GetOpt - main object
 type GetOpt struct {
-	value     map[string]interface{} // Map with resulting variables
-	mode      string                 // Operation mode for short options: normal, bundling, singleDash
-	Writer    io.Writer
-	obj       map[string]option
-	args      []string
-	argsIndex int
+	value       map[string]interface{} // Map with resulting variables
+	mode        string                 // Operation mode for short options: normal, bundling, singleDash
+	unknownMode string                 // Unknown option mode
+	Writer      io.Writer              // io.Writer locations to write warnings to. Defaults to os.Stderr.
+	obj         map[string]option
+	args        []string
+	argsIndex   int
 }
 
 type option struct {
@@ -147,8 +154,9 @@ type option struct {
 //   opt := getoptions.New()
 func New() *GetOpt {
 	opt := &GetOpt{
-		value: make(map[string]interface{}),
-		obj:   make(map[string]option),
+		value:  make(map[string]interface{}),
+		obj:    make(map[string]option),
+		Writer: os.Stderr,
 	}
 	return opt
 }
@@ -171,6 +179,10 @@ var ErrorConvertToInt = "Argument error for option '%s': Can't convert string to
 // ErrorConvertToFloat64 holds the text for Float64 Coversion argument error.
 // It has two string placeholders ('%s'). The first one for the name of the option with the wrong argument and the second one for the argument that could not be converted.
 var ErrorConvertToFloat64 = "Argument error for option '%s': Can't convert string to float64: '%s'"
+
+// MessageOnUnknown holds the text for the unknown option message.
+// It has a string placeholder '%s' for the name of the option missing the argument.
+var MessageOnUnknown = "Unknown option '%s'"
 
 // failIfDefined will *panic* if an option is defined twice.
 // This is not an error because the programmer has to fix this!
@@ -219,6 +231,19 @@ func (opt *GetOpt) Option(name string) interface{} {
 //     |===
 func (opt *GetOpt) SetMode(mode string) {
 	opt.mode = mode
+}
+
+// SetUnknownMode - Determines how to behave when encountering an unknown option.
+//
+// - 'fail' (default) will make 'Parse' return an error with the unknown option information.
+//
+// - 'warn' will make 'Parse' print a user warning indicating there was an unknown option.
+// The unknown option will be left in the remaining array.
+//
+// - 'pass' will make 'Parse' ignore any unknown options and they will be passed onto the 'remaining' slice.
+// This allows for subcommands.
+func (opt *GetOpt) SetUnknownMode(mode string) {
+	opt.unknownMode = mode
 }
 
 // Bool - define a `bool` option and its aliases.
@@ -813,10 +838,19 @@ func (opt *GetOpt) Parse(args []string) ([]string, error) {
 				} else {
 					Debug.Printf("opt_list not found for '%s'\n", optElement)
 					Debug.Println(opt.value)
-					// TODO: Add mode to only warn on unknown option
-					err := fmt.Errorf("Unknown option '%s'", optElement)
-					Debug.Printf("return %v, %v", nil, err)
-					return nil, err
+					switch opt.unknownMode {
+					case "pass":
+						remaining = append(remaining, arg)
+						break
+					case "warn":
+						fmt.Fprintf(opt.Writer, MessageOnUnknown, optElement)
+						remaining = append(remaining, arg)
+						break
+					default:
+						err := fmt.Errorf(MessageOnUnknown, optElement)
+						Debug.Printf("return %v, %v", nil, err)
+						return nil, err
+					}
 				}
 			}
 		} else {

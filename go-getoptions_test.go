@@ -8,6 +8,7 @@
 package getoptions
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -94,7 +95,8 @@ func TestAliasMatchesOption(t *testing.T) {
 }
 
 // TODO
-func TestWarningOrErrorOnUnknown(t *testing.T) {
+func TestUnknownOptionModes(t *testing.T) {
+	// Default
 	opt := New()
 	_, err := opt.Parse([]string{"--flags"})
 	if err == nil {
@@ -102,6 +104,46 @@ func TestWarningOrErrorOnUnknown(t *testing.T) {
 	}
 	if err != nil && err.Error() != "Unknown option 'flags'" {
 		t.Errorf("Error string didn't match expected value")
+	}
+
+	opt = New()
+	opt.SetUnknownMode("fail")
+	_, err = opt.Parse([]string{"--flags"})
+	if err == nil {
+		t.Errorf("Unknown option 'flags' didn't raise error")
+	}
+	if err != nil && err.Error() != "Unknown option 'flags'" {
+		t.Errorf("Error string didn't match expected value")
+	}
+
+	buf := new(bytes.Buffer)
+	opt = New()
+	opt.Writer = buf
+	opt.SetUnknownMode("warn")
+	remaining, err := opt.Parse([]string{"--flags"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if buf.String() != fmt.Sprintf(MessageOnUnknown, "flags") {
+		t.Errorf("Warning message didn't match expected value: %s", buf.String())
+	}
+	if !reflect.DeepEqual(remaining, []string{"--flags"}) {
+		t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags"})
+	}
+
+	buf = new(bytes.Buffer)
+	opt = New()
+	opt.Writer = buf
+	opt.SetUnknownMode("pass")
+	remaining, err = opt.Parse([]string{"--flags"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if buf.String() != "" {
+		t.Errorf("output didn't match expected value: %s", buf.String())
+	}
+	if !reflect.DeepEqual(remaining, []string{"--flags"}) {
+		t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags"})
 	}
 }
 

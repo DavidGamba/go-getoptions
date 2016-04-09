@@ -278,6 +278,7 @@ if opt.Called("i") {
 }
 
 // Use subcommands by operating on the remaining items
+// Requires `opt.SetUnknownMode("pass")` before the initial `opt.Parse` call.
 opt2 := getoptions.New()
 // ...
 remaining2, err := opt.Parse(remaining)
@@ -332,6 +333,11 @@ If the default argument is not passed the default is set.
 
 * Errors exposed as variables to allow overriding them for internationalization.
 
+* Multiple ways of managing unknown options:
+  - Fail on unknown (default).
+  - Warn on unknown.
+  - Pass through, allows for subcommands.
+
 == ROADMAP
 
 * Support for the lonesome dash "-".
@@ -340,11 +346,6 @@ To indicate, for example, when to read input from STDIO.
 * Options with array arguments and multiple entries.
 
 * Options with key value arguments and multiple entries.
-
-* Allow unknown options:
-  - [] Pass through
-  - [x] Fail on unknown
-  - [] Warn on unknown.
 
 * Incremental options.
 
