@@ -81,7 +81,7 @@ func TestDuplicateAlias(t *testing.T) {
 	opt.Bool("bool", false, "t")
 }
 
-// Verifies that a panic is reached when an alias is name after an option.
+// Verifies that a panic is reached when an alias is named after an option.
 func TestAliasMatchesOption(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
@@ -416,6 +416,19 @@ func TestGetOptAliases(t *testing.T) {
 	}
 	if err != nil && err.Error() != "Unknown option 'fl'" {
 		t.Errorf("Error string didn't match expected value")
+	}
+
+	// Bug: Startup panic when alias matches the beginning of preexisting option
+	// https://github.com/DavidGamba/go-getoptions/issues/1
+	opt = New()
+	opt.Bool("fleg", false)
+	opt.Bool("flag", false, "f")
+	_, err = opt.Parse([]string{"f"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.Called("flag") {
+		t.Errorf("flag not called")
 	}
 }
 
