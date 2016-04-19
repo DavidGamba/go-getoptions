@@ -7,7 +7,7 @@ David Gamba, https://github.com/DavidGamba
 
 Go option parser inspired on the flexibility of Perl’s GetOpt::Long.
 
-This REAMDE is WIP. Please review the link:http://godoc.org/github.com/davidgamba/go-getoptions[godoc] for the most up to date information.
+This README is WIP. Please review the link:http://godoc.org/github.com/davidgamba/go-getoptions[godoc] for the most up to date information.
 
 image:https://godoc.org/github.com/davidgamba/go-getoptions?status.svg[link="http://godoc.org/github.com/davidgamba/go-getoptions"]
 image:https://travis-ci.org/DavidGamba/go-getoptions.svg["Build Status", link="https://travis-ci.org/DavidGamba/go-getoptions"]
@@ -132,7 +132,7 @@ Both features above should support the basic types listed before: string, intege
 `go-getoptions` has only implemented these two features for string.
 
 The features above are useful when you have a variable amount of arguments, but it becomes cumbersome for the user when the number of entries is always the same.
-The features described below and meant to handle the cases when each option has a known number of multiple entries.
+The features described below are meant to handle the cases when each option has a known number of multiple entries.
 
 Options with array arguments and multiple entries::
 This allows the user to save typing.
