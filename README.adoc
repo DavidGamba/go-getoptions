@@ -206,7 +206,10 @@ For example:
 +
 Could increase the verbosity level each time the option is passed.
 +
-Not yet implemented in `go-getoptions`.
+In `go-getoptions` this is accomplished with:
++
+- `ptr := opt.Increment(name, default_value, aliases)`.
+- `opt.IncrementVar(&ptr, name, default_value, aliases)`.
 
 Additional types::
 The option parser could provide converters to additional types.
@@ -422,13 +425,14 @@ If the default argument is not passed the default is set.
 * Support for the lonesome dash "-".
 To indicate, for example, when to read input from STDIO.
 
+* Incremental options.
+Allows the same option to be called multiple times to increment a counter.
+
 == ROADMAP
 
 * Options with array arguments and multiple entries.
 
 * Options with key value arguments and multiple entries.
-
-* Incremental options.
 
 * Option that runs a function?
 

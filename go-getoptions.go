@@ -103,6 +103,9 @@ If the default argument is not passed the default is set.
 * Support for the lonesome dash "-".
 To indicate, for example, when to read input from STDIO.
 
+* Incremental options.
+Allows the same option to be called multiple times to increment a counter.
+
 Panic
 
 The library will panic if it finds that the programmer defined the same alias twice.
@@ -482,6 +485,7 @@ func (opt *GetOpt) IntVar(p *int, name string, def int, aliases ...string) {
 }
 
 func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) error {
+	Debug.Println("handleInt")
 	var tmp = opt.obj[optName]
 	tmp.called = true
 	opt.obj[optName] = tmp
@@ -721,9 +725,42 @@ func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias st
 	return nil
 }
 
+// Increment - When called multiple times it increments its the int counter defined by this option.
+func (opt *GetOpt) Increment(name string, def int, aliases ...string) *int {
+	var i int
+	i = def
+	opt.value[name] = def
+	aliases = append(aliases, name)
+	opt.failIfDefined(aliases)
+	opt.obj[name] = option{name: name,
+		aliases: aliases,
+		pInt:    &i,
+		handler: opt.handleIncrement,
+	}
+	return &i
+}
+
+// IncrementVar - When called multiple times it increments the provided int.
+func (opt *GetOpt) IncrementVar(p *int, name string, def int, aliases ...string) {
+	opt.Increment(name, def, aliases...)
+	*p = def
+	var tmp = opt.obj[name]
+	tmp.pInt = p
+	opt.obj[name] = tmp
+}
+
+func (opt *GetOpt) handleIncrement(optName string, argument string, usedAlias string) error {
+	Debug.Println("handleIncrement")
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
+	opt.value[optName] = opt.value[optName].(int) + 1
+	*opt.obj[optName].pInt = opt.value[optName].(int)
+	return nil
+}
+
 // func (opt *GetOpt) StringMulti(name string, def []string, min int, max int, aliases ...string) {}
 // func (opt *GetOpt) StringMapMulti(name string, def map[string]string, min int, max int, aliases ...string) {}
-// func (opt *GetOpt) Increment(name string, def int, aliases ...string) {}
 // func (opt *GetOpt) Procedure(name string, lambda_func int, aliases ...string) {}
 
 // Stringer - print a nice looking representation of the resulting `Option` map.

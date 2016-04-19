@@ -1085,6 +1085,50 @@ func TestSingleDash(t *testing.T) {
 	}
 }
 
+func TestIncrement(t *testing.T) {
+	var i, j int
+	opt := New()
+	opt.IncrementVar(&i, "i", 0)
+	opt.IncrementVar(&j, "j", 0)
+	ip := opt.Increment("ip", 0)
+	_, err := opt.Parse([]string{
+		"--i",
+		"--ip",
+	})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if i != 1 {
+		t.Errorf("i didn't have expected value: %v != %v", i, 1)
+	}
+	if j != 0 {
+		t.Errorf("i didn't have expected value: %v != %v", j, 0)
+	}
+	if *ip != 1 {
+		t.Errorf("ip didn't have expected value: %v != %v", *ip, 1)
+	}
+	opt = New()
+	opt.IncrementVar(&i, "i", 0)
+	opt.IncrementVar(&j, "j", 0)
+	ip = opt.Increment("ip", 0)
+	_, err = opt.Parse([]string{
+		"--i", "hello", "--i", "world", "--i",
+		"--ip", "--ip", "--ip", "--ip", "--ip",
+	})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if i != 3 {
+		t.Errorf("i didn't have expected value: %v != %v", i, 3)
+	}
+	if j != 0 {
+		t.Errorf("i didn't have expected value: %v != %v", j, 0)
+	}
+	if *ip != 5 {
+		t.Errorf("ip didn't have expected value: %v != %v", *ip, 5)
+	}
+}
+
 func TestLonesomeDash(t *testing.T) {
 	var stdin bool
 	opt := New()
