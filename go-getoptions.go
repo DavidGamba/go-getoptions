@@ -170,6 +170,10 @@ func New() *GetOpt {
 // It has a string placeholder '%s' for the name of the option missing the argument.
 var ErrorMissingArgument = "Missing argument for option '%s'!"
 
+// ErrorArgumentIsNotKeyValue holds the text for Map type options where the argument is not of key=value type.
+// It has a string placeholder '%s' for the name of the option missing the argument.
+var ErrorArgumentIsNotKeyValue = "Argument error for option '%s': Should be of type 'key=value'!"
+
 // ErrorArgumentWithDash holds the text for missing argument error in cases where the next argument looks like an option (starts with '-').
 // It has a string placeholder '%s' for the name of the option missing the argument.
 var ErrorArgumentWithDash = "Missing argument for option '%s'!\n" +
@@ -656,9 +660,6 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 	var tmp = opt.obj[optName]
 	tmp.called = true
 	opt.obj[optName] = tmp
-	if _, ok := opt.value[optName]; !ok {
-		opt.value[optName] = []string{}
-	}
 	if argument != "" {
 		opt.value[optName] = append(opt.value[optName].([]string), argument)
 		Debug.Printf("handleOption Option: %v\n", opt.value)
@@ -697,13 +698,10 @@ func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias st
 	var tmp = opt.obj[optName]
 	tmp.called = true
 	opt.obj[optName] = tmp
-	if _, ok := opt.value[optName]; !ok {
-		opt.value[optName] = make(map[string]string)
-	}
 	if argument != "" {
 		keyValue := strings.Split(argument, "=")
 		if len(keyValue) < 2 {
-			return fmt.Errorf("Argument for option '%s' should be of type 'key=value'!", optName)
+			return fmt.Errorf(ErrorArgumentIsNotKeyValue, optName)
 		}
 		opt.value[optName].(map[string]string)[keyValue[0]] = keyValue[1]
 		Debug.Printf("handleOption Option: %v\n", opt.value)
@@ -715,7 +713,11 @@ func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias st
 		return fmt.Errorf(ErrorMissingArgument, optName)
 	}
 	keyValue := strings.Split(opt.args[opt.argsIndex], "=")
+	if len(keyValue) < 2 {
+		return fmt.Errorf(ErrorArgumentIsNotKeyValue, optName)
+	}
 	opt.value[optName].(map[string]string)[keyValue[0]] = keyValue[1]
+	Debug.Printf("handleOption Option: %v\n", opt.value)
 	return nil
 }
 

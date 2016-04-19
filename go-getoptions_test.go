@@ -770,6 +770,15 @@ func TestGetOptStringRepeat(t *testing.T) {
 			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
 		}
 	}
+	opt := New()
+	opt.StringSlice("string")
+	_, err := opt.Parse([]string{"--string"})
+	if err == nil {
+		t.Errorf("Passing option where argument expected didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
 }
 
 // TODO: Allow passig : as the map divider
@@ -828,6 +837,27 @@ func TestGetOptStringMap(t *testing.T) {
 		if !reflect.DeepEqual(c.opt.Option(c.option), c.value) {
 			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
 		}
+	}
+	opt := New()
+	opt.StringMap("string")
+	_, err := opt.Parse([]string{"--string", "hello"})
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+	opt = New()
+	opt.StringMap("string")
+	_, err = opt.Parse([]string{"--string=hello"})
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+	opt = New()
+	opt.StringMap("string")
+	_, err = opt.Parse([]string{"--string"})
+	if err == nil {
+		t.Errorf("Missing argument for option 'string' didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+		t.Errorf("Error string didn't match expected value")
 	}
 }
 
