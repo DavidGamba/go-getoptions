@@ -728,7 +728,19 @@ func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias st
 
 // Stringer - print a nice looking representation of the resulting `Option` map.
 func (opt *GetOpt) Stringer() string {
-	return fmt.Sprintf("%v", opt.value)
+	s := "{\n"
+	for name, value := range opt.value {
+		s += fmt.Sprintf("\"%s\":", name)
+		switch v := value.(type) {
+		case bool, int, float64:
+			s += fmt.Sprintf("%v,\n", v)
+		default:
+			s += fmt.Sprintf("\"%v\",\n", v)
+		}
+	}
+	s += "}"
+	Debug.Printf("stringer: %s\n", s)
+	return s
 }
 
 // TODO: Add case insensitive matching.

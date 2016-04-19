@@ -1100,6 +1100,28 @@ func TestLonesomeDash(t *testing.T) {
 	}
 }
 
+// TODO: Decide if I want to include sort just for stringer so the results are always the same for testing purposes.
+func TestStringer(t *testing.T) {
+	opt := New()
+	opt.Bool("flag", false)
+	opt.String("string", "")
+	opt.Int("int", 0)
+	_, err := opt.Parse([]string{
+		"--flag",
+		"--string", "hello",
+		"--int", "123",
+	})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	opt.Stringer()
+	// 	expected := `{
+	// "flag":true,
+	// "string":"hello",
+	// "int":123,
+	// }`
+}
+
 func TestAll(t *testing.T) {
 	var flag, nflag, nflag2 bool
 	var str string
