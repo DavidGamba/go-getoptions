@@ -419,10 +419,10 @@ If the default argument is not passed the default is set.
   - Warn on unknown.
   - Pass through, allows for subcommands.
 
-== ROADMAP
-
 * Support for the lonesome dash "-".
 To indicate, for example, when to read input from STDIO.
+
+== ROADMAP
 
 * Options with array arguments and multiple entries.
 

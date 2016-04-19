@@ -100,6 +100,9 @@ If the default argument is not passed the default is set.
   - Warn on unknown.
   - Pass through, allows for subcommands.
 
+* Support for the lonesome dash "-".
+To indicate, for example, when to read input from STDIO.
+
 Panic
 
 The library will panic if it finds that the programmer defined the same alias twice.
