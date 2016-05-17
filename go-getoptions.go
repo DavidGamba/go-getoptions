@@ -147,10 +147,11 @@ type option struct {
 		argument string,
 		usedAlias string) error // method used to handle the option
 	// Pointer receivers:
-	pBool    *bool    // receiver for bool pointer
-	pInt     *int     // receiver for int pointer
-	pString  *string  // receiver for string pointer
-	pFloat64 *float64 // receiver for float64 pointer
+	pBool    *bool     // receiver for bool pointer
+	pInt     *int      // receiver for int pointer
+	pString  *string   // receiver for string pointer
+	pStringS *[]string // receiver for string slice pointer
+	pFloat64 *float64  // receiver for float64 pointer
 }
 
 // New returns an empty object of type GetOpt.
@@ -653,9 +654,10 @@ func (opt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
 	opt.obj[name] = option{
-		name:    name,
-		aliases: aliases,
-		handler: opt.handleStringRepeat,
+		name:     name,
+		aliases:  aliases,
+		handler:  opt.handleStringRepeat,
+		pStringS: &s,
 	}
 	return &s
 }
@@ -666,6 +668,7 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 	opt.obj[optName] = tmp
 	if argument != "" {
 		opt.value[optName] = append(opt.value[optName].([]string), argument)
+		*opt.obj[optName].pStringS = append(*opt.obj[optName].pStringS, argument)
 		Debug.Printf("handleOption Option: %v\n", opt.value)
 		return nil
 	}
@@ -675,6 +678,7 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 		return fmt.Errorf(ErrorMissingArgument, optName)
 	}
 	opt.value[optName] = append(opt.value[optName].([]string), opt.args[opt.argsIndex])
+	*opt.obj[optName].pStringS = append(*opt.obj[optName].pStringS, opt.args[opt.argsIndex])
 	return nil
 }
 

@@ -779,6 +779,16 @@ func TestGetOptStringRepeat(t *testing.T) {
 	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
+
+	opt = New()
+	ss := opt.StringSlice("string")
+	_, err = opt.Parse([]string{"--string", "hello", "--string", "world"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !reflect.DeepEqual(*ss, []string{"hello", "world"}) {
+		t.Errorf("Wrong value: %v != %v", *ss, []string{"hello", "world"})
+	}
 }
 
 // TODO: Allow passig : as the map divider
