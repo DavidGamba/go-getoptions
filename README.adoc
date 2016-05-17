@@ -125,7 +125,7 @@ For example:
 +
 In `go-getoptions` this is accomplished with:
 +
-- `ptr := opt.StringMap(name, aliases)`.
+- `strMap := opt.StringMap(name, aliases)`.
 
 Both features above should support the basic types listed before: string, integer and floating point.
 

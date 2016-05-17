@@ -147,11 +147,12 @@ type option struct {
 		argument string,
 		usedAlias string) error // method used to handle the option
 	// Pointer receivers:
-	pBool    *bool     // receiver for bool pointer
-	pInt     *int      // receiver for int pointer
-	pString  *string   // receiver for string pointer
-	pStringS *[]string // receiver for string slice pointer
-	pFloat64 *float64  // receiver for float64 pointer
+	pBool    *bool             // receiver for bool pointer
+	pInt     *int              // receiver for int pointer
+	pString  *string           // receiver for string pointer
+	pFloat64 *float64          // receiver for float64 pointer
+	pStringS *[]string         // receiver for string slice pointer
+	stringM  map[string]string // receiver for string map pointer
 }
 
 // New returns an empty object of type GetOpt.
@@ -643,7 +644,6 @@ func (opt *GetOpt) handleFloat64(optName string, argument string, usedAlias stri
 }
 
 // StringSlice - define a `[]string` option and its aliases.
-// The result will be available through the `Option` map.
 //
 // StringSlice will accept multiple calls to the same option and append them
 // to the `[]string`.
@@ -683,13 +683,12 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 }
 
 // StringMap - define a `map[string]string` option and its aliases.
-// The result will be available through the `Option` map.
 //
 // StringMap will accept multiple calls of `key=value` type to the same option
 // and add them to the `map[string]string` result.
 // For example, when called with `--strMap k=v --strMap k2=v2`, the value is
 // `map[string]string{"k":"v", "k2": "v2"}`.
-func (opt *GetOpt) StringMap(name string, aliases ...string) *map[string]string {
+func (opt *GetOpt) StringMap(name string, aliases ...string) map[string]string {
 	s := make(map[string]string)
 	opt.value[name] = s
 	aliases = append(aliases, name)
@@ -698,12 +697,13 @@ func (opt *GetOpt) StringMap(name string, aliases ...string) *map[string]string 
 		name:    name,
 		aliases: aliases,
 		handler: opt.handleStringMap,
+		stringM: s,
 	}
-	return &s
+	return s
 }
 
 func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias string) error {
-	var tmp = opt.obj[optName]
+	tmp := opt.obj[optName]
 	tmp.called = true
 	opt.obj[optName] = tmp
 	if argument != "" {

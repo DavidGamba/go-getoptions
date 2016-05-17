@@ -869,6 +869,18 @@ func TestGetOptStringMap(t *testing.T) {
 	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
 		t.Errorf("Error string didn't match expected value")
 	}
+	opt = New()
+	sm := opt.StringMap("string")
+	_, err = opt.Parse([]string{"--string", "hello=world", "--string", "key=value", "--string", "key2=value2"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !reflect.DeepEqual(map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm) {
+		t.Errorf("Wrong value: %v != %v", map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm)
+	}
+	if sm["hello"] != "world" || sm["key"] != "value" || sm["key2"] != "value2" {
+		t.Errorf("Wrong value: %v", sm)
+	}
 }
 
 func TestVars(t *testing.T) {
