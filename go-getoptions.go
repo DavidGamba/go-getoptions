@@ -797,7 +797,7 @@ func (opt *GetOpt) getOptionFromAliases(alias string) (optName string, found boo
 			}
 		}
 	}
-	// Attempt to match intial chars of option
+	// Attempt to match initial chars of option
 	if !found {
 		matches := []string{}
 		for name, option := range opt.obj {

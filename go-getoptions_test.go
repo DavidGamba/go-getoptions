@@ -507,7 +507,7 @@ func TestGetOptString(t *testing.T) {
 			[]string{"--string", "hello", "world"},
 			"hello",
 		},
-		// String should only accept an option looking string as an argument when pased after =
+		// String should only accept an option looking string as an argument when passed after =
 		{setup(),
 			"string",
 			[]string{"--string=--hello", "world"},
