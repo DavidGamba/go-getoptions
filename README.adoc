@@ -408,6 +408,9 @@ For example: `rpmbuild --define name=myrpm --define version=123`
 * Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
 
+* Allows passing arguments to options that start with dash `-` when passed after equal.
+For example: `--string=--hello` and `--int=-123`.
+
 * Options with optional arguments.
 If the default argument is not passed the default is set.
 

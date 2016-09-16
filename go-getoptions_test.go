@@ -749,12 +749,6 @@ func TestGetOptStringRepeat(t *testing.T) {
 			[]string{"--string", "hello", "world"},
 			[]string{"hello"},
 		},
-		// TODO: Set a flag to decide wheter or not to allow this
-		{setup(),
-			"string",
-			[]string{"--string", "--hello", "world"},
-			[]string{"--hello"},
-		},
 		{setup(),
 			"string",
 			[]string{"--string", "hello", "--string", "happy", "--string", "world"},
@@ -781,6 +775,16 @@ func TestGetOptStringRepeat(t *testing.T) {
 	}
 
 	opt = New()
+	opt.StringSlice("string")
+	_, err = opt.Parse([]string{"--string", "--hello", "world"})
+	if err == nil {
+		t.Errorf("Passing option where argument expected didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+
+	opt = New()
 	ss := opt.StringSlice("string")
 	_, err = opt.Parse([]string{"--string", "hello", "--string", "world"})
 	if err != nil {
@@ -798,8 +802,6 @@ func TestGetOptStringMap(t *testing.T) {
 		opt.StringMap("string")
 		return opt
 	}
-
-	// TODO: Check error when there is no equal sign.
 
 	cases := []struct {
 		opt    *GetOpt
@@ -827,10 +829,9 @@ func TestGetOptStringMap(t *testing.T) {
 			[]string{"--string", "hello=happy", "world"},
 			map[string]string{"hello": "happy"},
 		},
-		// TODO: Set a flag to decide wheter or not to allow this
 		{setup(),
 			"string",
-			[]string{"--string", "--hello=happy", "world"},
+			[]string{"--string=--hello=happy", "world"},
 			map[string]string{"--hello": "happy"},
 		},
 		{setup(),
@@ -869,6 +870,16 @@ func TestGetOptStringMap(t *testing.T) {
 	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
 		t.Errorf("Error string didn't match expected value")
 	}
+	opt = New()
+	opt.StringMap("string")
+	_, err = opt.Parse([]string{"--string", "--hello=happy", "world"})
+	if err == nil {
+		t.Errorf("Missing argument for option 'string' didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "string") {
+		t.Errorf("Error string didn't match expected value")
+	}
+
 	opt = New()
 	sm := opt.StringMap("string")
 	_, err = opt.Parse([]string{"--string", "hello=world", "--string", "key=value", "--string", "key2=value2"})

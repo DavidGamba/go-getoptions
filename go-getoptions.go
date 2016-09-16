@@ -86,6 +86,9 @@ For example: `rpmbuild --define name=myrpm --define version=123`
 * Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
 
+* Allows passing arguments to options that start with dash `-` when passed after equal.
+For example: `--string=--hello` and `--int=-123`.
+
 * Options with optional arguments.
 If the default argument is not passed the default is set.
 
@@ -677,6 +680,10 @@ func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias
 	if len(opt.args) < opt.argsIndex+1 {
 		return fmt.Errorf(ErrorMissingArgument, optName)
 	}
+	// Check if next arg is option
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.mode); len(optList) > 0 {
+		return fmt.Errorf(ErrorArgumentWithDash, optName)
+	}
 	opt.value[optName] = append(opt.value[optName].([]string), opt.args[opt.argsIndex])
 	*opt.obj[optName].pStringS = append(*opt.obj[optName].pStringS, opt.args[opt.argsIndex])
 	return nil
@@ -719,6 +726,10 @@ func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias st
 	Debug.Printf("len: %d, %d", len(opt.args), opt.argsIndex)
 	if len(opt.args) < opt.argsIndex+1 {
 		return fmt.Errorf(ErrorMissingArgument, optName)
+	}
+	// Check if next arg is option
+	if optList, _ := isOption(opt.args[opt.argsIndex], opt.mode); len(optList) > 0 {
+		return fmt.Errorf(ErrorArgumentWithDash, optName)
 	}
 	keyValue := strings.Split(opt.args[opt.argsIndex], "=")
 	if len(keyValue) < 2 {
