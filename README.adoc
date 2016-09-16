@@ -142,7 +142,19 @@ Instead of writting: `color --r 10 --g 20 --b 30 --next-option` or `color --rgb 
 +
 The input could be: `color --rgb 10 20 30 --next-option`
 +
-Not yet implemented in `go-getoptions`.
+The setup for this feature should allow for the user to continue using both versions of the input, that is passing one argument at a time or passing the 3 arguments at once, or allow the setup to force the user to have to use the 3 arguments at once version.
+This is accomplished with the minimum and maximum setup parameters.
++
+The minimum setup parameter indicates the minimum amount of parameters the user can pass at a time.
+For the example above, the parameter could be set to 3 to force the user to have to pass the 3 arguments at once.
+When set to 1, the user will be able to pass a single parameter per option call.
++
+The maximum setup parameter indicates the maximum amount of parameters the user can pass at a time.
+The option parser will leave any non option argument after the maximum in the `remaining` slice.
++
+In `go-getoptions` this is accomplished with:
++
+- `strSlice := opt.StringSliceMulti(name, minArgs, maxArgs, aliases)`.
 
 Options with key value arguments and multiple entries::
 This allows the user to save typing.
@@ -393,22 +405,35 @@ $ ./myscript non-option -f --string=mystring -i 7 --float 3.14 --p --version non
 * Multiple aliases for the same option. e.g. `help`, `man`.
 
 * Negatable Boolean options.
++
 For example: `--verbose`, `--no-verbose` or `--noverbose`.
 
 * Options with Array arguments.
 The same option can be used multiple times with different arguments.
 The list of arguments will be saved into an Array like structure inside the program.
 
+* Options with array arguments and multiple entries.
++
+For example, instead of writting:
+`color --r 10 --g 20 --b 30 --next-option`
+or
+`color --rgb 10 --rgb 20 --rgb 30 --next-option`
+the input could be:
+`color --rgb 10 20 30 --next-option`
+
 * Options with Key Value arguments.
 This allows the same option to be used multiple times with arguments of key value type.
++
 For example: `rpmbuild --define name=myrpm --define version=123`
 
 * Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
 
 * Supports command line options with '='.
++
 For example: You can use `--string=mystring` and `--string mystring`.
 
 * Allows passing arguments to options that start with dash `-` when passed after equal.
++
 For example: `--string=--hello` and `--int=-123`.
 
 * Options with optional arguments.
@@ -431,9 +456,8 @@ To indicate, for example, when to read input from STDIO.
 * Incremental options.
 Allows the same option to be called multiple times to increment a counter.
 
+[[roadmap]]
 == ROADMAP
-
-* Options with array arguments and multiple entries.
 
 * Options with key value arguments and multiple entries.
 
@@ -452,6 +476,8 @@ Defaults to "--" and "-" but could include "/" to support Win32 style argument h
 * Supports argument dividers other than '='.
 For example: You could define ':' and use `--string=mystring`, `--string:mystring` and `--string mystring`.
 
+* All other Perl's Getopt::Long goodies that seem reasonable to add!
+
 == How to install it
 
 . Get it from github:
@@ -467,11 +493,6 @@ For example: You could define ':' and use `--string=mystring`, `--string:mystrin
 == Dependencies
 
 Go 1.5+
-
-[[roadmap]]
-== Roadmap
-
-* All other Perl's Getopt::Long goodies that seem reasonable to add!
 
 == License
 

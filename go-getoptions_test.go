@@ -894,6 +894,105 @@ func TestGetOptStringMap(t *testing.T) {
 	}
 }
 
+func TestGetOptStringSliceMulti(t *testing.T) {
+	setup := func() *GetOpt {
+		opt := New()
+		opt.StringSliceMulti("string", 1, 3)
+		opt.String("opt", "")
+		return opt
+	}
+	cases := []struct {
+		opt    *GetOpt
+		option string
+		input  []string
+		value  []string
+	}{
+		{setup(),
+			"string",
+			[]string{"--string", "hello"},
+			[]string{"hello"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string=hello"},
+			[]string{"hello"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello", "world"},
+			[]string{"hello", "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string=hello", "world"},
+			[]string{"hello", "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello", "happy", "world"},
+			[]string{"hello", "happy", "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string=hello", "happy", "world"},
+			[]string{"hello", "happy", "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello", "--opt", "world"},
+			[]string{"hello"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello", "--string", "world"},
+			[]string{"hello", "world"},
+		},
+	}
+	for _, c := range cases {
+		_, err := c.opt.Parse(c.input)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(c.opt.Option(c.option), c.value) {
+			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		}
+	}
+
+	opt := New()
+	opt.StringSliceMulti("string", 2, 3)
+	_, err := opt.Parse([]string{"--string", "hello"})
+	if err == nil {
+		t.Errorf("Passing less than min didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+		t.Errorf("Error string didn't match expected value")
+	}
+}
+
+// Verifies that a panic is reached when StringSliceMulti has wrong min
+func TestGetOptStringSliceMultiPanicWithWrongMin(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Wrong min didn't panic")
+		}
+	}()
+	opt := New()
+	opt.StringSliceMulti("string", 0, 1)
+	opt.Parse([]string{})
+}
+
+// Verifies that a panic is reached when StringSliceMulti has wrong max
+func TestGetOptStringSliceMultiPanicWithWrongMax(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Wrong max didn't panic")
+		}
+	}()
+	opt := New()
+	opt.StringSliceMulti("string", 2, 1)
+	opt.Parse([]string{})
+}
+
 func TestVars(t *testing.T) {
 	opt := New()
 
@@ -1217,6 +1316,7 @@ func TestAll(t *testing.T) {
 	opt.Int("int", 0)
 	opt.IntVar(&integer, "intVar", 0)
 	opt.StringSlice("string-repeat")
+	opt.StringSliceMulti("string-slice-multi", 1, 3)
 	opt.StringMap("string-map")
 
 	remaining, err := opt.Parse([]string{
@@ -1233,6 +1333,7 @@ func TestAll(t *testing.T) {
 		"--int", "123",
 		"--intVar", "123",
 		"--string-repeat", "hello", "--string-repeat", "world",
+		"--string-slice-multi", "hello", "happy", "--string-slice-multi", "world",
 		"--string-map", "hello=world", "--string-map", "server=name",
 		"world",
 	})
@@ -1246,13 +1347,14 @@ func TestAll(t *testing.T) {
 	}
 
 	expected := map[string]interface{}{
-		"flag":          true,
-		"nflag":         false,
-		"nftrue":        true,
-		"string":        "hello",
-		"int":           123,
-		"string-repeat": []string{"hello", "world"},
-		"string-map":    map[string]string{"hello": "world", "server": "name"},
+		"flag":               true,
+		"nflag":              false,
+		"nftrue":             true,
+		"string":             "hello",
+		"int":                123,
+		"string-repeat":      []string{"hello", "world"},
+		"string-slice-multi": []string{"hello", "happy", "world"},
+		"string-map":         map[string]string{"hello": "world", "server": "name"},
 	}
 
 	for k := range expected {

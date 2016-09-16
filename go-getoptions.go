@@ -77,6 +77,8 @@ For example: `--verbose`, `--no-verbose` or `--noverbose`.
 The same option can be used multiple times with different arguments.
 The list of arguments will be saved into an Array like structure inside the program.
 
+* Options with array arguments and multiple entries.
+
 * Options with Key Value arguments.
 This allows the same option to be used multiple times with arguments of key value type.
 For example: `rpmbuild --define name=myrpm --define version=123`
@@ -156,6 +158,8 @@ type option struct {
 	pFloat64 *float64          // receiver for float64 pointer
 	pStringS *[]string         // receiver for string slice pointer
 	stringM  map[string]string // receiver for string map pointer
+	min      int               // minimum args when using multi
+	max      int               // maximum args when using multi
 }
 
 // New returns an empty object of type GetOpt.
@@ -740,6 +744,104 @@ func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias st
 	return nil
 }
 
+// StringSliceMulti - define a `[]string` option and its aliases.
+//
+// StringSliceMulti will accept multiple calls to the same option and append them
+// to the `[]string`.
+// For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
+// Addtionally, StringMulti will allow to define a min and max amount of
+// arguments to be passed at once.
+// For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
+// the value is `[]string{"1", "2", "3"}`.
+// It could also be called with `--strRpt 1 --strRpt 2 --strRpt 3` for the same result.
+// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
+// For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
+func (opt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...string) *[]string {
+	s := []string{}
+	opt.value[name] = s
+	aliases = append(aliases, name)
+	opt.failIfDefined(aliases)
+	opt.obj[name] = option{
+		name:     name,
+		aliases:  aliases,
+		handler:  opt.handleStringSliceMulti,
+		pStringS: &s,
+		min:      min,
+		max:      max,
+	}
+	if min <= 0 {
+		panic(fmt.Sprintf("%s min should be > 0", name))
+	}
+	if max <= 0 || max < min {
+		panic(fmt.Sprintf("%s max should be > 0 and > min", name))
+	}
+	Debug.Printf("StringMulti return: %v\n", s)
+	return &s
+}
+
+func (opt *GetOpt) handleStringSliceMulti(optName string, argument string, usedAlias string) error {
+	Debug.Printf("handleStringSliceMulti optName: %s, argument %s, usedAlias %s, min %d, max %d\n",
+		optName, argument, usedAlias, opt.obj[optName].min, opt.obj[optName].max)
+	var tmp = opt.obj[optName]
+	tmp.called = true
+	opt.obj[optName] = tmp
+	argCounter := 0
+
+	if argument != "" {
+		opt.value[optName] = append(opt.value[optName].([]string), argument)
+		*opt.obj[optName].pStringS = append(*opt.obj[optName].pStringS, argument)
+		argCounter++
+		Debug.Printf("handleStringSliceMulti internal value: %v\n", opt.value)
+	}
+	// Function to handle one arg at a time
+	next := func() error {
+		Debug.Printf("total arguments: %d, index: %d, counter %d", len(opt.args), opt.argsIndex, argCounter)
+		if len(opt.args) <= opt.argsIndex+1 {
+			if argCounter <= opt.obj[optName].min {
+				Debug.Printf("ErrorMissingArgument\n")
+				return fmt.Errorf(ErrorMissingArgument, optName)
+			}
+			Debug.Printf("return no more arguments\n")
+			return fmt.Errorf("NoMoreArguments")
+		}
+		// Check if next arg is option
+		if optList, _ := isOption(opt.args[opt.argsIndex+1], opt.mode); len(optList) > 0 {
+			Debug.Printf("Next arg is option: %s\n", opt.args[opt.argsIndex+1])
+			Debug.Printf("ErrorArgumentWithDash\n")
+			return fmt.Errorf(ErrorArgumentWithDash, optName)
+		}
+		opt.argsIndex++
+		opt.value[optName] = append(opt.value[optName].([]string), opt.args[opt.argsIndex])
+		*opt.obj[optName].pStringS = append(*opt.obj[optName].pStringS, opt.args[opt.argsIndex])
+		return nil
+	}
+
+	// Go through the required and optional iterations
+	for argCounter < opt.obj[optName].max {
+		argCounter++
+		err := next()
+		Debug.Printf("counter: %d, value: %v, err %v", argCounter, opt.value[optName], err)
+		if err != nil {
+			if err.Error() == fmt.Sprintf("NoMoreArguments") {
+				Debug.Printf("return value: %v", opt.value[optName])
+				return nil
+			}
+			// always fail if errors under min args
+			// After min args, skip missing arg errors
+			if argCounter <= opt.obj[optName].min ||
+				(err.Error() != fmt.Sprintf(ErrorMissingArgument, optName) &&
+					err.Error() != fmt.Sprintf(ErrorArgumentWithDash, optName)) {
+				Debug.Printf("return value: %v, err: %v", opt.value[optName], err)
+				return err
+			}
+			Debug.Printf("return value: %v", opt.value[optName])
+			return nil
+		}
+	}
+	Debug.Printf("return value: %v", opt.value[optName])
+	return nil
+}
+
 // Increment - When called multiple times it increments its the int counter defined by this option.
 func (opt *GetOpt) Increment(name string, def int, aliases ...string) *int {
 	var i int
@@ -894,14 +996,14 @@ func (opt *GetOpt) Parse(args []string) ([]string, error) {
 			}
 			Debug.Printf("Parse continue\n")
 			for _, optElement := range optList {
+				Debug.Printf("Parse optElement: %s\n", optElement)
 				if optName, ok := opt.getOptionFromAliases(optElement); ok {
 					Debug.Printf("Parse found opt_list\n")
 					handler := opt.obj[optName].handler
-					Debug.Printf("handler found: %s, %s, %d, %s\n", optName, argument, opt.argsIndex, optList[0])
+					Debug.Printf("handler found: name %s, argument %s, index %d, list %s\n", optName, argument, opt.argsIndex, optList[0])
 					err := handler(optName, argument, optElement)
 					if err != nil {
-						Debug.Println(opt.value)
-						Debug.Printf("return %v, %v", nil, err)
+						Debug.Printf("handler return: value %v, return %v, %v", opt.value, nil, err)
 						return nil, err
 					}
 				} else {
