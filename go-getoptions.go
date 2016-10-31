@@ -48,7 +48,7 @@ The following is a basic example:
 		}
 
 		// Use subcommands by operating on the remaining items
-		// Requires `opt.SetUnknownMode("pass")` before the initial `opt.Parse` call.
+		// Requires `opt.SetStopOnNonOption()` before the initial `opt.Parse` call.
 		opt2 := getoptions.New()
 		// ...
 		remaining2, err := opt.Parse(remaining)
@@ -84,6 +84,8 @@ This allows the same option to be used multiple times with arguments of key valu
 For example: `rpmbuild --define name=myrpm --define version=123`
 
 * Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
+
+* Supports subcommands (stop parsing arguments when non option is passed).
 
 * Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
@@ -134,13 +136,14 @@ var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfil
 
 // GetOpt - main object
 type GetOpt struct {
-	value       map[string]interface{} // Map with resulting variables
-	mode        string                 // Operation mode for short options: normal, bundling, singleDash
-	unknownMode string                 // Unknown option mode
-	Writer      io.Writer              // io.Writer locations to write warnings to. Defaults to os.Stderr.
-	obj         map[string]option
-	args        []string
-	argsIndex   int
+	value           map[string]interface{} // Map with resulting variables
+	mode            string                 // Operation mode for short options: normal, bundling, singleDash
+	unknownMode     string                 // Unknown option mode
+	stopOnNonOption bool                   // Stop parsing on non option
+	Writer          io.Writer              // io.Writer locations to write warnings to. Defaults to os.Stderr.
+	obj             map[string]option
+	args            []string
+	argsIndex       int
 }
 
 type option struct {
@@ -263,6 +266,33 @@ func (opt *GetOpt) SetMode(mode string) {
 // This allows for subcommands.
 func (opt *GetOpt) SetUnknownMode(mode string) {
 	opt.unknownMode = mode
+}
+
+// SetStopOnNonOption - Stop parsing options when a subcommand is passed.
+// Put every remaining argument, including the subcommand, in the `remaining` slice.
+//
+// A subcommand is assumed to be the first argument that is not an option or an argument to an option.
+// When a subcommand is found, stop parsing arguments and let a subcommand handler handle the remaining arguments.
+// For example:
+//
+//     command --opt arg subcommand --subopt subarg
+//
+// In the example above, `--opt` is an option and `arg` is an argument to an option, making `subcommand` the first non option argument.
+//
+// This method is useful when both the command and the subcommand have option handlers for the same option.
+//
+// For example, with:
+//
+//     command --help
+//
+// `--help` is handled by `command`, and with:
+//
+//     command subcommand --help
+//
+// `--help` is not handled by `command` since there was a subcommand that caused the parsing to stop.
+// In this case, the `remaining` slice will contain `['subcommand', '--help']` and that can be passed directly to a subcommand's option parser.
+func (opt *GetOpt) SetStopOnNonOption() {
+	opt.stopOnNonOption = true
 }
 
 // Bool - define a `bool` option and its aliases.
@@ -1025,6 +1055,13 @@ func (opt *GetOpt) Parse(args []string) ([]string, error) {
 				}
 			}
 		} else {
+			if opt.stopOnNonOption {
+				remaining = append(remaining, args[opt.argsIndex:]...)
+				Debug.Printf("Stop on subcommand: %s\n", arg)
+				Debug.Println(opt.value)
+				Debug.Printf("return %v, %v", remaining, nil)
+				return remaining, nil
+			}
 			remaining = append(remaining, arg)
 		}
 	}

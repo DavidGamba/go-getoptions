@@ -169,6 +169,28 @@ func TestUnknownOptionModes(t *testing.T) {
 	}
 }
 
+func TestSetStopOnNonOption(t *testing.T) {
+	buf := new(bytes.Buffer)
+	opt := New()
+	opt.Writer = buf
+	opt.String("opt", "")
+	opt.Bool("help", false)
+	opt.SetStopOnNonOption()
+	remaining, err := opt.Parse([]string{"--opt", "arg", "subcommand", "--help"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if buf.String() != "" {
+		t.Errorf("output didn't match expected value: %s", buf.String())
+	}
+	if !reflect.DeepEqual(remaining, []string{"subcommand", "--help"}) {
+		t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"subcommand", "--help"})
+	}
+	if opt.Called("help") {
+		t.Errorf("help called when it wasn't supposed to")
+	}
+}
+
 func TestOptionals(t *testing.T) {
 	// Missing argument without default
 	opt := New()

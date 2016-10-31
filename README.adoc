@@ -174,6 +174,31 @@ Useful when arguments start with dash `-` and you don't want them interpreted as
 +
 In `go-getoptions` this is the default behaviour.
 
+Stop parsing options when a subcommand is passed::
+A subcommand is assumed to be the first argument that is not an option or an argument to an option.
+When a subcommand is found, stop parsing arguments and let a subcommand handler handle the remaining arguments.
+For example:
++
+`command --opt arg subcommand --subopt subarg`
++
+In the example above, `--opt` is an option and `arg` is an argument to an option, making `subcommand` the first non option argument.
++
+This method is useful when both the command and the subcommand have option handlers for the same option.
++
+For example, with:
++
+`command --help`
++
+`--help` is handled by `command`, and with:
++
+`command subcommand --help`
++
+`--help` is not handled by `command` since there was a subcommand that caused the parsing to stop.
++
+In `go-getoptions` this is accomplished with:
++
+- `opt.SetStopOnNonOption()`.
+
 Allow passing options and non-options in any order::
 Some option parsers force you to put the options before or after the arguments.
 That is really annoying!
@@ -374,7 +399,7 @@ if opt.Called("i") {
 }
 
 // Use subcommands by operating on the remaining items
-// Requires `opt.SetUnknownMode("pass")` before the initial `opt.Parse` call.
+// Requires `opt.SetStopOnNonOption()` before the initial `opt.Parse` call.
 opt2 := getoptions.New()
 // ...
 remaining2, err := opt.Parse(remaining)
@@ -427,6 +452,8 @@ This allows the same option to be used multiple times with arguments of key valu
 For example: `rpmbuild --define name=myrpm --define version=123`
 
 * Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
+
+* Supports subcommands (stop parsing arguments when non option is passed).
 
 * Supports command line options with '='.
 +
