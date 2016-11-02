@@ -48,7 +48,7 @@ The following is a basic example:
 		}
 
 		// Use subcommands by operating on the remaining items
-		// Requires `opt.SetStopOnNonOption()` before the initial `opt.Parse` call.
+		// Requires `opt.SetRequireOrder()` before the initial `opt.Parse` call.
 		opt2 := getoptions.New()
 		// ...
 		remaining2, err := opt.Parse(remaining)
@@ -1041,6 +1041,13 @@ func (opt *GetOpt) Parse(args []string) ([]string, error) {
 					Debug.Println(opt.value)
 					switch opt.unknownMode {
 					case "pass":
+						if opt.requireOrder {
+							remaining = append(remaining, args[opt.argsIndex:]...)
+							Debug.Printf("Stop on unknown options\n", arg)
+							Debug.Println(opt.value)
+							Debug.Printf("return %v, %v", remaining, nil)
+							return remaining, nil
+						}
 						remaining = append(remaining, arg)
 						break
 					case "warn":
@@ -1057,7 +1064,7 @@ func (opt *GetOpt) Parse(args []string) ([]string, error) {
 		} else {
 			if opt.requireOrder {
 				remaining = append(remaining, args[opt.argsIndex:]...)
-				Debug.Printf("Stop on subcommand: %s\n", arg)
+				Debug.Printf("Stop on non option: %s\n", arg)
 				Debug.Println(opt.value)
 				Debug.Printf("return %v, %v", remaining, nil)
 				return remaining, nil
