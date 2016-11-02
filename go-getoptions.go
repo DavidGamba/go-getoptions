@@ -136,14 +136,14 @@ var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfil
 
 // GetOpt - main object
 type GetOpt struct {
-	value           map[string]interface{} // Map with resulting variables
-	mode            string                 // Operation mode for short options: normal, bundling, singleDash
-	unknownMode     string                 // Unknown option mode
-	stopOnNonOption bool                   // Stop parsing on non option
-	Writer          io.Writer              // io.Writer locations to write warnings to. Defaults to os.Stderr.
-	obj             map[string]option
-	args            []string
-	argsIndex       int
+	value        map[string]interface{} // Map with resulting variables
+	mode         string                 // Operation mode for short options: normal, bundling, singleDash
+	unknownMode  string                 // Unknown option mode
+	requireOrder bool                   // Stop parsing on non option
+	Writer       io.Writer              // io.Writer locations to write warnings to. Defaults to os.Stderr.
+	obj          map[string]option
+	args         []string
+	argsIndex    int
 }
 
 type option struct {
@@ -268,7 +268,7 @@ func (opt *GetOpt) SetUnknownMode(mode string) {
 	opt.unknownMode = mode
 }
 
-// SetStopOnNonOption - Stop parsing options when a subcommand is passed.
+// SetRequireOrder - Stop parsing options when a subcommand is passed.
 // Put every remaining argument, including the subcommand, in the `remaining` slice.
 //
 // A subcommand is assumed to be the first argument that is not an option or an argument to an option.
@@ -291,8 +291,8 @@ func (opt *GetOpt) SetUnknownMode(mode string) {
 //
 // `--help` is not handled by `command` since there was a subcommand that caused the parsing to stop.
 // In this case, the `remaining` slice will contain `['subcommand', '--help']` and that can be passed directly to a subcommand's option parser.
-func (opt *GetOpt) SetStopOnNonOption() {
-	opt.stopOnNonOption = true
+func (opt *GetOpt) SetRequireOrder() {
+	opt.requireOrder = true
 }
 
 // Bool - define a `bool` option and its aliases.
@@ -1055,7 +1055,7 @@ func (opt *GetOpt) Parse(args []string) ([]string, error) {
 				}
 			}
 		} else {
-			if opt.stopOnNonOption {
+			if opt.requireOrder {
 				remaining = append(remaining, args[opt.argsIndex:]...)
 				Debug.Printf("Stop on subcommand: %s\n", arg)
 				Debug.Println(opt.value)

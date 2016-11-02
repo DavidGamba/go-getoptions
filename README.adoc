@@ -197,7 +197,7 @@ For example, with:
 +
 In `go-getoptions` this is accomplished with:
 +
-- `opt.SetStopOnNonOption()`.
+- `opt.SetRequireOrder()`.
 
 Allow passing options and non-options in any order::
 Some option parsers force you to put the options before or after the arguments.
@@ -399,7 +399,7 @@ if opt.Called("i") {
 }
 
 // Use subcommands by operating on the remaining items
-// Requires `opt.SetStopOnNonOption()` before the initial `opt.Parse` call.
+// Requires `opt.SetRequireOrder()` before the initial `opt.Parse` call.
 opt2 := getoptions.New()
 // ...
 remaining2, err := opt.Parse(remaining)

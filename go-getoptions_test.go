@@ -169,13 +169,13 @@ func TestUnknownOptionModes(t *testing.T) {
 	}
 }
 
-func TestSetStopOnNonOption(t *testing.T) {
+func TestSetRequireOrder(t *testing.T) {
 	buf := new(bytes.Buffer)
 	opt := New()
 	opt.Writer = buf
 	opt.String("opt", "")
 	opt.Bool("help", false)
-	opt.SetStopOnNonOption()
+	opt.SetRequireOrder()
 	remaining, err := opt.Parse([]string{"--opt", "arg", "subcommand", "--help"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
