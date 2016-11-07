@@ -100,12 +100,15 @@ If the default argument is not passed the default is set.
 
 * Called method indicates if the option was passed on the command line.
 
-* Errors exposed as variables to allow overriding them for internationalization.
+* Errors exposed as public variables to allow overriding them for internationalization.
 
 * Multiple ways of managing unknown options:
   - Fail on unknown (default).
   - Warn on unknown.
-  - Pass through, allows for subcommands.
+  - Pass through, allows for subcommands and can be combined with Require Order.
+
+* Require order: Allows for subcommands. Stop parsing arguments when the first non-option is found.
+When mixed with Pass through, it also stops parsing arguments when the first unmatched option is found.
 
 * Support for the lonesome dash "-".
 To indicate, for example, when to read input from STDIO.

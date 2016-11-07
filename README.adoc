@@ -195,9 +195,15 @@ For example, with:
 +
 `--help` is not handled by `command` since there was a subcommand that caused the parsing to stop.
 +
+Additionally, when mixed with _pass through_, it will also stop parsing arguments when it finds the first unmatched option.
++
 In `go-getoptions` this is accomplished with:
 +
 - `opt.SetRequireOrder()`.
++
+And can be combined with:
++
+- `opt.SetUnknownMode("pass")`.
 
 Allow passing options and non-options in any order::
 Some option parsers force you to put the options before or after the arguments.
@@ -470,12 +476,15 @@ If the default argument is not passed the default is set.
 
 * Called method indicates if the option was passed on the command line.
 
-* Errors exposed as variables to allow overriding them for internationalization.
+* Errors exposed as public variables to allow overriding them for internationalization.
 
 * Multiple ways of managing unknown options:
   - Fail on unknown (default).
   - Warn on unknown.
-  - Pass through, allows for subcommands.
+  - Pass through, allows for subcommands and can be combined with Require Order.
+
+* Require order: Allows for subcommands. Stop parsing arguments when the first non-option is found.
+When mixed with Pass through, it also stops parsing arguments when the first unmatched option is found.
 
 * Support for the lonesome dash "-".
 To indicate, for example, when to read input from STDIO.
@@ -493,8 +502,6 @@ Allows the same option to be called multiple times to increment a counter.
 * Case insensitive matching.
 
 * Option values in the bundle: `-h1024w800` -> `-h 1024 -w 800`
-
-* Require order.
 
 * prefix and prefix_pattern.
 The string that starts options.
