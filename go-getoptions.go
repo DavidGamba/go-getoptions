@@ -116,6 +116,9 @@ To indicate, for example, when to read input from STDIO.
 * Incremental options.
 Allows the same option to be called multiple times to increment a counter.
 
+* Supports case sensitive options.
+For example, you can use `v` to define `verbose` and `V` to define `Version`.
+
 Panic
 
 The library will panic if it finds that the programmer defined the same alias twice.

@@ -436,6 +436,34 @@ func TestGetOptBool(t *testing.T) {
 			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
 		}
 	}
+
+	// Test case sensitivity
+	opt := New()
+	opt.Bool("v", false)
+	opt.Bool("V", false)
+	_, err := opt.Parse([]string{"-v"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !opt.Called("v") {
+		t.Errorf("v didn't have expected value %v", false)
+	}
+	if opt.Called("V") {
+		t.Errorf("V didn't have expected value %v", true)
+	}
+	opt = New()
+	opt.Bool("v", false)
+	opt.Bool("V", false)
+	_, err = opt.Parse([]string{"-V"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !opt.Called("V") {
+		t.Errorf("V didn't have expected value %v", false)
+	}
+	if opt.Called("v") {
+		t.Errorf("v didn't have expected value %v", true)
+	}
 }
 
 func TestCalled(t *testing.T) {
