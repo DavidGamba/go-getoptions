@@ -147,7 +147,7 @@ type GetOpt struct {
 	unknownMode  string                 // Unknown option mode
 	requireOrder bool                   // Stop parsing on non option
 	Writer       io.Writer              // io.Writer locations to write warnings to. Defaults to os.Stderr.
-	obj          map[string]option
+	obj          map[string]*option
 	args         []string
 	argsIndex    int
 }
@@ -171,6 +171,10 @@ type option struct {
 	max      int               // maximum args when using multi
 }
 
+func (opt *option) setCalled() {
+	opt.called = true
+}
+
 // New returns an empty object of type GetOpt.
 // This is the starting point when using go-getoptions.
 // For example:
@@ -179,7 +183,7 @@ type option struct {
 func New() *GetOpt {
 	opt := &GetOpt{
 		value:  make(map[string]interface{}),
-		obj:    make(map[string]option),
+		obj:    make(map[string]*option),
 		Writer: os.Stderr,
 	}
 	return opt
@@ -310,7 +314,7 @@ func (opt *GetOpt) Bool(name string, def bool, aliases ...string) *bool {
 	opt.value[name] = def
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{name: name,
+	opt.obj[name] = &option{name: name,
 		aliases: aliases,
 		pBool:   &b,
 		def:     def,
@@ -333,9 +337,7 @@ func (opt *GetOpt) handleBool(optName string, argument string, usedAlias string)
 	Debug.Println("handleBool")
 	opt.value[optName] = !opt.obj[optName].def.(bool)
 	*opt.obj[optName].pBool = !opt.obj[optName].def.(bool)
-	var tmp = opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	return nil
 }
 
@@ -354,7 +356,7 @@ func (opt *GetOpt) NBool(name string, def bool, aliases ...string) *bool {
 		aliases = append(aliases, "no-"+a)
 	}
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{name: name,
+	opt.obj[name] = &option{name: name,
 		aliases: aliases,
 		pBool:   &b,
 		def:     def,
@@ -385,9 +387,7 @@ func (opt *GetOpt) handleNBool(optName string, argument string, usedAlias string
 		opt.value[optName] = !opt.obj[optName].def.(bool)
 		*opt.obj[optName].pBool = !opt.obj[optName].def.(bool)
 	}
-	var tmp = opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	return nil
 }
 
@@ -399,7 +399,7 @@ func (opt *GetOpt) String(name, def string, aliases ...string) *string {
 	opt.value[name] = s
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{
+	opt.obj[name] = &option{
 		name:    name,
 		aliases: aliases,
 		pString: &s,
@@ -421,9 +421,7 @@ func (opt *GetOpt) StringVar(p *string, name, def string, aliases ...string) {
 
 func (opt *GetOpt) handleString(optName string, argument string, usedAlias string) error {
 	Debug.Printf("handleString opt.args: %v(%d)\n", opt.args, len(opt.args))
-	var tmp = opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	if argument != "" {
 		opt.value[optName] = argument
 		*opt.obj[optName].pString = argument
@@ -455,7 +453,7 @@ func (opt *GetOpt) StringOptional(name string, def string, aliases ...string) *s
 	opt.value[name] = s
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{name: name,
+	opt.obj[name] = &option{name: name,
 		aliases: aliases,
 		def:     def,
 		pString: &s,
@@ -478,9 +476,7 @@ func (opt *GetOpt) StringVarOptional(p *string, name, def string, aliases ...str
 }
 
 func (opt *GetOpt) handleStringOptional(optName string, argument string, usedAlias string) error {
-	var tmp = opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	if argument != "" {
 		opt.value[optName] = argument
 		*opt.obj[optName].pString = argument
@@ -511,7 +507,7 @@ func (opt *GetOpt) Int(name string, def int, aliases ...string) *int {
 	opt.value[name] = def
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{name: name,
+	opt.obj[name] = &option{name: name,
 		aliases: aliases,
 		pInt:    &i,
 		handler: opt.handleInt,
@@ -531,9 +527,7 @@ func (opt *GetOpt) IntVar(p *int, name string, def int, aliases ...string) {
 
 func (opt *GetOpt) handleInt(optName string, argument string, usedAlias string) error {
 	Debug.Println("handleInt")
-	var tmp = opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	if argument != "" {
 		iArg, err := strconv.Atoi(argument)
 		if err != nil {
@@ -572,7 +566,7 @@ func (opt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 	opt.value[name] = i
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{name: name,
+	opt.obj[name] = &option{name: name,
 		aliases: aliases,
 		pInt:    &i,
 		def:     def,
@@ -595,9 +589,7 @@ func (opt *GetOpt) IntVarOptional(p *int, name string, def int, aliases ...strin
 }
 
 func (opt *GetOpt) handleIntOptional(optName string, argument string, usedAlias string) error {
-	var tmp = opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	if argument != "" {
 		iArg, err := strconv.Atoi(argument)
 		if err != nil {
@@ -636,7 +628,7 @@ func (opt *GetOpt) Float64(name string, def float64, aliases ...string) *float64
 	opt.value[name] = def
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{name: name,
+	opt.obj[name] = &option{name: name,
 		aliases:  aliases,
 		pFloat64: &i,
 		handler:  opt.handleFloat64,
@@ -655,9 +647,7 @@ func (opt *GetOpt) Float64Var(p *float64, name string, def float64, aliases ...s
 }
 
 func (opt *GetOpt) handleFloat64(optName string, argument string, usedAlias string) error {
-	var tmp = opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	if argument != "" {
 		// TODO: Read the different errors when parsing float
 		iArg, err := strconv.ParseFloat(argument, 64)
@@ -696,7 +686,7 @@ func (opt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
 	opt.value[name] = s
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{
+	opt.obj[name] = &option{
 		name:     name,
 		aliases:  aliases,
 		handler:  opt.handleStringRepeat,
@@ -706,9 +696,7 @@ func (opt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
 }
 
 func (opt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias string) error {
-	var tmp = opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	if argument != "" {
 		opt.value[optName] = append(opt.value[optName].([]string), argument)
 		*opt.obj[optName].pStringS = append(*opt.obj[optName].pStringS, argument)
@@ -740,7 +728,7 @@ func (opt *GetOpt) StringMap(name string, aliases ...string) map[string]string {
 	opt.value[name] = s
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{
+	opt.obj[name] = &option{
 		name:    name,
 		aliases: aliases,
 		handler: opt.handleStringMap,
@@ -750,9 +738,7 @@ func (opt *GetOpt) StringMap(name string, aliases ...string) map[string]string {
 }
 
 func (opt *GetOpt) handleStringMap(optName string, argument string, usedAlias string) error {
-	tmp := opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	if argument != "" {
 		keyValue := strings.Split(argument, "=")
 		if len(keyValue) < 2 {
@@ -797,7 +783,7 @@ func (opt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...string
 	opt.value[name] = s
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{
+	opt.obj[name] = &option{
 		name:     name,
 		aliases:  aliases,
 		handler:  opt.handleStringSliceMulti,
@@ -818,9 +804,7 @@ func (opt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...string
 func (opt *GetOpt) handleStringSliceMulti(optName string, argument string, usedAlias string) error {
 	Debug.Printf("handleStringSliceMulti optName: %s, argument %s, usedAlias %s, min %d, max %d\n",
 		optName, argument, usedAlias, opt.obj[optName].min, opt.obj[optName].max)
-	var tmp = opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	argCounter := 0
 
 	if argument != "" {
@@ -885,7 +869,7 @@ func (opt *GetOpt) Increment(name string, def int, aliases ...string) *int {
 	opt.value[name] = def
 	aliases = append(aliases, name)
 	opt.failIfDefined(aliases)
-	opt.obj[name] = option{name: name,
+	opt.obj[name] = &option{name: name,
 		aliases: aliases,
 		pInt:    &i,
 		handler: opt.handleIncrement,
@@ -904,9 +888,7 @@ func (opt *GetOpt) IncrementVar(p *int, name string, def int, aliases ...string)
 
 func (opt *GetOpt) handleIncrement(optName string, argument string, usedAlias string) error {
 	Debug.Println("handleIncrement")
-	var tmp = opt.obj[optName]
-	tmp.called = true
-	opt.obj[optName] = tmp
+	opt.obj[optName].setCalled()
 	opt.value[optName] = opt.value[optName].(int) + 1
 	*opt.obj[optName].pInt = opt.value[optName].(int)
 	return nil
