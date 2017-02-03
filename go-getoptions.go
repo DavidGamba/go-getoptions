@@ -243,6 +243,16 @@ func (gopt *GetOpt) Option(name string) interface{} {
 	return gopt.value[name]
 }
 
+// option - Returns the *option for name.
+func (gopt *GetOpt) option(name string) *option {
+	return gopt.obj[name]
+}
+
+// option - Sets the *option for name.
+func (gopt *GetOpt) setOption(name string, opt *option) {
+	gopt.obj[name] = opt
+}
+
 // SetMode - Sets the Operation Mode.
 // The operation mode only affects options starting with a single dash '-'.
 // The available operation modes are: normal, bundling or singleDash
@@ -314,11 +324,12 @@ func (gopt *GetOpt) Bool(name string, def bool, aliases ...string) *bool {
 	gopt.value[name] = def
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{name: name,
+	gopt.setOption(name, &option{
+		name:    name,
 		aliases: aliases,
 		pBool:   &b,
 		def:     def,
-		handler: gopt.handleBool}
+		handler: gopt.handleBool})
 	return &b
 }
 
@@ -328,16 +339,18 @@ func (gopt *GetOpt) Bool(name string, def bool, aliases ...string) *bool {
 func (gopt *GetOpt) BoolVar(p *bool, name string, def bool, aliases ...string) {
 	gopt.Bool(name, def, aliases...)
 	*p = def
-	var tmp = gopt.obj[name]
-	tmp.pBool = p
-	gopt.obj[name] = tmp
+	opt := gopt.option(name)
+	opt.pBool = p
 }
 
-func (gopt *GetOpt) handleBool(optName string, argument string, usedAlias string) error {
+func (gopt *GetOpt) handleBool(name string, argument string, usedAlias string) error {
 	Debug.Println("handleBool")
-	gopt.value[optName] = !gopt.obj[optName].def.(bool)
-	*gopt.obj[optName].pBool = !gopt.obj[optName].def.(bool)
-	gopt.obj[optName].setCalled()
+	opt := gopt.option(name)
+	opt.setCalled()
+	var b bool
+	b = !opt.def.(bool)
+	gopt.value[name] = b
+	*opt.pBool = b
 	return nil
 }
 
@@ -356,11 +369,12 @@ func (gopt *GetOpt) NBool(name string, def bool, aliases ...string) *bool {
 		aliases = append(aliases, "no-"+a)
 	}
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{name: name,
+	gopt.setOption(name, &option{
+		name:    name,
 		aliases: aliases,
 		pBool:   &b,
 		def:     def,
-		handler: gopt.handleNBool}
+		handler: gopt.handleNBool})
 	return &b
 }
 
@@ -373,20 +387,22 @@ func (gopt *GetOpt) NBool(name string, def bool, aliases ...string) *bool {
 func (gopt *GetOpt) NBoolVar(p *bool, name string, def bool, aliases ...string) {
 	gopt.NBool(name, def, aliases...)
 	*p = def
-	var tmp = gopt.obj[name]
-	tmp.pBool = p
-	gopt.obj[name] = tmp
+	opt := gopt.option(name)
+	opt.pBool = p
 }
 
-func (gopt *GetOpt) handleNBool(optName string, argument string, usedAlias string) error {
+func (gopt *GetOpt) handleNBool(name string, argument string, usedAlias string) error {
 	Debug.Println("handleNBool")
-	gopt.obj[optName].setCalled()
+	opt := gopt.option(name)
+	opt.setCalled()
+	var b bool
+	b = opt.def.(bool)
 	if strings.HasPrefix(usedAlias, "no-") {
-		gopt.value[optName] = gopt.obj[optName].def.(bool)
-		*gopt.obj[optName].pBool = gopt.obj[optName].def.(bool)
+		gopt.value[name] = b
+		*opt.pBool = b
 	} else {
-		gopt.value[optName] = !gopt.obj[optName].def.(bool)
-		*gopt.obj[optName].pBool = !gopt.obj[optName].def.(bool)
+		gopt.value[name] = !b
+		*opt.pBool = !b
 	}
 	return nil
 }
@@ -399,12 +415,12 @@ func (gopt *GetOpt) String(name, def string, aliases ...string) *string {
 	gopt.value[name] = s
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{
+	gopt.setOption(name, &option{
 		name:    name,
 		aliases: aliases,
 		pString: &s,
 		handler: gopt.handleString,
-	}
+	})
 	return &s
 }
 
@@ -414,31 +430,31 @@ func (gopt *GetOpt) String(name, def string, aliases ...string) *string {
 func (gopt *GetOpt) StringVar(p *string, name, def string, aliases ...string) {
 	gopt.String(name, def, aliases...)
 	*p = def
-	var tmp = gopt.obj[name]
-	tmp.pString = p
-	gopt.obj[name] = tmp
+	opt := gopt.option(name)
+	opt.pString = p
 }
 
-func (gopt *GetOpt) handleString(optName string, argument string, usedAlias string) error {
+func (gopt *GetOpt) handleString(name string, argument string, usedAlias string) error {
 	Debug.Printf("handleString opt.args: %v(%d)\n", gopt.args, len(gopt.args))
-	gopt.obj[optName].setCalled()
+	opt := gopt.option(name)
+	opt.setCalled()
 	if argument != "" {
-		gopt.value[optName] = argument
-		*gopt.obj[optName].pString = argument
+		gopt.value[name] = argument
+		*opt.pString = argument
 		Debug.Printf("handleOption Option: %v\n", gopt.value)
 		return nil
 	}
 	gopt.argsIndex++
 	Debug.Printf("len: %d, %d", len(gopt.args), gopt.argsIndex)
 	if len(gopt.args) < gopt.argsIndex+1 {
-		return fmt.Errorf(ErrorMissingArgument, optName)
+		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
-		return fmt.Errorf(ErrorArgumentWithDash, optName)
+		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
-	gopt.value[optName] = gopt.args[gopt.argsIndex]
-	*gopt.obj[optName].pString = gopt.args[gopt.argsIndex]
+	gopt.value[name] = gopt.args[gopt.argsIndex]
+	*opt.pString = gopt.args[gopt.argsIndex]
 	return nil
 }
 
@@ -453,12 +469,13 @@ func (gopt *GetOpt) StringOptional(name string, def string, aliases ...string) *
 	gopt.value[name] = s
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{name: name,
+	gopt.setOption(name, &option{
+		name:    name,
 		aliases: aliases,
 		def:     def,
 		pString: &s,
 		handler: gopt.handleStringOptional,
-	}
+	})
 	return &s
 }
 
@@ -470,33 +487,33 @@ func (gopt *GetOpt) StringOptional(name string, def string, aliases ...string) *
 func (gopt *GetOpt) StringVarOptional(p *string, name, def string, aliases ...string) {
 	gopt.StringOptional(name, def, aliases...)
 	*p = def
-	var tmp = gopt.obj[name]
-	tmp.pString = p
-	gopt.obj[name] = tmp
+	opt := gopt.option(name)
+	opt.pString = p
 }
 
-func (gopt *GetOpt) handleStringOptional(optName string, argument string, usedAlias string) error {
-	gopt.obj[optName].setCalled()
+func (gopt *GetOpt) handleStringOptional(name string, argument string, usedAlias string) error {
+	opt := gopt.option(name)
+	opt.setCalled()
 	if argument != "" {
-		gopt.value[optName] = argument
-		*gopt.obj[optName].pString = argument
+		gopt.value[name] = argument
+		*opt.pString = argument
 		Debug.Printf("handleOption Option: %v\n", gopt.value)
 		return nil
 	}
 	gopt.argsIndex++
 	if len(gopt.args) < gopt.argsIndex+1 {
-		gopt.value[optName] = gopt.obj[optName].def
-		*gopt.obj[optName].pString = gopt.obj[optName].def.(string)
+		gopt.value[name] = opt.def
+		*opt.pString = opt.def.(string)
 		return nil
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
-		gopt.value[optName] = gopt.obj[optName].def
-		*gopt.obj[optName].pString = gopt.obj[optName].def.(string)
+		gopt.value[name] = opt.def
+		*opt.pString = opt.def.(string)
 		return nil
 	}
-	gopt.value[optName] = gopt.args[gopt.argsIndex]
-	*gopt.obj[optName].pString = gopt.args[gopt.argsIndex]
+	gopt.value[name] = gopt.args[gopt.argsIndex]
+	*opt.pString = gopt.args[gopt.argsIndex]
 	return nil
 }
 
@@ -507,11 +524,12 @@ func (gopt *GetOpt) Int(name string, def int, aliases ...string) *int {
 	gopt.value[name] = def
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{name: name,
+	gopt.setOption(name, &option{
+		name:    name,
 		aliases: aliases,
 		pInt:    &i,
 		handler: gopt.handleInt,
-	}
+	})
 	return &i
 }
 
@@ -520,38 +538,38 @@ func (gopt *GetOpt) Int(name string, def int, aliases ...string) *int {
 func (gopt *GetOpt) IntVar(p *int, name string, def int, aliases ...string) {
 	gopt.Int(name, def, aliases...)
 	*p = def
-	var tmp = gopt.obj[name]
-	tmp.pInt = p
-	gopt.obj[name] = tmp
+	opt := gopt.option(name)
+	opt.pInt = p
 }
 
-func (gopt *GetOpt) handleInt(optName string, argument string, usedAlias string) error {
+func (gopt *GetOpt) handleInt(name string, argument string, usedAlias string) error {
 	Debug.Println("handleInt")
-	gopt.obj[optName].setCalled()
+	opt := gopt.option(name)
+	opt.setCalled()
 	if argument != "" {
 		iArg, err := strconv.Atoi(argument)
 		if err != nil {
-			return fmt.Errorf(ErrorConvertToInt, optName, argument)
+			return fmt.Errorf(ErrorConvertToInt, name, argument)
 		}
-		gopt.value[optName] = iArg
-		*gopt.obj[optName].pInt = iArg
+		gopt.value[name] = iArg
+		*opt.pInt = iArg
 		Debug.Printf("handleOption Option: %v\n", gopt.value)
 		return nil
 	}
 	gopt.argsIndex++
 	if len(gopt.args) < gopt.argsIndex+1 {
-		return fmt.Errorf(ErrorMissingArgument, optName)
+		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
-		return fmt.Errorf(ErrorArgumentWithDash, optName)
+		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
 	iArg, err := strconv.Atoi(gopt.args[gopt.argsIndex])
 	if err != nil {
-		return fmt.Errorf(ErrorConvertToInt, optName, gopt.args[gopt.argsIndex])
+		return fmt.Errorf(ErrorConvertToInt, name, gopt.args[gopt.argsIndex])
 	}
-	gopt.value[optName] = iArg
-	*gopt.obj[optName].pInt = iArg
+	gopt.value[name] = iArg
+	*opt.pInt = iArg
 	return nil
 }
 
@@ -566,12 +584,13 @@ func (gopt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 	gopt.value[name] = i
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{name: name,
+	gopt.setOption(name, &option{
+		name:    name,
 		aliases: aliases,
 		pInt:    &i,
 		def:     def,
 		handler: gopt.handleIntOptional,
-	}
+	})
 	return &i
 }
 
@@ -583,41 +602,41 @@ func (gopt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 func (gopt *GetOpt) IntVarOptional(p *int, name string, def int, aliases ...string) {
 	gopt.IntOptional(name, def, aliases...)
 	*p = def
-	var tmp = gopt.obj[name]
-	tmp.pInt = p
-	gopt.obj[name] = tmp
+	opt := gopt.option(name)
+	opt.pInt = p
 }
 
-func (gopt *GetOpt) handleIntOptional(optName string, argument string, usedAlias string) error {
-	gopt.obj[optName].setCalled()
+func (gopt *GetOpt) handleIntOptional(name string, argument string, usedAlias string) error {
+	opt := gopt.option(name)
+	opt.setCalled()
 	if argument != "" {
 		iArg, err := strconv.Atoi(argument)
 		if err != nil {
-			return fmt.Errorf(ErrorConvertToInt, optName, argument)
+			return fmt.Errorf(ErrorConvertToInt, name, argument)
 		}
-		gopt.value[optName] = iArg
-		*gopt.obj[optName].pInt = iArg
+		gopt.value[name] = iArg
+		*opt.pInt = iArg
 		Debug.Printf("handleOption Option: %v\n", gopt.value)
 		return nil
 	}
 	gopt.argsIndex++
 	if len(gopt.args) < gopt.argsIndex+1 {
-		gopt.value[optName] = gopt.obj[optName].def
-		*gopt.obj[optName].pInt = gopt.obj[optName].def.(int)
+		gopt.value[name] = opt.def
+		*opt.pInt = opt.def.(int)
 		return nil
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
-		gopt.value[optName] = gopt.obj[optName].def
-		*gopt.obj[optName].pInt = gopt.obj[optName].def.(int)
+		gopt.value[name] = opt.def
+		*opt.pInt = opt.def.(int)
 		return nil
 	}
 	iArg, err := strconv.Atoi(gopt.args[gopt.argsIndex])
 	if err != nil {
-		return fmt.Errorf(ErrorConvertToInt, optName, gopt.args[gopt.argsIndex])
+		return fmt.Errorf(ErrorConvertToInt, name, gopt.args[gopt.argsIndex])
 	}
-	gopt.value[optName] = iArg
-	*gopt.obj[optName].pInt = iArg
+	gopt.value[name] = iArg
+	*opt.pInt = iArg
 	return nil
 }
 
@@ -628,11 +647,12 @@ func (gopt *GetOpt) Float64(name string, def float64, aliases ...string) *float6
 	gopt.value[name] = def
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{name: name,
+	gopt.setOption(name, &option{
+		name:     name,
 		aliases:  aliases,
 		pFloat64: &i,
 		handler:  gopt.handleFloat64,
-	}
+	})
 	return &i
 }
 
@@ -641,38 +661,38 @@ func (gopt *GetOpt) Float64(name string, def float64, aliases ...string) *float6
 func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, aliases ...string) {
 	gopt.Float64(name, def, aliases...)
 	*p = def
-	var tmp = gopt.obj[name]
-	tmp.pFloat64 = p
-	gopt.obj[name] = tmp
+	opt := gopt.option(name)
+	opt.pFloat64 = p
 }
 
-func (gopt *GetOpt) handleFloat64(optName string, argument string, usedAlias string) error {
-	gopt.obj[optName].setCalled()
+func (gopt *GetOpt) handleFloat64(name string, argument string, usedAlias string) error {
+	opt := gopt.option(name)
+	opt.setCalled()
 	if argument != "" {
 		// TODO: Read the different errors when parsing float
 		iArg, err := strconv.ParseFloat(argument, 64)
 		if err != nil {
-			return fmt.Errorf(ErrorConvertToFloat64, optName, argument)
+			return fmt.Errorf(ErrorConvertToFloat64, name, argument)
 		}
-		gopt.value[optName] = iArg
-		*gopt.obj[optName].pFloat64 = iArg
+		gopt.value[name] = iArg
+		*opt.pFloat64 = iArg
 		Debug.Printf("handleOption Option: %v\n", gopt.value)
 		return nil
 	}
 	gopt.argsIndex++
 	if len(gopt.args) < gopt.argsIndex+1 {
-		return fmt.Errorf(ErrorMissingArgument, optName)
+		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
-		return fmt.Errorf(ErrorArgumentWithDash, optName)
+		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
 	iArg, err := strconv.ParseFloat(gopt.args[gopt.argsIndex], 64)
 	if err != nil {
-		return fmt.Errorf(ErrorConvertToFloat64, optName, gopt.args[gopt.argsIndex])
+		return fmt.Errorf(ErrorConvertToFloat64, name, gopt.args[gopt.argsIndex])
 	}
-	gopt.value[optName] = iArg
-	*gopt.obj[optName].pFloat64 = iArg
+	gopt.value[name] = iArg
+	*opt.pFloat64 = iArg
 	return nil
 }
 
@@ -686,34 +706,35 @@ func (gopt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
 	gopt.value[name] = s
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{
+	gopt.setOption(name, &option{
 		name:     name,
 		aliases:  aliases,
 		handler:  gopt.handleStringRepeat,
 		pStringS: &s,
-	}
+	})
 	return &s
 }
 
-func (gopt *GetOpt) handleStringRepeat(optName string, argument string, usedAlias string) error {
-	gopt.obj[optName].setCalled()
+func (gopt *GetOpt) handleStringRepeat(name string, argument string, usedAlias string) error {
+	opt := gopt.option(name)
+	opt.setCalled()
 	if argument != "" {
-		gopt.value[optName] = append(gopt.value[optName].([]string), argument)
-		*gopt.obj[optName].pStringS = append(*gopt.obj[optName].pStringS, argument)
+		gopt.value[name] = append(gopt.value[name].([]string), argument)
+		*opt.pStringS = append(*opt.pStringS, argument)
 		Debug.Printf("handleOption Option: %v\n", gopt.value)
 		return nil
 	}
 	gopt.argsIndex++
 	Debug.Printf("len: %d, %d", len(gopt.args), gopt.argsIndex)
 	if len(gopt.args) < gopt.argsIndex+1 {
-		return fmt.Errorf(ErrorMissingArgument, optName)
+		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
-		return fmt.Errorf(ErrorArgumentWithDash, optName)
+		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
-	gopt.value[optName] = append(gopt.value[optName].([]string), gopt.args[gopt.argsIndex])
-	*gopt.obj[optName].pStringS = append(*gopt.obj[optName].pStringS, gopt.args[gopt.argsIndex])
+	gopt.value[name] = append(gopt.value[name].([]string), gopt.args[gopt.argsIndex])
+	*opt.pStringS = append(*opt.pStringS, gopt.args[gopt.argsIndex])
 	return nil
 }
 
@@ -728,40 +749,41 @@ func (gopt *GetOpt) StringMap(name string, aliases ...string) map[string]string 
 	gopt.value[name] = s
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{
+	gopt.setOption(name, &option{
 		name:    name,
 		aliases: aliases,
 		handler: gopt.handleStringMap,
 		stringM: s,
-	}
+	})
 	return s
 }
 
-func (gopt *GetOpt) handleStringMap(optName string, argument string, usedAlias string) error {
-	gopt.obj[optName].setCalled()
+func (gopt *GetOpt) handleStringMap(name string, argument string, usedAlias string) error {
+	opt := gopt.option(name)
+	opt.setCalled()
 	if argument != "" {
 		keyValue := strings.Split(argument, "=")
 		if len(keyValue) < 2 {
-			return fmt.Errorf(ErrorArgumentIsNotKeyValue, optName)
+			return fmt.Errorf(ErrorArgumentIsNotKeyValue, name)
 		}
-		gopt.value[optName].(map[string]string)[keyValue[0]] = keyValue[1]
+		gopt.value[name].(map[string]string)[keyValue[0]] = keyValue[1]
 		Debug.Printf("handleOption Option: %v\n", gopt.value)
 		return nil
 	}
 	gopt.argsIndex++
 	Debug.Printf("len: %d, %d", len(gopt.args), gopt.argsIndex)
 	if len(gopt.args) < gopt.argsIndex+1 {
-		return fmt.Errorf(ErrorMissingArgument, optName)
+		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
-		return fmt.Errorf(ErrorArgumentWithDash, optName)
+		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
 	keyValue := strings.Split(gopt.args[gopt.argsIndex], "=")
 	if len(keyValue) < 2 {
-		return fmt.Errorf(ErrorArgumentIsNotKeyValue, optName)
+		return fmt.Errorf(ErrorArgumentIsNotKeyValue, name)
 	}
-	gopt.value[optName].(map[string]string)[keyValue[0]] = keyValue[1]
+	gopt.value[name].(map[string]string)[keyValue[0]] = keyValue[1]
 	Debug.Printf("handleOption Option: %v\n", gopt.value)
 	return nil
 }
@@ -783,14 +805,14 @@ func (gopt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...strin
 	gopt.value[name] = s
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{
+	gopt.setOption(name, &option{
 		name:     name,
 		aliases:  aliases,
 		handler:  gopt.handleStringSliceMulti,
 		pStringS: &s,
 		min:      min,
 		max:      max,
-	}
+	})
 	if min <= 0 {
 		panic(fmt.Sprintf("%s min should be > 0", name))
 	}
@@ -801,15 +823,16 @@ func (gopt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...strin
 	return &s
 }
 
-func (gopt *GetOpt) handleStringSliceMulti(optName string, argument string, usedAlias string) error {
+func (gopt *GetOpt) handleStringSliceMulti(name string, argument string, usedAlias string) error {
 	Debug.Printf("handleStringSliceMulti optName: %s, argument %s, usedAlias %s, min %d, max %d\n",
-		optName, argument, usedAlias, gopt.obj[optName].min, gopt.obj[optName].max)
-	gopt.obj[optName].setCalled()
+		name, argument, usedAlias, gopt.obj[name].min, gopt.obj[name].max)
+	opt := gopt.option(name)
+	opt.setCalled()
 	argCounter := 0
 
 	if argument != "" {
-		gopt.value[optName] = append(gopt.value[optName].([]string), argument)
-		*gopt.obj[optName].pStringS = append(*gopt.obj[optName].pStringS, argument)
+		gopt.value[name] = append(gopt.value[name].([]string), argument)
+		*opt.pStringS = append(*opt.pStringS, argument)
 		argCounter++
 		Debug.Printf("handleStringSliceMulti internal value: %v\n", gopt.value)
 	}
@@ -817,9 +840,9 @@ func (gopt *GetOpt) handleStringSliceMulti(optName string, argument string, used
 	next := func() error {
 		Debug.Printf("total arguments: %d, index: %d, counter %d", len(gopt.args), gopt.argsIndex, argCounter)
 		if len(gopt.args) <= gopt.argsIndex+1 {
-			if argCounter <= gopt.obj[optName].min {
+			if argCounter <= opt.min {
 				Debug.Printf("ErrorMissingArgument\n")
-				return fmt.Errorf(ErrorMissingArgument, optName)
+				return fmt.Errorf(ErrorMissingArgument, name)
 			}
 			Debug.Printf("return no more arguments\n")
 			return fmt.Errorf("NoMoreArguments")
@@ -828,37 +851,37 @@ func (gopt *GetOpt) handleStringSliceMulti(optName string, argument string, used
 		if optList, _ := isOption(gopt.args[gopt.argsIndex+1], gopt.mode); len(optList) > 0 {
 			Debug.Printf("Next arg is option: %s\n", gopt.args[gopt.argsIndex+1])
 			Debug.Printf("ErrorArgumentWithDash\n")
-			return fmt.Errorf(ErrorArgumentWithDash, optName)
+			return fmt.Errorf(ErrorArgumentWithDash, name)
 		}
 		gopt.argsIndex++
-		gopt.value[optName] = append(gopt.value[optName].([]string), gopt.args[gopt.argsIndex])
-		*gopt.obj[optName].pStringS = append(*gopt.obj[optName].pStringS, gopt.args[gopt.argsIndex])
+		gopt.value[name] = append(gopt.value[name].([]string), gopt.args[gopt.argsIndex])
+		*opt.pStringS = append(*opt.pStringS, gopt.args[gopt.argsIndex])
 		return nil
 	}
 
 	// Go through the required and optional iterations
-	for argCounter < gopt.obj[optName].max {
+	for argCounter < opt.max {
 		argCounter++
 		err := next()
-		Debug.Printf("counter: %d, value: %v, err %v", argCounter, gopt.value[optName], err)
+		Debug.Printf("counter: %d, value: %v, err %v", argCounter, gopt.value[name], err)
 		if err != nil {
 			if err.Error() == fmt.Sprintf("NoMoreArguments") {
-				Debug.Printf("return value: %v", gopt.value[optName])
+				Debug.Printf("return value: %v", gopt.value[name])
 				return nil
 			}
 			// always fail if errors under min args
 			// After min args, skip missing arg errors
-			if argCounter <= gopt.obj[optName].min ||
-				(err.Error() != fmt.Sprintf(ErrorMissingArgument, optName) &&
-					err.Error() != fmt.Sprintf(ErrorArgumentWithDash, optName)) {
-				Debug.Printf("return value: %v, err: %v", gopt.value[optName], err)
+			if argCounter <= opt.min ||
+				(err.Error() != fmt.Sprintf(ErrorMissingArgument, name) &&
+					err.Error() != fmt.Sprintf(ErrorArgumentWithDash, name)) {
+				Debug.Printf("return value: %v, err: %v", gopt.value[name], err)
 				return err
 			}
-			Debug.Printf("return value: %v", gopt.value[optName])
+			Debug.Printf("return value: %v", gopt.value[name])
 			return nil
 		}
 	}
-	Debug.Printf("return value: %v", gopt.value[optName])
+	Debug.Printf("return value: %v", gopt.value[name])
 	return nil
 }
 
@@ -869,11 +892,12 @@ func (gopt *GetOpt) Increment(name string, def int, aliases ...string) *int {
 	gopt.value[name] = def
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
-	gopt.obj[name] = &option{name: name,
+	gopt.setOption(name, &option{
+		name:    name,
 		aliases: aliases,
 		pInt:    &i,
 		handler: gopt.handleIncrement,
-	}
+	})
 	return &i
 }
 
@@ -881,16 +905,16 @@ func (gopt *GetOpt) Increment(name string, def int, aliases ...string) *int {
 func (gopt *GetOpt) IncrementVar(p *int, name string, def int, aliases ...string) {
 	gopt.Increment(name, def, aliases...)
 	*p = def
-	var tmp = gopt.obj[name]
-	tmp.pInt = p
-	gopt.obj[name] = tmp
+	opt := gopt.option(name)
+	opt.pInt = p
 }
 
-func (gopt *GetOpt) handleIncrement(optName string, argument string, usedAlias string) error {
+func (gopt *GetOpt) handleIncrement(name string, argument string, usedAlias string) error {
 	Debug.Println("handleIncrement")
-	gopt.obj[optName].setCalled()
-	gopt.value[optName] = gopt.value[optName].(int) + 1
-	*gopt.obj[optName].pInt = gopt.value[optName].(int)
+	opt := gopt.option(name)
+	opt.setCalled()
+	gopt.value[name] = gopt.value[name].(int) + 1
+	*opt.pInt = gopt.value[name].(int)
 	return nil
 }
 
