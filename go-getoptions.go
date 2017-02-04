@@ -56,67 +56,67 @@ The following is a basic example:
 
 Features
 
-* Allow passing options and non-options in any order.
+• Allow passing options and non-options in any order.
 
-* Support for `--long` options.
+• Support for `--long` options.
 
-* Support for short (`-s`) options with flexible behaviour (see https://github.com/DavidGamba/go-getoptions#operation_modes for details):
+• Support for short (`-s`) options with flexible behaviour (see https://github.com/DavidGamba/go-getoptions#operation_modes for details):
 
  - Normal (default)
  - Bundling
  - SingleDash
 
-* Boolean, String, Int and Float64 type options.
+• Boolean, String, Int and Float64 type options.
 
-* Multiple aliases for the same option. e.g. `help`, `man`.
+• Multiple aliases for the same option. e.g. `help`, `man`.
 
-* Negatable Boolean options.
+• Negatable Boolean options.
 For example: `--verbose`, `--no-verbose` or `--noverbose`.
 
-* Options with Array arguments.
+• Options with Array arguments.
 The same option can be used multiple times with different arguments.
 The list of arguments will be saved into an Array like structure inside the program.
 
-* Options with array arguments and multiple entries.
+• Options with array arguments and multiple entries.
 
-* Options with Key Value arguments.
+• Options with Key Value arguments.
 This allows the same option to be used multiple times with arguments of key value type.
 For example: `rpmbuild --define name=myrpm --define version=123`
 
-* Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
+• Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
 
-* Supports subcommands (stop parsing arguments when non option is passed).
+• Supports subcommands (stop parsing arguments when non option is passed).
 
-* Supports command line options with '='.
+• Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
 
-* Allows passing arguments to options that start with dash `-` when passed after equal.
+• Allows passing arguments to options that start with dash `-` when passed after equal.
 For example: `--string=--hello` and `--int=-123`.
 
-* Options with optional arguments.
+• Options with optional arguments.
 If the default argument is not passed the default is set.
 
-* Allows abbreviations when the provided option is not ambiguous.
+• Allows abbreviations when the provided option is not ambiguous.
 
-* Called method indicates if the option was passed on the command line.
+• Called method indicates if the option was passed on the command line.
 
-* Errors exposed as public variables to allow overriding them for internationalization.
+• Errors exposed as public variables to allow overriding them for internationalization.
 
-* Multiple ways of managing unknown options:
+• Multiple ways of managing unknown options:
   - Fail on unknown (default).
   - Warn on unknown.
   - Pass through, allows for subcommands and can be combined with Require Order.
 
-* Require order: Allows for subcommands. Stop parsing arguments when the first non-option is found.
+• Require order: Allows for subcommands. Stop parsing arguments when the first non-option is found.
 When mixed with Pass through, it also stops parsing arguments when the first unmatched option is found.
 
-* Support for the lonesome dash "-".
+• Support for the lonesome dash "-".
 To indicate, for example, when to read input from STDIO.
 
-* Incremental options.
+• Incremental options.
 Allows the same option to be called multiple times to increment a counter.
 
-* Supports case sensitive options.
+• Supports case sensitive options.
 For example, you can use `v` to define `verbose` and `V` to define `Version`.
 
 Panic
