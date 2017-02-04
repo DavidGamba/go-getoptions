@@ -147,8 +147,7 @@ type GetOpt struct {
 	requireOrder bool      // Stop parsing on non option
 	Writer       io.Writer // io.Writer locations to write warnings to. Defaults to os.Stderr.
 	obj          map[string]*option
-	args         []string
-	argsIndex    int
+	args         *argList
 }
 
 // handlerType - method used to handle the option
@@ -363,7 +362,7 @@ func (gopt *GetOpt) StringVar(p *string, name, def string, aliases ...string) {
 }
 
 func (gopt *GetOpt) handleString(name string, argument string, usedAlias string) error {
-	Debug.Printf("handleString opt.args: %v(%d)\n", gopt.args, len(gopt.args))
+	Debug.Printf("handleString\n")
 	opt := gopt.option(name)
 	opt.setCalled()
 	if argument != "" {
@@ -371,16 +370,16 @@ func (gopt *GetOpt) handleString(name string, argument string, usedAlias string)
 		Debug.Printf("handleOption Option: %v\n", opt.value)
 		return nil
 	}
-	gopt.argsIndex++
-	Debug.Printf("len: %d, %d", len(gopt.args), gopt.argsIndex)
-	if len(gopt.args) < gopt.argsIndex+1 {
+	Debug.Printf("len: %d, %d", gopt.args.size(), gopt.args.index())
+	if !gopt.args.existsNext() {
 		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
+	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
-	opt.setString(gopt.args[gopt.argsIndex])
+	gopt.args.next()
+	opt.setString(gopt.args.value())
 	return nil
 }
 
@@ -417,15 +416,15 @@ func (gopt *GetOpt) handleStringOptional(name string, argument string, usedAlias
 		Debug.Printf("handleOption Option: %v\n", opt.value)
 		return nil
 	}
-	gopt.argsIndex++
-	if len(gopt.args) < gopt.argsIndex+1 {
+	if !gopt.args.existsNext() {
 		return nil
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
+	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 		return nil
 	}
-	opt.setString(gopt.args[gopt.argsIndex])
+	gopt.args.next()
+	opt.setString(gopt.args.value())
 	return nil
 }
 
@@ -460,17 +459,17 @@ func (gopt *GetOpt) handleInt(name string, argument string, usedAlias string) er
 		Debug.Printf("handleOption Option: %v\n", opt.value)
 		return nil
 	}
-	gopt.argsIndex++
-	if len(gopt.args) < gopt.argsIndex+1 {
+	if !gopt.args.existsNext() {
 		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
+	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
-	iArg, err := strconv.Atoi(gopt.args[gopt.argsIndex])
+	gopt.args.next()
+	iArg, err := strconv.Atoi(gopt.args.value())
 	if err != nil {
-		return fmt.Errorf(ErrorConvertToInt, name, gopt.args[gopt.argsIndex])
+		return fmt.Errorf(ErrorConvertToInt, name, gopt.args.value())
 	}
 	opt.setInt(iArg)
 	return nil
@@ -513,17 +512,17 @@ func (gopt *GetOpt) handleIntOptional(name string, argument string, usedAlias st
 		Debug.Printf("handleOption Option: %v\n", opt.value)
 		return nil
 	}
-	gopt.argsIndex++
-	if len(gopt.args) < gopt.argsIndex+1 {
+	if !gopt.args.existsNext() {
 		return nil
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
+	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 		return nil
 	}
-	iArg, err := strconv.Atoi(gopt.args[gopt.argsIndex])
+	gopt.args.next()
+	iArg, err := strconv.Atoi(gopt.args.value())
 	if err != nil {
-		return fmt.Errorf(ErrorConvertToInt, name, gopt.args[gopt.argsIndex])
+		return fmt.Errorf(ErrorConvertToInt, name, gopt.args.value())
 	}
 	opt.setInt(iArg)
 	return nil
@@ -560,17 +559,17 @@ func (gopt *GetOpt) handleFloat64(name string, argument string, usedAlias string
 		Debug.Printf("handleOption Option: %v\n", opt.value)
 		return nil
 	}
-	gopt.argsIndex++
-	if len(gopt.args) < gopt.argsIndex+1 {
+	if !gopt.args.existsNext() {
 		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
+	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
-	iArg, err := strconv.ParseFloat(gopt.args[gopt.argsIndex], 64)
+	gopt.args.next()
+	iArg, err := strconv.ParseFloat(gopt.args.value(), 64)
 	if err != nil {
-		return fmt.Errorf(ErrorConvertToFloat64, name, gopt.args[gopt.argsIndex])
+		return fmt.Errorf(ErrorConvertToFloat64, name, gopt.args.value())
 	}
 	opt.setFloat64(iArg)
 	return nil
@@ -599,16 +598,15 @@ func (gopt *GetOpt) handleStringRepeat(name string, argument string, usedAlias s
 		Debug.Printf("handleOption Option: %v\n", opt.value)
 		return nil
 	}
-	gopt.argsIndex++
-	Debug.Printf("len: %d, %d", len(gopt.args), gopt.argsIndex)
-	if len(gopt.args) < gopt.argsIndex+1 {
+	if !gopt.args.existsNext() {
 		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
+	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
-	opt.appendStringSlice(gopt.args[gopt.argsIndex])
+	gopt.args.next()
+	opt.appendStringSlice(gopt.args.value())
 	return nil
 }
 
@@ -640,16 +638,15 @@ func (gopt *GetOpt) handleStringMap(name string, argument string, usedAlias stri
 		Debug.Printf("handleOption Option: %v\n", opt.value)
 		return nil
 	}
-	gopt.argsIndex++
-	Debug.Printf("len: %d, %d", len(gopt.args), gopt.argsIndex)
-	if len(gopt.args) < gopt.argsIndex+1 {
+	if !gopt.args.existsNext() {
 		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(gopt.args[gopt.argsIndex], gopt.mode); len(optList) > 0 {
+	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
-	keyValue := strings.Split(gopt.args[gopt.argsIndex], "=")
+	gopt.args.next()
+	keyValue := strings.Split(gopt.args.value(), "=")
 	if len(keyValue) < 2 {
 		return fmt.Errorf(ErrorArgumentIsNotKeyValue, name)
 	}
@@ -702,8 +699,8 @@ func (gopt *GetOpt) handleStringSliceMulti(name string, argument string, usedAli
 	}
 	// Function to handle one arg at a time
 	next := func() error {
-		Debug.Printf("total arguments: %d, index: %d, counter %d", len(gopt.args), gopt.argsIndex, argCounter)
-		if len(gopt.args) <= gopt.argsIndex+1 {
+		Debug.Printf("total arguments: %d, index: %d, counter %d", gopt.args.size(), gopt.args.index(), argCounter)
+		if !gopt.args.existsNext() {
 			if argCounter <= opt.min() {
 				Debug.Printf("ErrorMissingArgument\n")
 				return fmt.Errorf(ErrorMissingArgument, name)
@@ -712,13 +709,13 @@ func (gopt *GetOpt) handleStringSliceMulti(name string, argument string, usedAli
 			return fmt.Errorf("NoMoreArguments")
 		}
 		// Check if next arg is option
-		if optList, _ := isOption(gopt.args[gopt.argsIndex+1], gopt.mode); len(optList) > 0 {
-			Debug.Printf("Next arg is option: %s\n", gopt.args[gopt.argsIndex+1])
+		if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
+			Debug.Printf("Next arg is option: %s\n", gopt.args.peekNextValue())
 			Debug.Printf("ErrorArgumentWithDash\n")
 			return fmt.Errorf(ErrorArgumentWithDash, name)
 		}
-		gopt.argsIndex++
-		opt.appendStringSlice(gopt.args[gopt.argsIndex])
+		gopt.args.next()
+		opt.appendStringSlice(gopt.args.value())
 		return nil
 	}
 
@@ -873,21 +870,23 @@ func isOption(s string, mode string) (options []string, argument string) {
 
 // Parse - Call the parse method when done describing
 func (gopt *GetOpt) Parse(args []string) ([]string, error) {
-	gopt.args = args
+	al := newArgList(args)
+	gopt.args = al
 	Debug.Printf("Parse args: %v(%d)\n", args, len(args))
 	var remaining []string
 	// opt.argsIndex is the index in the opt.args slice.
 	// Option handlers will have to know about it, to ask for the next element.
-	for gopt.argsIndex = 0; gopt.argsIndex < len(args); gopt.argsIndex++ {
-		arg := args[gopt.argsIndex]
+	for gopt.args.next() {
+		arg := gopt.args.value()
 		Debug.Printf("Parse input arg: %s\n", arg)
 		if optList, argument := isOption(arg, gopt.mode); len(optList) > 0 {
 			Debug.Printf("Parse opt_list: %v, argument: %v\n", optList, argument)
 			// Check for termination: '--'
 			if optList[0] == "--" {
 				Debug.Printf("Parse -- found\n")
-				remaining = append(remaining, args[gopt.argsIndex+1:]...)
-				// Debug.Println(gopt.value)
+				// move index to next possition (to not include '--') and return remaining.
+				gopt.args.next()
+				remaining = append(remaining, gopt.args.remaining()...)
 				Debug.Printf("return %v, %v", remaining, nil)
 				return remaining, nil
 			}
@@ -898,7 +897,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 					Debug.Printf("Parse found opt_list\n")
 					opt := gopt.option(optName)
 					handler := opt.handler
-					Debug.Printf("handler found: name %s, argument %s, index %d, list %s\n", optName, argument, gopt.argsIndex, optList[0])
+					Debug.Printf("handler found: name %s, argument %s, index %d, list %s\n", optName, argument, gopt.args.index(), optList[0])
 					err := handler(optName, argument, optElement)
 					if err != nil {
 						Debug.Printf("handler return: value %v, return %v, %v", opt.value, nil, err)
@@ -909,7 +908,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 					switch gopt.unknownMode {
 					case "pass":
 						if gopt.requireOrder {
-							remaining = append(remaining, args[gopt.argsIndex:]...)
+							remaining = append(remaining, gopt.args.remaining()...)
 							Debug.Printf("Stop on unknown options %s\n", arg)
 							Debug.Printf("return %v, %v", remaining, nil)
 							return remaining, nil
@@ -929,7 +928,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 			}
 		} else {
 			if gopt.requireOrder {
-				remaining = append(remaining, args[gopt.argsIndex:]...)
+				remaining = append(remaining, gopt.args.remaining()...)
 				Debug.Printf("Stop on non option: %s\n", arg)
 				Debug.Printf("return %v, %v", remaining, nil)
 				return remaining, nil
