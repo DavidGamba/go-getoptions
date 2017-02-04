@@ -81,7 +81,7 @@ The list of arguments will be saved into an Array like structure inside the prog
 
 • Options with Key Value arguments.
 This allows the same option to be used multiple times with arguments of key value type.
-For example: `rpmbuild --define name=myrpm --define version=123`
+For example: `rpmbuild --define name=myrpm --define version=123`.
 
 • Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
 
@@ -121,7 +121,11 @@ For example, you can use `v` to define `verbose` and `V` to define `Version`.
 
 Panic
 
-The library will panic if it finds that the programmer defined the same alias twice.
+The library will panic if it finds that the programmer (not end user):
+
+• Defined the same alias twice.
+
+• Defined wrong min and max values for SliceMulti methods.
 */
 package getoptions
 
@@ -136,10 +140,10 @@ import (
 )
 
 // Debug Logger instance set to `ioutil.Discard` by default.
-// Enable debug logging by setting: `Debug.SetOutput(os.Stderr)`
+// Enable debug logging by setting: `Debug.SetOutput(os.Stderr)`.
 var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
-// GetOpt - main object
+// GetOpt - main object.
 type GetOpt struct {
 	mode         string    // Operation mode for short options: normal, bundling, singleDash
 	unknownMode  string    // Unknown option mode
@@ -149,7 +153,7 @@ type GetOpt struct {
 	args         *argList
 }
 
-// handlerType - method used to handle the option
+// handlerType - method used to handle the option.
 type handlerType func(optName string, argument string, usedAlias string) error
 
 // New returns an empty object of type GetOpt.
@@ -211,34 +215,42 @@ func (gopt *GetOpt) setOption(name string, opt *option) {
 
 // SetMode - Sets the Operation Mode.
 // The operation mode only affects options starting with a single dash '-'.
-// The available operation modes are: normal, bundling or singleDash
+// The available operation modes are: normal, bundling or singleDash.
 //
-// The following table shows the different operation modes given the string "-opt=arg"
+// The following table shows the different operation modes given the string "-opt=arg".
 //
 //     .Operation Modes for string "-opt=arg"
 //     |===
-//     |normal           |bundling       |singleDash
+//     |Mode             |Description
 //
-//     |option: "opt"    |option: o      |option: o
-//     | argument: "arg" | argument: nil | argument: pt=arg
-//     |                 |option: p      |
-//     |                 | argument: nil |
-//     |                 |option: t      |
-//     |                 | argument: arg |
+//     |normal           |option: opt
+//                         argument: arg
+//
+//     |bundling         |option: o
+//                         argument: nil
+//                        option: p
+//                         argument: nil
+//                        option: t
+//                         argument: arg
+//
+//     |singleDash       |option: o
+//                         argument: pt=arg
 //
 //     |===
+//
+// See https://github.com/DavidGamba/go-getoptions#operation_modes for more details.
 func (gopt *GetOpt) SetMode(mode string) {
 	gopt.mode = mode
 }
 
 // SetUnknownMode - Determines how to behave when encountering an unknown option.
 //
-// - 'fail' (default) will make 'Parse' return an error with the unknown option information.
+// • 'fail' (default) will make 'Parse' return an error with the unknown option information.
 //
-// - 'warn' will make 'Parse' print a user warning indicating there was an unknown option.
+// • 'warn' will make 'Parse' print a user warning indicating there was an unknown option.
 // The unknown option will be left in the remaining array.
 //
-// - 'pass' will make 'Parse' ignore any unknown options and they will be passed onto the 'remaining' slice.
+// • 'pass' will make 'Parse' ignore any unknown options and they will be passed onto the 'remaining' slice.
 // This allows for subcommands.
 func (gopt *GetOpt) SetUnknownMode(mode string) {
 	gopt.unknownMode = mode
@@ -398,6 +410,7 @@ func (gopt *GetOpt) StringOptional(name string, def string, aliases ...string) *
 
 // StringVarOptional - define a `string` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
+//
 // StringVarOptional will set the string to the provided default value when no value is given.
 // For example, when called with `--strOpt value`, the value is `value`.
 // when called with `--strOpt` the value is the given default.
@@ -479,6 +492,7 @@ func (gopt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 
 // IntVarOptional - define a `int` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
+//
 // IntOptional will set the int to the provided default value when no value is given.
 // For example, when called with `--intOpt 123`, the value is `123`.
 // when called with `--intOpt` the value is the given default.
@@ -625,11 +639,13 @@ func (gopt *GetOpt) handleStringMap(name string, argument string, usedAlias stri
 // StringSliceMulti will accept multiple calls to the same option and append them
 // to the `[]string`.
 // For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
+//
 // Addtionally, StringMulti will allow to define a min and max amount of
 // arguments to be passed at once.
 // For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
 // the value is `[]string{"1", "2", "3"}`.
 // It could also be called with `--strRpt 1 --strRpt 2 --strRpt 3` for the same result.
+//
 // When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
 // For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
 func (gopt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...string) *[]string {
@@ -710,7 +726,7 @@ func (gopt *GetOpt) handleStringSliceMulti(name string, argument string, usedAli
 	return nil
 }
 
-// Increment - When called multiple times it increments its the int counter defined by this option.
+// Increment - When called multiple times it increments the int counter defined by this option.
 func (gopt *GetOpt) Increment(name string, def int, aliases ...string) *int {
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
@@ -833,7 +849,17 @@ func isOption(s string, mode string) (options []string, argument string) {
 	return []string{}, ""
 }
 
-// Parse - Call the parse method when done describing
+// Parse - Call the parse method when done describing.
+// It will operate on any given slice of strings and return the remaining (non
+// used) command line arguments.
+// This allows to easily subcommand.
+//
+// Parsing style is controlled by the `Set` methods (SetMode, SetRequireOrder, etc).
+//     // Declare the GetOptions object
+//     opt := getoptions.New()
+//     ...
+//     // Parse cmdline arguments or any provided []string
+//     remaining, err := opt.Parse(os.Args[1:])
 func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	al := newArgList(args)
 	gopt.args = al
