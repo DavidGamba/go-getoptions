@@ -132,7 +132,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -451,13 +450,7 @@ func (gopt *GetOpt) handleInt(name string, argument string, usedAlias string) er
 	opt := gopt.option(name)
 	opt.setCalled()
 	if argument != "" {
-		iArg, err := strconv.Atoi(argument)
-		if err != nil {
-			return fmt.Errorf(ErrorConvertToInt, name, argument)
-		}
-		opt.setInt(iArg)
-		Debug.Printf("handleOption Option: %v\n", opt.value)
-		return nil
+		return opt.converToIntAndSave(name, argument)
 	}
 	if !gopt.args.existsNext() {
 		return fmt.Errorf(ErrorMissingArgument, name)
@@ -467,12 +460,7 @@ func (gopt *GetOpt) handleInt(name string, argument string, usedAlias string) er
 		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
 	gopt.args.next()
-	iArg, err := strconv.Atoi(gopt.args.value())
-	if err != nil {
-		return fmt.Errorf(ErrorConvertToInt, name, gopt.args.value())
-	}
-	opt.setInt(iArg)
-	return nil
+	return opt.converToIntAndSave(name, gopt.args.value())
 }
 
 // IntOptional - define a `int` option and its aliases.
@@ -504,13 +492,7 @@ func (gopt *GetOpt) handleIntOptional(name string, argument string, usedAlias st
 	opt := gopt.option(name)
 	opt.setCalled()
 	if argument != "" {
-		iArg, err := strconv.Atoi(argument)
-		if err != nil {
-			return fmt.Errorf(ErrorConvertToInt, name, argument)
-		}
-		opt.setInt(iArg)
-		Debug.Printf("handleOption Option: %v\n", opt.value)
-		return nil
+		return opt.converToIntAndSave(name, argument)
 	}
 	if !gopt.args.existsNext() {
 		return nil
@@ -520,12 +502,7 @@ func (gopt *GetOpt) handleIntOptional(name string, argument string, usedAlias st
 		return nil
 	}
 	gopt.args.next()
-	iArg, err := strconv.Atoi(gopt.args.value())
-	if err != nil {
-		return fmt.Errorf(ErrorConvertToInt, name, gopt.args.value())
-	}
-	opt.setInt(iArg)
-	return nil
+	return opt.converToIntAndSave(name, gopt.args.value())
 }
 
 // Float64 - define an `float64` option and its aliases.
@@ -550,14 +527,7 @@ func (gopt *GetOpt) handleFloat64(name string, argument string, usedAlias string
 	opt := gopt.option(name)
 	opt.setCalled()
 	if argument != "" {
-		// TODO: Read the different errors when parsing float
-		iArg, err := strconv.ParseFloat(argument, 64)
-		if err != nil {
-			return fmt.Errorf(ErrorConvertToFloat64, name, argument)
-		}
-		opt.setFloat64(iArg)
-		Debug.Printf("handleOption Option: %v\n", opt.value)
-		return nil
+		return opt.converToFloat64AndSave(name, argument)
 	}
 	if !gopt.args.existsNext() {
 		return fmt.Errorf(ErrorMissingArgument, name)
@@ -567,12 +537,7 @@ func (gopt *GetOpt) handleFloat64(name string, argument string, usedAlias string
 		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
 	gopt.args.next()
-	iArg, err := strconv.ParseFloat(gopt.args.value(), 64)
-	if err != nil {
-		return fmt.Errorf(ErrorConvertToFloat64, name, gopt.args.value())
-	}
-	opt.setFloat64(iArg)
-	return nil
+	return opt.converToFloat64AndSave(name, gopt.args.value())
 }
 
 // StringSlice - define a `[]string` option and its aliases.

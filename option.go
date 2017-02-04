@@ -10,6 +10,11 @@
 
 package getoptions
 
+import (
+	"fmt"
+	"strconv"
+)
+
 type option struct {
 	name    string
 	aliases []string
@@ -124,4 +129,23 @@ func (opt *option) setMax(max int) {
 
 func (opt *option) max() int {
 	return opt.maxArgs
+}
+
+func (opt *option) converToIntAndSave(name, a string) error {
+	i, err := strconv.Atoi(a)
+	if err != nil {
+		return fmt.Errorf(ErrorConvertToInt, name, a)
+	}
+	opt.setInt(i)
+	return nil
+}
+
+func (opt *option) converToFloat64AndSave(name, a string) error {
+	// TODO: Read the different errors when parsing float
+	i, err := strconv.ParseFloat(a, 64)
+	if err != nil {
+		return fmt.Errorf(ErrorConvertToFloat64, name, a)
+	}
+	opt.setFloat64(i)
+	return nil
 }
