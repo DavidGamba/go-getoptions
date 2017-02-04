@@ -1,6 +1,6 @@
 // This file is part of go-getoptions.
 //
-// Copyright (C) 2015  David Gamba Rios
+// Copyright (C) 2015-2017  David Gamba Rios
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -282,33 +282,6 @@ func New() *GetOpt {
 	}
 	return gopt
 }
-
-// User facing errors
-
-// ErrorMissingArgument holds the text for missing argument error.
-// It has a string placeholder '%s' for the name of the option missing the argument.
-var ErrorMissingArgument = "Missing argument for option '%s'!"
-
-// ErrorArgumentIsNotKeyValue holds the text for Map type options where the argument is not of key=value type.
-// It has a string placeholder '%s' for the name of the option missing the argument.
-var ErrorArgumentIsNotKeyValue = "Argument error for option '%s': Should be of type 'key=value'!"
-
-// ErrorArgumentWithDash holds the text for missing argument error in cases where the next argument looks like an option (starts with '-').
-// It has a string placeholder '%s' for the name of the option missing the argument.
-var ErrorArgumentWithDash = "Missing argument for option '%s'!\n" +
-	"If passing arguments that start with '-' use --option=-argument"
-
-// ErrorConvertToInt holds the text for Int Coversion argument error.
-// It has two string placeholders ('%s'). The first one for the name of the option with the wrong argument and the second one for the argument that could not be converted.
-var ErrorConvertToInt = "Argument error for option '%s': Can't convert string to int: '%s'"
-
-// ErrorConvertToFloat64 holds the text for Float64 Coversion argument error.
-// It has two string placeholders ('%s'). The first one for the name of the option with the wrong argument and the second one for the argument that could not be converted.
-var ErrorConvertToFloat64 = "Argument error for option '%s': Can't convert string to float64: '%s'"
-
-// MessageOnUnknown holds the text for the unknown option message.
-// It has a string placeholder '%s' for the name of the option missing the argument.
-var MessageOnUnknown = "Unknown option '%s'"
 
 // failIfDefined will *panic* if an option is defined twice.
 // This is not an error because the programmer has to fix this!
