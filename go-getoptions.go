@@ -79,6 +79,8 @@ The list of arguments will be saved into an Array like structure inside the prog
 
 • Options with array arguments and multiple entries.
 
+• Options with key value arguments and multiple entries.
+
 • Options with Key Value arguments.
 This allows the same option to be used multiple times with arguments of key value type.
 For example: `rpmbuild --define name=myrpm --define version=123`.
@@ -527,7 +529,7 @@ func (gopt *GetOpt) StringMap(name string, aliases ...string) map[string]string 
 // to the `[]string`.
 // For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
 //
-// Addtionally, StringMulti will allow to define a min and max amount of
+// Addtionally, StringSliceMulti will allow to define a min and max amount of
 // arguments to be passed at once.
 // For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
 // the value is `[]string{"1", "2", "3"}`.
@@ -541,9 +543,10 @@ func (gopt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...strin
 	gopt.failIfDefined(aliases)
 	gopt.setOption(name, newOption(name, aliases))
 	gopt.option(name).setStringSlicePtr(&s)
-	gopt.option(name).setHandler(gopt.handleStringSliceMulti)
+	gopt.option(name).setHandler(gopt.handleSliceMultiOption)
 	gopt.option(name).setMin(min)
 	gopt.option(name).setMax(max)
+	gopt.option(name).optType = stringRepeatType
 	if min <= 0 {
 		panic(fmt.Sprintf("%s min should be > 0", name))
 	}
@@ -554,43 +557,83 @@ func (gopt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...strin
 	return &s
 }
 
-func (gopt *GetOpt) handleStringSliceMulti(name string, argument string, usedAlias string) error {
+// StringMapMulti - define a `map[string]string` option and its aliases.
+//
+// StringMapMulti will accept multiple calls of `key=value` type to the same option
+// and add them to the `map[string]string` result.
+// For example, when called with `--strMap k=v --strMap k2=v2`, the value is
+// `map[string]string{"k":"v", "k2": "v2"}`.
+//
+// Addtionally, StringMapMulti will allow to define a min and max amount of
+// arguments to be passed at once.
+// For example, when min is 1 and max is 3 and called with `--strMap k=v k2=v2 k3=v3`,
+// the value is `map[string]string{"k":"v", "k2": "v2", "k3": "v3"}`.
+// It could also be called with `--strMap k=v --strMap k2=v2 --strMap k3=v3` for the same result.
+//
+// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
+// For example: with `min = 2`, you at least require `--strMap k=v k2=v2 --strMap k3=v3`
+func (gopt *GetOpt) StringMapMulti(name string, min, max int, aliases ...string) map[string]string {
+	s := make(map[string]string)
+	aliases = append(aliases, name)
+	gopt.failIfDefined(aliases)
+	gopt.setOption(name, newOption(name, aliases))
+	gopt.option(name).setStringMap(s)
+	gopt.option(name).setHandler(gopt.handleSliceMultiOption)
+	gopt.option(name).setMin(min)
+	gopt.option(name).setMax(max)
+	gopt.option(name).optType = stringMapType
+	if min <= 0 {
+		panic(fmt.Sprintf("%s min should be > 0", name))
+	}
+	if max <= 0 || max < min {
+		panic(fmt.Sprintf("%s max should be > 0 and > min", name))
+	}
+	Debug.Printf("StringMulti return: %v\n", s)
+	return s
+}
+
+func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAlias string) error {
 	Debug.Printf("handleStringSliceMulti\n")
 	opt := gopt.option(name)
 	opt.setCalled()
 	argCounter := 0
 
 	if argument != "" {
-		opt.appendStringSlice(argument)
 		argCounter++
-		Debug.Printf("handleStringSliceMulti internal value: %v\n", opt.value)
+		err := opt.save(name, argument)
+		if err != nil {
+			return err
+		}
 	}
 	// Function to handle one arg at a time
-	next := func() error {
+	next := func(required bool) error {
 		Debug.Printf("total arguments: %d, index: %d, counter %d", gopt.args.size(), gopt.args.index(), argCounter)
 		if !gopt.args.existsNext() {
-			if argCounter <= opt.min() {
-				Debug.Printf("ErrorMissingArgument\n")
+			if required {
 				return fmt.Errorf(ErrorMissingArgument, name)
 			}
-			Debug.Printf("return no more arguments\n")
 			return fmt.Errorf("NoMoreArguments")
 		}
 		// Check if next arg is option
 		if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 			Debug.Printf("Next arg is option: %s\n", gopt.args.peekNextValue())
-			Debug.Printf("ErrorArgumentWithDash\n")
 			return fmt.Errorf(ErrorArgumentWithDash, name)
 		}
+		// Check if next arg is not key=value
+		if opt.optType == stringMapType && !strings.Contains(gopt.args.peekNextValue(), "=") {
+			if required {
+				return fmt.Errorf(ErrorArgumentIsNotKeyValue, name)
+			}
+			return nil
+		}
 		gopt.args.next()
-		opt.appendStringSlice(gopt.args.value())
-		return nil
+		return opt.save(name, gopt.args.value())
 	}
 
 	// Go through the required and optional iterations
 	for argCounter < opt.max() {
 		argCounter++
-		err := next()
+		err := next(argCounter <= opt.min())
 		Debug.Printf("counter: %d, value: %v, err %v", argCounter, opt.value, err)
 		if err != nil {
 			if err.Error() == fmt.Sprintf("NoMoreArguments") {

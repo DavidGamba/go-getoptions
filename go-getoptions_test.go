@@ -1006,6 +1006,140 @@ func TestGetOptStringMap(t *testing.T) {
 	}
 }
 
+func TestGetOptStringMapMulti(t *testing.T) {
+	setup := func() *GetOpt {
+		opt := New()
+		opt.StringMapMulti("string", 1, 3)
+		opt.String("opt", "")
+		return opt
+	}
+
+	cases := []struct {
+		opt    *GetOpt
+		option string
+		input  []string
+		value  map[string]string
+	}{
+		{setup(),
+			"string",
+			[]string{"--string=hello=world"},
+			map[string]string{"hello": "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string=hello=happy", "world"},
+			map[string]string{"hello": "happy"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello=world", "--opt", "happy"},
+			map[string]string{"hello": "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello=happy", "world"},
+			map[string]string{"hello": "happy"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string=--hello=happy", "world"},
+			map[string]string{"--hello": "happy"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello=world", "--string", "key=value", "--string", "key2=value2"},
+			map[string]string{"hello": "world", "key": "value", "key2": "value2"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello=happy", "happy=world"},
+			map[string]string{"hello": "happy", "happy": "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string=--hello=happy", "happy=world"},
+			map[string]string{"--hello": "happy", "happy": "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello=world", "key=value", "key2=value2"},
+			map[string]string{"hello": "world", "key": "value", "key2": "value2"},
+		},
+	}
+	for _, c := range cases {
+		_, err := c.opt.Parse(c.input)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(c.opt.Option(c.option), c.value) {
+			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		}
+	}
+	opt := New()
+	opt.StringMapMulti("string", 1, 3)
+	_, err := opt.Parse([]string{"--string", "hello"})
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+	opt = New()
+	opt.StringMapMulti("string", 1, 3)
+	_, err = opt.Parse([]string{"--string=hello"})
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+	opt = New()
+	opt.StringMapMulti("string", 1, 3)
+	_, err = opt.Parse([]string{"--string"})
+	if err == nil {
+		t.Errorf("Missing argument for option 'string' didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+	opt = New()
+	opt.StringMapMulti("string", 1, 3)
+	_, err = opt.Parse([]string{"--string", "--hello=happy", "world"})
+	if err == nil {
+		t.Errorf("Missing argument for option 'string' didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+
+	opt = New()
+	sm := opt.StringMapMulti("string", 1, 3)
+	_, err = opt.Parse([]string{"--string", "hello=world", "key=value", "key2=value2"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !reflect.DeepEqual(map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm) {
+		t.Errorf("Wrong value: %v != %v", map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm)
+	}
+	if sm["hello"] != "world" || sm["key"] != "value" || sm["key2"] != "value2" {
+		t.Errorf("Wrong value: %v", sm)
+	}
+
+	opt = New()
+	opt.StringMapMulti("string", 2, 3)
+	_, err = opt.Parse([]string{"--string", "hello=world"})
+	if err == nil {
+		t.Errorf("Passing less than min didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+
+	opt = New()
+	opt.StringMapMulti("string", 2, 3)
+	_, err = opt.Parse([]string{"--string", "hello=world", "happy"})
+	if err == nil {
+		t.Errorf("Passing less than min didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+}
+
 func TestGetOptStringSliceMulti(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
@@ -1093,6 +1227,18 @@ func TestGetOptStringSliceMultiPanicWithWrongMin(t *testing.T) {
 	opt.Parse([]string{})
 }
 
+// Verifies that a panic is reached when StringMapMulti has wrong min
+func TestGetOptStringMapMultiPanicWithWrongMin(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Wrong min didn't panic")
+		}
+	}()
+	opt := New()
+	opt.StringMapMulti("string", 0, 1)
+	opt.Parse([]string{})
+}
+
 // Verifies that a panic is reached when StringSliceMulti has wrong max
 func TestGetOptStringSliceMultiPanicWithWrongMax(t *testing.T) {
 	defer func() {
@@ -1102,6 +1248,18 @@ func TestGetOptStringSliceMultiPanicWithWrongMax(t *testing.T) {
 	}()
 	opt := New()
 	opt.StringSliceMulti("string", 2, 1)
+	opt.Parse([]string{})
+}
+
+// Verifies that a panic is reached when StringMapMulti has wrong max
+func TestGetOptStringMapMultiPanicWithWrongMax(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Wrong max didn't panic")
+		}
+	}()
+	opt := New()
+	opt.StringMapMulti("string", 2, 1)
 	opt.Parse([]string{})
 }
 

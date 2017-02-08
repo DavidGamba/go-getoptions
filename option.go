@@ -116,11 +116,6 @@ func (opt *option) setStringSlicePtr(s *[]string) {
 	opt.pStringS = s
 }
 
-func (opt *option) appendStringSlice(s ...string) {
-	*opt.pStringS = append(*opt.pStringS, s...)
-	opt.value = *opt.pStringS
-}
-
 func (opt *option) setStringMap(m map[string]string) {
 	opt.value = m
 	opt.stringM = m

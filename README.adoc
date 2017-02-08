@@ -164,7 +164,9 @@ Instead of writing: `connection --server hostname=serverIP --server port=123 --c
 +
 The input could be: `connection --server hostname=serverIP port=123 --client hostname=localhost port=456`
 +
-Not yet implemented in `go-getoptions`.
+In `go-getoptions` this is accomplished with:
++
+- `strMap := opt.StringMapulti(name, minArgs, maxArgs, aliases)`.
 
 That covers a complete user interface that is flexible enough to accommodate most programs.
 The following are advanced features:
@@ -452,6 +454,13 @@ or
 the input could be:
 `color --rgb 10 20 30 --next-option`
 
+* Options with key value arguments and multiple entries.
++
+For example, instead of writting:
+`connection --server hostname=serverIP --server port=123 --client hostname=localhost --client port=456`
+the input could be:
+`connection --server hostname=serverIP port=123 --client hostname=localhost port=456`
+
 * Options with Key Value arguments.
 This allows the same option to be used multiple times with arguments of key value type.
 +
@@ -497,8 +506,6 @@ For example, you can use `v` to define `verbose` and `V` to define `Version`.
 
 [[roadmap]]
 == ROADMAP
-
-* Options with key value arguments and multiple entries.
 
 * Option that runs a function?
 
