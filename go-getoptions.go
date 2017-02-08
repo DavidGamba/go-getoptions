@@ -138,6 +138,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -557,6 +558,40 @@ func (gopt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...strin
 	return &s
 }
 
+// IntSliceMulti - define a `[]int` option and its aliases.
+//
+// IntSliceMulti will accept multiple calls to the same option and append them
+// to the `[]int`.
+// For example, when called with `--intRpt 1 --intRpt 2`, the value is `[]int{1, 2}`.
+//
+// Addtionally, IntSliceMulti will allow to define a min and max amount of
+// arguments to be passed at once.
+// For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
+// the value is `[]int{1, 2, 3}`.
+// It could also be called with `--strRpt 1 --strRpt 2 --strRpt 3` for the same result.
+//
+// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
+// For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
+func (gopt *GetOpt) IntSliceMulti(name string, min, max int, aliases ...string) *[]int {
+	s := []int{}
+	aliases = append(aliases, name)
+	gopt.failIfDefined(aliases)
+	gopt.setOption(name, newOption(name, aliases))
+	gopt.option(name).setIntSlicePtr(&s)
+	gopt.option(name).setHandler(gopt.handleSliceMultiOption)
+	gopt.option(name).setMin(min)
+	gopt.option(name).setMax(max)
+	gopt.option(name).optType = intRepeatType
+	if min <= 0 {
+		panic(fmt.Sprintf("%s min should be > 0", name))
+	}
+	if max <= 0 || max < min {
+		panic(fmt.Sprintf("%s max should be > 0 and > min", name))
+	}
+	Debug.Printf("IntMulti return: %v\n", s)
+	return &s
+}
+
 // StringMapMulti - define a `map[string]string` option and its aliases.
 //
 // StringMapMulti will accept multiple calls of `key=value` type to the same option
@@ -625,6 +660,12 @@ func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAli
 				return fmt.Errorf(ErrorArgumentIsNotKeyValue, name)
 			}
 			return nil
+		}
+		if opt.optType == intRepeatType {
+			_, err := strconv.Atoi(gopt.args.peekNextValue())
+			if !required && err != nil {
+				return nil
+			}
 		}
 		gopt.args.next()
 		return opt.save(name, gopt.args.value())

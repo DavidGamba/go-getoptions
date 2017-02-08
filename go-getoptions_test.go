@@ -1215,6 +1215,93 @@ func TestGetOptStringSliceMulti(t *testing.T) {
 	}
 }
 
+func TestGetOptIntSliceMulti(t *testing.T) {
+	setup := func() *GetOpt {
+		opt := New()
+		opt.IntSliceMulti("int", 1, 3)
+		opt.String("opt", "")
+		return opt
+	}
+	cases := []struct {
+		opt    *GetOpt
+		option string
+		input  []string
+		value  []int
+	}{
+		{setup(),
+			"int",
+			[]string{"--int", "123"},
+			[]int{123},
+		},
+		{setup(),
+			"int",
+			[]string{"--int=-123"},
+			[]int{-123},
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "123", "456", "hello"},
+			[]int{123, 456},
+		},
+		{setup(),
+			"int",
+			[]string{"--int=123", "456"},
+			[]int{123, 456},
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "123", "456", "789"},
+			[]int{123, 456, 789},
+		},
+		{setup(),
+			"int",
+			[]string{"--int=123", "456", "789"},
+			[]int{123, 456, 789},
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "123", "--opt", "world"},
+			[]int{123},
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "123", "--int", "456"},
+			[]int{123, 456},
+		},
+	}
+	for _, c := range cases {
+		_, err := c.opt.Parse(c.input)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(c.opt.Option(c.option), c.value) {
+			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		}
+	}
+
+	Debug.SetOutput(os.Stderr)
+	opt := New()
+	opt.IntSliceMulti("int", 2, 3)
+	_, err := opt.Parse([]string{"--int", "123"})
+	if err == nil {
+		t.Errorf("Passing less than min didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "int") {
+		t.Errorf("Error int didn't match expected value")
+	}
+
+	opt = New()
+	opt.IntSliceMulti("int", 1, 3)
+	_, err = opt.Parse([]string{"--int", "hello"})
+	if err == nil {
+		t.Errorf("Passing string didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
+		t.Errorf("Error int didn't match expected value: %s", err)
+	}
+	Debug.SetOutput(ioutil.Discard)
+}
+
 // Verifies that a panic is reached when StringSliceMulti has wrong min
 func TestGetOptStringSliceMultiPanicWithWrongMin(t *testing.T) {
 	defer func() {
@@ -1239,6 +1326,18 @@ func TestGetOptStringMapMultiPanicWithWrongMin(t *testing.T) {
 	opt.Parse([]string{})
 }
 
+// Verifies that a panic is reached when IntSliceMulti has wrong min
+func TestGetOptIntSliceMultiPanicWithWrongMin(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Wrong min didn't panic")
+		}
+	}()
+	opt := New()
+	opt.IntSliceMulti("int", 0, 1)
+	opt.Parse([]string{})
+}
+
 // Verifies that a panic is reached when StringSliceMulti has wrong max
 func TestGetOptStringSliceMultiPanicWithWrongMax(t *testing.T) {
 	defer func() {
@@ -1260,6 +1359,18 @@ func TestGetOptStringMapMultiPanicWithWrongMax(t *testing.T) {
 	}()
 	opt := New()
 	opt.StringMapMulti("string", 2, 1)
+	opt.Parse([]string{})
+}
+
+// Verifies that a panic is reached when IntSliceMulti has wrong max
+func TestGetOptIntSliceMultiPanicWithWrongMax(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Wrong max didn't panic")
+		}
+	}()
+	opt := New()
+	opt.IntSliceMulti("int", 2, 1)
 	opt.Parse([]string{})
 }
 

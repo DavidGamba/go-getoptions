@@ -19,10 +19,11 @@ import (
 type optionType int
 
 const (
-	strType optionType = iota
+	stringType optionType = iota
 	intType
 	float64Type
 	stringRepeatType
+	intRepeatType
 	stringMapType
 )
 
@@ -40,6 +41,7 @@ type option struct {
 	pInt     *int              // receiver for int pointer
 	pFloat64 *float64          // receiver for float64 pointer
 	pStringS *[]string         // receiver for string slice pointer
+	pIntS    *[]int            // receiver for int slice pointer
 	stringM  map[string]string // receiver for string map pointer
 	minArgs  int               // minimum args when using multi
 	maxArgs  int               // maximum args when using multi
@@ -116,6 +118,11 @@ func (opt *option) setStringSlicePtr(s *[]string) {
 	opt.pStringS = s
 }
 
+func (opt *option) setIntSlicePtr(s *[]int) {
+	opt.value = *s
+	opt.pIntS = s
+}
+
 func (opt *option) setStringMap(m map[string]string) {
 	opt.value = m
 	opt.stringM = m
@@ -164,6 +171,18 @@ func (opt *option) save(name string, a ...string) error {
 	case stringRepeatType:
 		*opt.pStringS = append(*opt.pStringS, a...)
 		opt.value = *opt.pStringS
+		return nil
+	case intRepeatType:
+		is := make([]int, len(a))
+		for j, e := range a {
+			i, err := strconv.Atoi(e)
+			if err != nil {
+				return fmt.Errorf(ErrorConvertToInt, name, e)
+			}
+			is[j] = i
+		}
+		*opt.pIntS = append(*opt.pIntS, is...)
+		opt.value = *opt.pIntS
 		return nil
 	case stringMapType:
 		keyValue := strings.Split(a[0], "=")

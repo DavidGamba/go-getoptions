@@ -155,6 +155,7 @@ The option parser will leave any non option argument after the maximum in the `r
 In `go-getoptions` this is accomplished with:
 +
 - `strSlice := opt.StringSliceMulti(name, minArgs, maxArgs, aliases...)`.
+- `intSlice := opt.IntSliceMulti(name, minArgs, maxArgs, aliases...)`.
 
 Options with key value arguments and multiple entries::
 This allows the user to save typing.
