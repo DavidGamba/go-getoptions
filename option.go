@@ -13,6 +13,17 @@ package getoptions
 import (
 	"fmt"
 	"strconv"
+	"strings"
+)
+
+type optionType int
+
+const (
+	strType optionType = iota
+	intType
+	float64Type
+	stringRepeatType
+	stringMapType
 )
 
 type option struct {
@@ -22,6 +33,7 @@ type option struct {
 	called        bool        // Indicates if the option was passed on the command line.
 	handler       handlerType // method used to handle the option
 	isOptionalOpt bool        // Indicates if an option has an optional argument
+	optType       optionType  // Option Type
 	// Pointer receivers:
 	pBool    *bool             // receiver for bool pointer
 	pString  *string           // receiver for string pointer
@@ -68,11 +80,6 @@ func (opt *option) getBool() bool {
 func (opt *option) setBoolPtr(b *bool) {
 	opt.value = *b
 	opt.pBool = b
-}
-
-func (opt *option) setString(s string) {
-	opt.value = s
-	*opt.pString = s
 }
 
 func (opt *option) setStringPtr(s *string) {
@@ -140,21 +147,39 @@ func (opt *option) max() int {
 	return opt.maxArgs
 }
 
-func (opt *option) converToIntAndSave(name, a string) error {
-	i, err := strconv.Atoi(a)
-	if err != nil {
-		return fmt.Errorf(ErrorConvertToInt, name, a)
+func (opt *option) save(name string, a ...string) error {
+	Debug.Printf("optType: %d\n", opt.optType)
+	switch opt.optType {
+	case intType:
+		i, err := strconv.Atoi(a[0])
+		if err != nil {
+			return fmt.Errorf(ErrorConvertToInt, name, a[0])
+		}
+		opt.value = i
+		*opt.pInt = i
+		return nil
+	case float64Type:
+		// TODO: Read the different errors when parsing float
+		i, err := strconv.ParseFloat(a[0], 64)
+		if err != nil {
+			return fmt.Errorf(ErrorConvertToFloat64, name, a[0])
+		}
+		opt.setFloat64(i)
+		return nil
+	case stringRepeatType:
+		*opt.pStringS = append(*opt.pStringS, a...)
+		opt.value = *opt.pStringS
+		return nil
+	case stringMapType:
+		keyValue := strings.Split(a[0], "=")
+		if len(keyValue) < 2 {
+			return fmt.Errorf(ErrorArgumentIsNotKeyValue, name)
+		}
+		opt.setKeyValueToStringMap(keyValue[0], keyValue[1])
+		return nil
+	default: // strType
+		opt.value = a[0]
+		*opt.pString = a[0]
+		return nil
 	}
-	opt.setInt(i)
-	return nil
-}
-
-func (opt *option) converToFloat64AndSave(name, a string) error {
-	// TODO: Read the different errors when parsing float
-	i, err := strconv.ParseFloat(a, 64)
-	if err != nil {
-		return fmt.Errorf(ErrorConvertToFloat64, name, a)
-	}
-	opt.setFloat64(i)
-	return nil
 }

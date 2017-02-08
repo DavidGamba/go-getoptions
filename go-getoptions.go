@@ -352,36 +352,12 @@ func (gopt *GetOpt) handleNBool(name string, argument string, usedAlias string) 
 	return nil
 }
 
-// String - define a `string` option and its aliases.
-// If not called, the return value will be that of the given default `def`.
-func (gopt *GetOpt) String(name, def string, aliases ...string) *string {
-	aliases = append(aliases, name)
-	gopt.failIfDefined(aliases)
-	gopt.setOption(name, newOption(name, aliases))
-	gopt.option(name).setStringPtr(&def)
-	gopt.option(name).setHandler(gopt.handleString)
-	return &def
-}
-
-// StringVar - define a `string` option and its aliases.
-// The result will be available through the variable marked by the given pointer.
-// If not called, the return value will be that of the given default `def`.
-func (gopt *GetOpt) StringVar(p *string, name, def string, aliases ...string) {
-	gopt.String(name, def, aliases...)
-	*p = def
-	gopt.option(name).setStringPtr(p)
-}
-
-func (gopt *GetOpt) handleString(name string, argument string, usedAlias string) error {
-	Debug.Printf("handleString\n")
+func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias string) error {
 	opt := gopt.option(name)
 	opt.setCalled()
 	if argument != "" {
-		opt.setString(argument)
-		Debug.Printf("handleOption Option: %v\n", opt.value)
-		return nil
+		return opt.save(name, argument)
 	}
-	Debug.Printf("len: %d, %d", gopt.args.size(), gopt.args.index())
 	if !gopt.args.existsNext() {
 		if opt.isOptional() {
 			return nil
@@ -396,8 +372,27 @@ func (gopt *GetOpt) handleString(name string, argument string, usedAlias string)
 		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
 	gopt.args.next()
-	opt.setString(gopt.args.value())
-	return nil
+	return opt.save(name, gopt.args.value())
+}
+
+// String - define a `string` option and its aliases.
+// If not called, the return value will be that of the given default `def`.
+func (gopt *GetOpt) String(name, def string, aliases ...string) *string {
+	aliases = append(aliases, name)
+	gopt.failIfDefined(aliases)
+	gopt.setOption(name, newOption(name, aliases))
+	gopt.option(name).setStringPtr(&def)
+	gopt.option(name).setHandler(gopt.handleSingleOption)
+	return &def
+}
+
+// StringVar - define a `string` option and its aliases.
+// The result will be available through the variable marked by the given pointer.
+// If not called, the return value will be that of the given default `def`.
+func (gopt *GetOpt) StringVar(p *string, name, def string, aliases ...string) {
+	gopt.String(name, def, aliases...)
+	*p = def
+	gopt.option(name).setStringPtr(p)
 }
 
 // StringOptional - define a `string` option and its aliases.
@@ -411,7 +406,7 @@ func (gopt *GetOpt) StringOptional(name string, def string, aliases ...string) *
 	gopt.setOption(name, newOption(name, aliases))
 	gopt.option(name).setStringPtr(&def)
 	gopt.option(name).setIsOptional()
-	gopt.option(name).setHandler(gopt.handleString)
+	gopt.option(name).setHandler(gopt.handleSingleOption)
 	return &def
 }
 
@@ -433,7 +428,8 @@ func (gopt *GetOpt) Int(name string, def int, aliases ...string) *int {
 	gopt.failIfDefined(aliases)
 	gopt.setOption(name, newOption(name, aliases))
 	gopt.option(name).setIntPtr(&def)
-	gopt.option(name).setHandler(gopt.handleInt)
+	gopt.option(name).setHandler(gopt.handleSingleOption)
+	gopt.option(name).optType = intType
 	return &def
 }
 
@@ -443,30 +439,6 @@ func (gopt *GetOpt) IntVar(p *int, name string, def int, aliases ...string) {
 	gopt.Int(name, def, aliases...)
 	*p = def
 	gopt.option(name).setIntPtr(p)
-}
-
-func (gopt *GetOpt) handleInt(name string, argument string, usedAlias string) error {
-	Debug.Println("handleInt")
-	opt := gopt.option(name)
-	opt.setCalled()
-	if argument != "" {
-		return opt.converToIntAndSave(name, argument)
-	}
-	if !gopt.args.existsNext() {
-		if opt.isOptional() {
-			return nil
-		}
-		return fmt.Errorf(ErrorMissingArgument, name)
-	}
-	// Check if next arg is option
-	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
-		if opt.isOptional() {
-			return nil
-		}
-		return fmt.Errorf(ErrorArgumentWithDash, name)
-	}
-	gopt.args.next()
-	return opt.converToIntAndSave(name, gopt.args.value())
 }
 
 // IntOptional - define a `int` option and its aliases.
@@ -480,7 +452,8 @@ func (gopt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 	gopt.setOption(name, newOption(name, aliases))
 	gopt.option(name).setIntPtr(&def)
 	gopt.option(name).setIsOptional()
-	gopt.option(name).setHandler(gopt.handleInt)
+	gopt.option(name).setHandler(gopt.handleSingleOption)
+	gopt.option(name).optType = intType
 	return &def
 }
 
@@ -502,7 +475,8 @@ func (gopt *GetOpt) Float64(name string, def float64, aliases ...string) *float6
 	gopt.failIfDefined(aliases)
 	gopt.setOption(name, newOption(name, aliases))
 	gopt.option(name).setFloat64Ptr(&def)
-	gopt.option(name).setHandler(gopt.handleFloat64)
+	gopt.option(name).setHandler(gopt.handleSingleOption)
+	gopt.option(name).optType = float64Type
 	return &def
 }
 
@@ -512,23 +486,6 @@ func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, aliases ...
 	gopt.Float64(name, def, aliases...)
 	*p = def
 	gopt.option(name).setFloat64Ptr(p)
-}
-
-func (gopt *GetOpt) handleFloat64(name string, argument string, usedAlias string) error {
-	opt := gopt.option(name)
-	opt.setCalled()
-	if argument != "" {
-		return opt.converToFloat64AndSave(name, argument)
-	}
-	if !gopt.args.existsNext() {
-		return fmt.Errorf(ErrorMissingArgument, name)
-	}
-	// Check if next arg is option
-	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
-		return fmt.Errorf(ErrorArgumentWithDash, name)
-	}
-	gopt.args.next()
-	return opt.converToFloat64AndSave(name, gopt.args.value())
 }
 
 // StringSlice - define a `[]string` option and its aliases.
@@ -542,28 +499,9 @@ func (gopt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
 	gopt.failIfDefined(aliases)
 	gopt.setOption(name, newOption(name, aliases))
 	gopt.option(name).setStringSlicePtr(&s)
-	gopt.option(name).setHandler(gopt.handleStringRepeat)
+	gopt.option(name).setHandler(gopt.handleSingleOption)
+	gopt.option(name).optType = stringRepeatType
 	return &s
-}
-
-func (gopt *GetOpt) handleStringRepeat(name string, argument string, usedAlias string) error {
-	opt := gopt.option(name)
-	opt.setCalled()
-	if argument != "" {
-		opt.appendStringSlice(argument)
-		Debug.Printf("handleOption Option: %v\n", opt.value)
-		return nil
-	}
-	if !gopt.args.existsNext() {
-		return fmt.Errorf(ErrorMissingArgument, name)
-	}
-	// Check if next arg is option
-	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
-		return fmt.Errorf(ErrorArgumentWithDash, name)
-	}
-	gopt.args.next()
-	opt.appendStringSlice(gopt.args.value())
-	return nil
 }
 
 // StringMap - define a `map[string]string` option and its aliases.
@@ -578,37 +516,9 @@ func (gopt *GetOpt) StringMap(name string, aliases ...string) map[string]string 
 	gopt.failIfDefined(aliases)
 	gopt.setOption(name, newOption(name, aliases))
 	gopt.option(name).setStringMap(s)
-	gopt.option(name).setHandler(gopt.handleStringMap)
+	gopt.option(name).setHandler(gopt.handleSingleOption)
+	gopt.option(name).optType = stringMapType
 	return s
-}
-
-func (gopt *GetOpt) handleStringMap(name string, argument string, usedAlias string) error {
-	opt := gopt.option(name)
-	opt.setCalled()
-	if argument != "" {
-		keyValue := strings.Split(argument, "=")
-		if len(keyValue) < 2 {
-			return fmt.Errorf(ErrorArgumentIsNotKeyValue, name)
-		}
-		opt.setKeyValueToStringMap(keyValue[0], keyValue[1])
-		Debug.Printf("handleOption Option: %v\n", opt.value)
-		return nil
-	}
-	if !gopt.args.existsNext() {
-		return fmt.Errorf(ErrorMissingArgument, name)
-	}
-	// Check if next arg is option
-	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
-		return fmt.Errorf(ErrorArgumentWithDash, name)
-	}
-	gopt.args.next()
-	keyValue := strings.Split(gopt.args.value(), "=")
-	if len(keyValue) < 2 {
-		return fmt.Errorf(ErrorArgumentIsNotKeyValue, name)
-	}
-	opt.setKeyValueToStringMap(keyValue[0], keyValue[1])
-	Debug.Printf("handleOption Option: %v\n", opt.value)
-	return nil
 }
 
 // StringSliceMulti - define a `[]string` option and its aliases.
