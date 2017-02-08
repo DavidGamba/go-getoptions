@@ -383,10 +383,16 @@ func (gopt *GetOpt) handleString(name string, argument string, usedAlias string)
 	}
 	Debug.Printf("len: %d, %d", gopt.args.size(), gopt.args.index())
 	if !gopt.args.existsNext() {
+		if opt.isOptional() {
+			return nil
+		}
 		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
+		if opt.isOptional() {
+			return nil
+		}
 		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
 	gopt.args.next()
@@ -404,7 +410,8 @@ func (gopt *GetOpt) StringOptional(name string, def string, aliases ...string) *
 	gopt.failIfDefined(aliases)
 	gopt.setOption(name, newOption(name, aliases))
 	gopt.option(name).setStringPtr(&def)
-	gopt.option(name).setHandler(gopt.handleStringOptional)
+	gopt.option(name).setIsOptional()
+	gopt.option(name).setHandler(gopt.handleString)
 	return &def
 }
 
@@ -418,26 +425,6 @@ func (gopt *GetOpt) StringVarOptional(p *string, name, def string, aliases ...st
 	gopt.StringOptional(name, def, aliases...)
 	*p = def
 	gopt.option(name).setStringPtr(p)
-}
-
-func (gopt *GetOpt) handleStringOptional(name string, argument string, usedAlias string) error {
-	opt := gopt.option(name)
-	opt.setCalled()
-	if argument != "" {
-		opt.setString(argument)
-		Debug.Printf("handleOption Option: %v\n", opt.value)
-		return nil
-	}
-	if !gopt.args.existsNext() {
-		return nil
-	}
-	// Check if next arg is option
-	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
-		return nil
-	}
-	gopt.args.next()
-	opt.setString(gopt.args.value())
-	return nil
 }
 
 // Int - define an `int` option and its aliases.
@@ -466,10 +453,16 @@ func (gopt *GetOpt) handleInt(name string, argument string, usedAlias string) er
 		return opt.converToIntAndSave(name, argument)
 	}
 	if !gopt.args.existsNext() {
+		if opt.isOptional() {
+			return nil
+		}
 		return fmt.Errorf(ErrorMissingArgument, name)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
+		if opt.isOptional() {
+			return nil
+		}
 		return fmt.Errorf(ErrorArgumentWithDash, name)
 	}
 	gopt.args.next()
@@ -486,7 +479,8 @@ func (gopt *GetOpt) IntOptional(name string, def int, aliases ...string) *int {
 	gopt.failIfDefined(aliases)
 	gopt.setOption(name, newOption(name, aliases))
 	gopt.option(name).setIntPtr(&def)
-	gopt.option(name).setHandler(gopt.handleIntOptional)
+	gopt.option(name).setIsOptional()
+	gopt.option(name).setHandler(gopt.handleInt)
 	return &def
 }
 
@@ -500,23 +494,6 @@ func (gopt *GetOpt) IntVarOptional(p *int, name string, def int, aliases ...stri
 	gopt.IntOptional(name, def, aliases...)
 	*p = def
 	gopt.option(name).setIntPtr(p)
-}
-
-func (gopt *GetOpt) handleIntOptional(name string, argument string, usedAlias string) error {
-	opt := gopt.option(name)
-	opt.setCalled()
-	if argument != "" {
-		return opt.converToIntAndSave(name, argument)
-	}
-	if !gopt.args.existsNext() {
-		return nil
-	}
-	// Check if next arg is option
-	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
-		return nil
-	}
-	gopt.args.next()
-	return opt.converToIntAndSave(name, gopt.args.value())
 }
 
 // Float64 - define an `float64` option and its aliases.

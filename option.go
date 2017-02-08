@@ -16,11 +16,12 @@ import (
 )
 
 type option struct {
-	name    string
-	aliases []string
-	value   interface{} // Value without type safety
-	called  bool        // Indicates if the option was passed on the command line.
-	handler handlerType // method used to handle the option
+	name          string
+	aliases       []string
+	value         interface{} // Value without type safety
+	called        bool        // Indicates if the option was passed on the command line.
+	handler       handlerType // method used to handle the option
+	isOptionalOpt bool        // Indicates if an option has an optional argument
 	// Pointer receivers:
 	pBool    *bool             // receiver for bool pointer
 	pString  *string           // receiver for string pointer
@@ -45,6 +46,14 @@ func (opt *option) setHandler(h handlerType) {
 
 func (opt *option) setCalled() {
 	opt.called = true
+}
+
+func (opt *option) setIsOptional() {
+	opt.isOptionalOpt = true
+}
+
+func (opt *option) isOptional() bool {
+	return opt.isOptionalOpt
 }
 
 func (opt *option) setBool(b bool) {
