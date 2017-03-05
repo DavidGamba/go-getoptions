@@ -79,6 +79,9 @@ The list of arguments will be saved into an Array like structure inside the prog
 
 • Options with array arguments and multiple entries.
 
+• When using integer array options with multiple arguments, positive integer ranges are allowed.
+For example: `1..3` to indicate `1 2 3`.
+
 • Options with key value arguments and multiple entries.
 
 • Options with Key Value arguments.
@@ -572,6 +575,11 @@ func (gopt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...strin
 //
 // When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
 // For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
+//
+// Finally, possitive integer ranges are allowed.
+// For example, Instead of writting: `csv --columns 1 2 3` or
+// `csv --columns 1 --columns 2 --columns 3`
+// The input could be: `csv --columns 1..3`.
 func (gopt *GetOpt) IntSliceMulti(name string, min, max int, aliases ...string) *[]int {
 	s := []int{}
 	aliases = append(aliases, name)

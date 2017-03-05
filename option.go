@@ -173,13 +173,38 @@ func (opt *option) save(name string, a ...string) error {
 		opt.value = *opt.pStringS
 		return nil
 	case intRepeatType:
-		is := make([]int, len(a))
-		for j, e := range a {
-			i, err := strconv.Atoi(e)
-			if err != nil {
-				return fmt.Errorf(ErrorConvertToInt, name, e)
+		var is []int
+		for _, e := range a {
+			if strings.Contains(e, "..") {
+				Debug.Printf("e: %s\n", e)
+				n := strings.SplitN(e, "..", 2)
+				Debug.Printf("n: %v\n", n)
+				n1, n2 := n[0], n[1]
+				in1, err := strconv.Atoi(n1)
+				if err != nil {
+					// TODO: Create new error description for this error.
+					return fmt.Errorf(ErrorConvertToInt, name, e)
+				}
+				in2, err := strconv.Atoi(n2)
+				if err != nil {
+					// TODO: Create new error description for this error.
+					return fmt.Errorf(ErrorConvertToInt, name, e)
+				}
+				if in1 < in2 {
+					for j := in1; j <= in2; j++ {
+						is = append(is, j)
+					}
+				} else {
+					// TODO: Create new error description for this error.
+					return fmt.Errorf(ErrorConvertToInt, name, e)
+				}
+			} else {
+				i, err := strconv.Atoi(e)
+				if err != nil {
+					return fmt.Errorf(ErrorConvertToInt, name, e)
+				}
+				is = append(is, i)
 			}
-			is[j] = i
 		}
 		*opt.pIntS = append(*opt.pIntS, is...)
 		opt.value = *opt.pIntS

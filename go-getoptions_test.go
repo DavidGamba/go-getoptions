@@ -1268,6 +1268,11 @@ func TestGetOptIntSliceMulti(t *testing.T) {
 			[]string{"--int", "123", "--int", "456"},
 			[]int{123, 456},
 		},
+		{setup(),
+			"int",
+			[]string{"--int", "1..5"},
+			[]int{1, 2, 3, 4, 5},
+		},
 	}
 	for _, c := range cases {
 		_, err := c.opt.Parse(c.input)
@@ -1279,7 +1284,6 @@ func TestGetOptIntSliceMulti(t *testing.T) {
 		}
 	}
 
-	Debug.SetOutput(os.Stderr)
 	opt := New()
 	opt.IntSliceMulti("int", 2, 3)
 	_, err := opt.Parse([]string{"--int", "123"})
@@ -1299,7 +1303,36 @@ func TestGetOptIntSliceMulti(t *testing.T) {
 	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
 		t.Errorf("Error int didn't match expected value: %s", err)
 	}
-	Debug.SetOutput(ioutil.Discard)
+
+	opt = New()
+	opt.IntSliceMulti("int", 1, 3)
+	_, err = opt.Parse([]string{"--int", "hello..3"})
+	if err == nil {
+		t.Errorf("Passing string didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello..3") {
+		t.Errorf("Error int didn't match expected value: %s", err)
+	}
+
+	opt = New()
+	opt.IntSliceMulti("int", 1, 3)
+	_, err = opt.Parse([]string{"--int", "1..hello"})
+	if err == nil {
+		t.Errorf("Passing string didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "1..hello") {
+		t.Errorf("Error int didn't match expected value: %s", err)
+	}
+
+	opt = New()
+	opt.IntSliceMulti("int", 1, 3)
+	_, err = opt.Parse([]string{"--int", "3..1"})
+	if err == nil {
+		t.Errorf("Passing string didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "3..1") {
+		t.Errorf("Error int didn't match expected value: %s", err)
+	}
 }
 
 // Verifies that a panic is reached when StringSliceMulti has wrong min
