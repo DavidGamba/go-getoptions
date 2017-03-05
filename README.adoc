@@ -29,9 +29,9 @@ For example:
 +
 In `go-getoptions` this is accomplished with:
 +
-- `ptr := opt.Bool(name, default_value, aliases)`.
-- `opt.BoolVar(&ptr, name, default_value, aliases)`.
-- Additionally, if all you want to know is if the option was passed you can use: `opt.Bool(name, default_value, aliases)` (without capturing its return value) and then check `opt.Called(name)`.
+- `ptr := opt.Bool(name, default_value, aliases...)`.
+- `opt.BoolVar(&ptr, name, default_value, aliases...)`.
+- Additionally, if all you want to know is if the option was passed you can use: `opt.Bool(name, default_value, aliases...)` (without capturing its return value) and then check `opt.Called(name)`.
 
 Options with String arguments::
 The option will accept a string argument.
@@ -45,8 +45,8 @@ Additionally, arguments to options can be passed with the `=` symbol.
 +
 In `go-getoptions` this is accomplished with:
 +
-- `ptr := opt.String(name, default_value, aliases)`.
-- `opt.StringVar(&ptr, name, default_value, aliases)`.
+- `ptr := opt.String(name, default_value, aliases...)`.
+- `opt.StringVar(&ptr, name, default_value, aliases...)`.
 
 The features listed above are enough to create basic programs but an option parser should do better:
 
@@ -64,8 +64,8 @@ and:
 +
 In `go-getoptions` this is accomplished with:
 +
-- `ptr := opt.Int(name, default_value, aliases)`.
-- `opt.IntVar(&ptr, name, default_value, aliases)`.
+- `ptr := opt.Int(name, default_value, aliases...)`.
+- `opt.IntVar(&ptr, name, default_value, aliases...)`.
 
 Options with Floating point arguments::
 Parse an option string argument into a Floating point value and provide an user error if the string provided is not a valid floating point.
@@ -81,8 +81,8 @@ and:
 +
 In `go-getoptions` this is accomplished with:
 +
-- `ptr := opt.Float64(name, default_value, aliases)`.
-- `opt.Float64Var(&ptr, name, default_value, aliases)`.
+- `ptr := opt.Float64(name, default_value, aliases...)`.
+- `opt.Float64Var(&ptr, name, default_value, aliases...)`.
 
 The features listed above relieve the programmer from the cumbersome task of converting the option argument into the expected type.
 
@@ -100,8 +100,8 @@ and:
 +
 In `go-getoptions` this is accomplished with:
 +
-- `ptr := opt.NBool(name, default_value, aliases)` which automatically defines `no-name` and `noname`.
-- `opt.NBoolVar(&ptr, name, default_value, aliases)` which automatically defines `no-name` and `noname`.
+- `ptr := opt.NBool(name, default_value, aliases...)` which automatically defines `no-name` and `noname`.
+- `opt.NBoolVar(&ptr, name, default_value, aliases...)` which automatically defines `no-name` and `noname`.
 
 That covers the most basic set of features, but still it is not enough to get past a basic program.
 The following features will allow for a more complete interface.
@@ -115,7 +115,7 @@ For example:
 +
 In `go-getoptions` this is accomplished with:
 +
-- `ptr := opt.StringSlice(name, aliases)`.
+- `ptr := opt.StringSlice(name, aliases...)`.
 
 Options with Key Value arguments::
 This allows the same option to be used multiple times with arguments of key value type.
@@ -125,7 +125,7 @@ For example:
 +
 In `go-getoptions` this is accomplished with:
 +
-- `strMap := opt.StringMap(name, aliases)`.
+- `strMap := opt.StringMap(name, aliases...)`.
 
 Both features above should support the basic types listed before: string, integer and floating point.
 
@@ -140,7 +140,7 @@ For example:
 +
 Instead of writting: `color --r 10 --g 20 --b 30 --next-option` or `color --rgb 10 --rgb 20 --rgb 30 --next-option`
 +
-The input could be: `color --rgb 10 20 30 --next-option`
+The input could be: `color --rgb 10 20 30 --next-option`.
 +
 The setup for this feature should allow for the user to continue using both versions of the input, that is passing one argument at a time or passing the 3 arguments at once, or allow the setup to force the user to have to use the 3 arguments at once version.
 This is accomplished with the minimum and maximum setup parameters.
@@ -154,7 +154,7 @@ The option parser will leave any non option argument after the maximum in the `r
 +
 In `go-getoptions` this is accomplished with:
 +
-- `strSlice := opt.StringSliceMulti(name, minArgs, maxArgs, aliases)`.
+- `strSlice := opt.StringSliceMulti(name, minArgs, maxArgs, aliases...)`.
 
 Options with key value arguments and multiple entries::
 This allows the user to save typing.
@@ -166,7 +166,7 @@ The input could be: `connection --server hostname=serverIP port=123 --client hos
 +
 In `go-getoptions` this is accomplished with:
 +
-- `strMap := opt.StringMapulti(name, minArgs, maxArgs, aliases)`.
+- `strMap := opt.StringMapMulti(name, minArgs, maxArgs, aliases...)`.
 
 That covers a complete user interface that is flexible enough to accommodate most programs.
 The following are advanced features:
@@ -253,8 +253,8 @@ Could increase the verbosity level each time the option is passed.
 +
 In `go-getoptions` this is accomplished with:
 +
-- `ptr := opt.Increment(name, default_value, aliases)`.
-- `opt.IncrementVar(&ptr, name, default_value, aliases)`.
+- `ptr := opt.Increment(name, default_value, aliases...)`.
+- `opt.IncrementVar(&ptr, name, default_value, aliases...)`.
 
 Additional types::
 The option parser could provide converters to additional types.
@@ -269,8 +269,8 @@ For this feature to be fully effective in strong typed languages where types hav
 +
 In `go-getoptions` this is accomplished with:
 +
-  - `ptr := opt.StringOptional(name, default_value, aliases)`.
-  - `ptr := opt.IntOptional(name, default_value, aliases)`.
+  - `ptr := opt.StringOptional(name, default_value, aliases...)`.
+  - `ptr := opt.IntOptional(name, default_value, aliases...)`.
   - Not yet implemented for `float64`.
   - The above should be used in combination with `opt.Called(name)`.
 +
