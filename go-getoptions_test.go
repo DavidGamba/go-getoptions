@@ -500,6 +500,9 @@ func TestCalled(t *testing.T) {
 	if !opt.Called("int2") {
 		t.Errorf("int2 didn't have expected value %v", false)
 	}
+	if opt.Called("unknown") {
+		t.Errorf("unknown didn't have expected value %v", false)
+	}
 }
 
 func TestEndOfParsing(t *testing.T) {

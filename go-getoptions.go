@@ -190,8 +190,12 @@ func (gopt *GetOpt) failIfDefined(aliases []string) {
 }
 
 // Called - Indicates if the option was passed on the command line.
+// If the `name` is an option that wasn't declared it will return false.
 func (gopt *GetOpt) Called(name string) bool {
-	return gopt.obj[name].called
+	if v, ok := gopt.obj[name]; ok {
+		return v.called
+	}
+	return false
 }
 
 // Option - Returns the value of the given option.
