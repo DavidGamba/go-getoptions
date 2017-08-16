@@ -151,12 +151,13 @@ var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfil
 
 // GetOpt - main object.
 type GetOpt struct {
-	mode         string    // Operation mode for short options: normal, bundling, singleDash
-	unknownMode  string    // Unknown option mode
-	requireOrder bool      // Stop parsing on non option
-	Writer       io.Writer // io.Writer locations to write warnings to. Defaults to os.Stderr.
-	obj          map[string]*option
-	args         *argList
+	mode           string    // Operation mode for short options: normal, bundling, singleDash
+	unknownMode    string    // Unknown option mode
+	requireOrder   bool      // Stop parsing on non option
+	mapKeysToLower bool      // Set Map keys lower case
+	Writer         io.Writer // io.Writer locations to write warnings to. Defaults to os.Stderr.
+	obj            map[string]*option
+	args           *argList
 }
 
 // handlerType - method used to handle the option.
@@ -291,6 +292,20 @@ func (gopt *GetOpt) SetUnknownMode(mode string) {
 // In this case, the `remaining` slice will contain `['subcommand', '--help']` and that can be passed directly to a subcommand's option parser.
 func (gopt *GetOpt) SetRequireOrder() {
 	gopt.requireOrder = true
+}
+
+// SetMapKeysToLower - StringMap keys captured from StringMap are lower case.
+// For example:
+//
+//     command --opt key=value
+//
+// And:
+//
+//     command --opt KEY=value
+//
+// Would both return `map[string]string{"key":"value"}`.
+func (gopt *GetOpt) SetMapKeysToLower() {
+	gopt.mapKeysToLower = true
 }
 
 // Bool - define a `bool` option and its aliases.
@@ -653,6 +668,7 @@ func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAli
 	Debug.Printf("handleStringSlice\n")
 	opt := gopt.option(name)
 	opt.setCalled()
+	opt.mapKeysToLower = gopt.mapKeysToLower
 	argCounter := 0
 
 	if argument != "" {

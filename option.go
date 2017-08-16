@@ -28,13 +28,14 @@ const (
 )
 
 type option struct {
-	name          string
-	aliases       []string
-	value         interface{} // Value without type safety
-	called        bool        // Indicates if the option was passed on the command line.
-	handler       handlerType // method used to handle the option
-	isOptionalOpt bool        // Indicates if an option has an optional argument
-	optType       optionType  // Option Type
+	name           string
+	aliases        []string
+	value          interface{} // Value without type safety
+	called         bool        // Indicates if the option was passed on the command line.
+	handler        handlerType // method used to handle the option
+	isOptionalOpt  bool        // Indicates if an option has an optional argument
+	mapKeysToLower bool        // Indicates if the option of map type has it keys set ToLower
+	optType        optionType  // Option Type
 	// Pointer receivers:
 	pBool    *bool             // receiver for bool pointer
 	pString  *string           // receiver for string pointer
@@ -129,7 +130,11 @@ func (opt *option) setStringMap(m map[string]string) {
 }
 
 func (opt *option) setKeyValueToStringMap(k, v string) {
-	opt.stringM[k] = v
+	if opt.mapKeysToLower {
+		opt.stringM[strings.ToLower(k)] = v
+	} else {
+		opt.stringM[k] = v
+	}
 	opt.value = opt.stringM
 }
 

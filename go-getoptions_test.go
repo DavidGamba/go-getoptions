@@ -891,6 +891,11 @@ func TestGetOptStringMap(t *testing.T) {
 			[]string{"--string", "hello=world", "key=value", "key2=value2"},
 			map[string]string{"hello": "world", "key": "value", "key2": "value2"},
 		},
+		{setup(),
+			"string",
+			[]string{"--string", "key=value", "Key=value1", "kEy=value2"},
+			map[string]string{"key": "value", "Key": "value1", "kEy": "value2"},
+		},
 	}
 	for _, c := range cases {
 		_, err := c.opt.Parse(c.input)
@@ -963,6 +968,17 @@ func TestGetOptStringMap(t *testing.T) {
 	}
 	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+
+	opt = New()
+	opt.SetMapKeysToLower()
+	sm = opt.StringMap("string", 1, 3)
+	_, err = opt.Parse([]string{"--string", "Key1=value1", "kEy2=value2", "keY3=value3"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !reflect.DeepEqual(map[string]string{"key1": "value1", "key2": "value2", "key3": "value3"}, sm) {
+		t.Errorf("Wrong value: %v != %v", map[string]string{"key1": "value1", "key2": "value2", "key3": "value3"}, sm)
 	}
 }
 
