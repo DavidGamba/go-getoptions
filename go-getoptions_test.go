@@ -831,188 +831,11 @@ func TestGetOptFloat64(t *testing.T) {
 	}
 }
 
-func TestGetOptStringRepeat(t *testing.T) {
-	setup := func() *GetOpt {
-		opt := New()
-		opt.StringSlice("string")
-		return opt
-	}
-
-	cases := []struct {
-		opt    *GetOpt
-		option string
-		input  []string
-		value  []string
-	}{
-		{setup(),
-			"string",
-			[]string{"--string=hello"},
-			[]string{"hello"},
-		},
-		{setup(),
-			"string",
-			[]string{"--string=hello", "world"},
-			[]string{"hello"},
-		},
-		{setup(),
-			"string",
-			[]string{"--string", "hello"},
-			[]string{"hello"},
-		},
-		{setup(),
-			"string",
-			[]string{"--string", "hello", "world"},
-			[]string{"hello"},
-		},
-		{setup(),
-			"string",
-			[]string{"--string", "hello", "--string", "happy", "--string", "world"},
-			[]string{"hello", "happy", "world"},
-		},
-	}
-	for _, c := range cases {
-		_, err := c.opt.Parse(c.input)
-		if err != nil {
-			t.Errorf("Unexpected error: %s", err)
-		}
-		if !reflect.DeepEqual(c.opt.Option(c.option), c.value) {
-			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
-		}
-	}
-	opt := New()
-	opt.StringSlice("string")
-	_, err := opt.Parse([]string{"--string"})
-	if err == nil {
-		t.Errorf("Passing option where argument expected didn't raise error")
-	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
-		t.Errorf("Error string didn't match expected value: %s", err.Error())
-	}
-
-	opt = New()
-	opt.StringSlice("string")
-	_, err = opt.Parse([]string{"--string", "--hello", "world"})
-	if err == nil {
-		t.Errorf("Passing option where argument expected didn't raise error")
-	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "string") {
-		t.Errorf("Error string didn't match expected value: %s", err.Error())
-	}
-
-	opt = New()
-	ss := opt.StringSlice("string")
-	_, err = opt.Parse([]string{"--string", "hello", "--string", "world"})
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
-	}
-	if !reflect.DeepEqual(*ss, []string{"hello", "world"}) {
-		t.Errorf("Wrong value: %v != %v", *ss, []string{"hello", "world"})
-	}
-}
-
 // TODO: Allow passig : as the map divider
 func TestGetOptStringMap(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
-		opt.StringMap("string")
-		return opt
-	}
-
-	cases := []struct {
-		opt    *GetOpt
-		option string
-		input  []string
-		value  map[string]string
-	}{
-		{setup(),
-			"string",
-			[]string{"--string=hello=world"},
-			map[string]string{"hello": "world"},
-		},
-		{setup(),
-			"string",
-			[]string{"--string=hello=happy", "world"},
-			map[string]string{"hello": "happy"},
-		},
-		{setup(),
-			"string",
-			[]string{"--string", "hello=world"},
-			map[string]string{"hello": "world"},
-		},
-		{setup(),
-			"string",
-			[]string{"--string", "hello=happy", "world"},
-			map[string]string{"hello": "happy"},
-		},
-		{setup(),
-			"string",
-			[]string{"--string=--hello=happy", "world"},
-			map[string]string{"--hello": "happy"},
-		},
-		{setup(),
-			"string",
-			[]string{"--string", "hello=world", "--string", "key=value", "--string", "key2=value2"},
-			map[string]string{"hello": "world", "key": "value", "key2": "value2"},
-		},
-	}
-	for _, c := range cases {
-		_, err := c.opt.Parse(c.input)
-		if err != nil {
-			t.Errorf("Unexpected error: %s", err)
-		}
-		if !reflect.DeepEqual(c.opt.Option(c.option), c.value) {
-			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
-		}
-	}
-	opt := New()
-	opt.StringMap("string")
-	_, err := opt.Parse([]string{"--string", "hello"})
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
-		t.Errorf("Error string didn't match expected value: %s", err.Error())
-	}
-	opt = New()
-	opt.StringMap("string")
-	_, err = opt.Parse([]string{"--string=hello"})
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
-		t.Errorf("Error string didn't match expected value: %s", err.Error())
-	}
-	opt = New()
-	opt.StringMap("string")
-	_, err = opt.Parse([]string{"--string"})
-	if err == nil {
-		t.Errorf("Missing argument for option 'string' didn't raise error")
-	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
-		t.Errorf("Error string didn't match expected value")
-	}
-	opt = New()
-	opt.StringMap("string")
-	_, err = opt.Parse([]string{"--string", "--hello=happy", "world"})
-	if err == nil {
-		t.Errorf("Missing argument for option 'string' didn't raise error")
-	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "string") {
-		t.Errorf("Error string didn't match expected value")
-	}
-
-	opt = New()
-	sm := opt.StringMap("string")
-	_, err = opt.Parse([]string{"--string", "hello=world", "--string", "key=value", "--string", "key2=value2"})
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
-	}
-	if !reflect.DeepEqual(map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm) {
-		t.Errorf("Wrong value: %v != %v", map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm)
-	}
-	if sm["hello"] != "world" || sm["key"] != "value" || sm["key2"] != "value2" {
-		t.Errorf("Wrong value: %v", sm)
-	}
-}
-
-func TestGetOptStringMapMulti(t *testing.T) {
-	setup := func() *GetOpt {
-		opt := New()
-		opt.StringMapMulti("string", 1, 3)
+		opt.StringMap("string", 1, 3)
 		opt.String("opt", "")
 		return opt
 	}
@@ -1079,19 +902,19 @@ func TestGetOptStringMapMulti(t *testing.T) {
 		}
 	}
 	opt := New()
-	opt.StringMapMulti("string", 1, 3)
+	opt.StringMap("string", 1, 3)
 	_, err := opt.Parse([]string{"--string", "hello"})
 	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 	opt = New()
-	opt.StringMapMulti("string", 1, 3)
+	opt.StringMap("string", 1, 3)
 	_, err = opt.Parse([]string{"--string=hello"})
 	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 	opt = New()
-	opt.StringMapMulti("string", 1, 3)
+	opt.StringMap("string", 1, 3)
 	_, err = opt.Parse([]string{"--string"})
 	if err == nil {
 		t.Errorf("Missing argument for option 'string' didn't raise error")
@@ -1100,7 +923,7 @@ func TestGetOptStringMapMulti(t *testing.T) {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 	opt = New()
-	opt.StringMapMulti("string", 1, 3)
+	opt.StringMap("string", 1, 3)
 	_, err = opt.Parse([]string{"--string", "--hello=happy", "world"})
 	if err == nil {
 		t.Errorf("Missing argument for option 'string' didn't raise error")
@@ -1110,7 +933,7 @@ func TestGetOptStringMapMulti(t *testing.T) {
 	}
 
 	opt = New()
-	sm := opt.StringMapMulti("string", 1, 3)
+	sm := opt.StringMap("string", 1, 3)
 	_, err = opt.Parse([]string{"--string", "hello=world", "key=value", "key2=value2"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -1123,7 +946,7 @@ func TestGetOptStringMapMulti(t *testing.T) {
 	}
 
 	opt = New()
-	opt.StringMapMulti("string", 2, 3)
+	opt.StringMap("string", 2, 3)
 	_, err = opt.Parse([]string{"--string", "hello=world"})
 	if err == nil {
 		t.Errorf("Passing less than min didn't raise error")
@@ -1133,7 +956,7 @@ func TestGetOptStringMapMulti(t *testing.T) {
 	}
 
 	opt = New()
-	opt.StringMapMulti("string", 2, 3)
+	opt.StringMap("string", 2, 3)
 	_, err = opt.Parse([]string{"--string", "hello=world", "happy"})
 	if err == nil {
 		t.Errorf("Passing less than min didn't raise error")
@@ -1143,10 +966,10 @@ func TestGetOptStringMapMulti(t *testing.T) {
 	}
 }
 
-func TestGetOptStringSliceMulti(t *testing.T) {
+func TestGetOptStringSlice(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
-		opt.StringSliceMulti("string", 1, 3)
+		opt.StringSlice("string", 1, 3)
 		opt.String("opt", "")
 		return opt
 	}
@@ -1208,7 +1031,7 @@ func TestGetOptStringSliceMulti(t *testing.T) {
 	}
 
 	opt := New()
-	opt.StringSliceMulti("string", 2, 3)
+	opt.StringSlice("string", 2, 3)
 	_, err := opt.Parse([]string{"--string", "hello"})
 	if err == nil {
 		t.Errorf("Passing less than min didn't raise error")
@@ -1216,12 +1039,42 @@ func TestGetOptStringSliceMulti(t *testing.T) {
 	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
 		t.Errorf("Error string didn't match expected value")
 	}
+
+	opt = New()
+	opt.StringSlice("string", 1, 1)
+	_, err = opt.Parse([]string{"--string"})
+	if err == nil {
+		t.Errorf("Passing option where argument expected didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+
+	opt = New()
+	opt.StringSlice("string", 1, 1)
+	_, err = opt.Parse([]string{"--string", "--hello", "world"})
+	if err == nil {
+		t.Errorf("Passing option where argument expected didn't raise error")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "string") {
+		t.Errorf("Error string didn't match expected value: %s", err.Error())
+	}
+
+	opt = New()
+	ss := opt.StringSlice("string", 1, 1)
+	_, err = opt.Parse([]string{"--string", "hello", "--string", "world"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !reflect.DeepEqual(*ss, []string{"hello", "world"}) {
+		t.Errorf("Wrong value: %v != %v", *ss, []string{"hello", "world"})
+	}
 }
 
-func TestGetOptIntSliceMulti(t *testing.T) {
+func TestGetOptIntSlice(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
-		opt.IntSliceMulti("int", 1, 3)
+		opt.IntSlice("int", 1, 3)
 		opt.String("opt", "")
 		return opt
 	}
@@ -1288,7 +1141,7 @@ func TestGetOptIntSliceMulti(t *testing.T) {
 	}
 
 	opt := New()
-	opt.IntSliceMulti("int", 2, 3)
+	opt.IntSlice("int", 2, 3)
 	_, err := opt.Parse([]string{"--int", "123"})
 	if err == nil {
 		t.Errorf("Passing less than min didn't raise error")
@@ -1298,7 +1151,7 @@ func TestGetOptIntSliceMulti(t *testing.T) {
 	}
 
 	opt = New()
-	opt.IntSliceMulti("int", 1, 3)
+	opt.IntSlice("int", 1, 3)
 	_, err = opt.Parse([]string{"--int", "hello"})
 	if err == nil {
 		t.Errorf("Passing string didn't raise error")
@@ -1308,7 +1161,7 @@ func TestGetOptIntSliceMulti(t *testing.T) {
 	}
 
 	opt = New()
-	opt.IntSliceMulti("int", 1, 3)
+	opt.IntSlice("int", 1, 3)
 	_, err = opt.Parse([]string{"--int", "hello..3"})
 	if err == nil {
 		t.Errorf("Passing string didn't raise error")
@@ -1318,7 +1171,7 @@ func TestGetOptIntSliceMulti(t *testing.T) {
 	}
 
 	opt = New()
-	opt.IntSliceMulti("int", 1, 3)
+	opt.IntSlice("int", 1, 3)
 	_, err = opt.Parse([]string{"--int", "1..hello"})
 	if err == nil {
 		t.Errorf("Passing string didn't raise error")
@@ -1328,7 +1181,7 @@ func TestGetOptIntSliceMulti(t *testing.T) {
 	}
 
 	opt = New()
-	opt.IntSliceMulti("int", 1, 3)
+	opt.IntSlice("int", 1, 3)
 	_, err = opt.Parse([]string{"--int", "3..1"})
 	if err == nil {
 		t.Errorf("Passing string didn't raise error")
@@ -1338,75 +1191,75 @@ func TestGetOptIntSliceMulti(t *testing.T) {
 	}
 }
 
-// Verifies that a panic is reached when StringSliceMulti has wrong min
-func TestGetOptStringSliceMultiPanicWithWrongMin(t *testing.T) {
+// Verifies that a panic is reached when StringSlice has wrong min
+func TestGetOptStringSlicePanicWithWrongMin(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Wrong min didn't panic")
 		}
 	}()
 	opt := New()
-	opt.StringSliceMulti("string", 0, 1)
+	opt.StringSlice("string", 0, 1)
 	opt.Parse([]string{})
 }
 
-// Verifies that a panic is reached when StringMapMulti has wrong min
-func TestGetOptStringMapMultiPanicWithWrongMin(t *testing.T) {
+// Verifies that a panic is reached when StringMap has wrong min
+func TestGetOptStringMapPanicWithWrongMin(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Wrong min didn't panic")
 		}
 	}()
 	opt := New()
-	opt.StringMapMulti("string", 0, 1)
+	opt.StringMap("string", 0, 1)
 	opt.Parse([]string{})
 }
 
-// Verifies that a panic is reached when IntSliceMulti has wrong min
-func TestGetOptIntSliceMultiPanicWithWrongMin(t *testing.T) {
+// Verifies that a panic is reached when IntSlice has wrong min
+func TestGetOptIntSlicePanicWithWrongMin(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Wrong min didn't panic")
 		}
 	}()
 	opt := New()
-	opt.IntSliceMulti("int", 0, 1)
+	opt.IntSlice("int", 0, 1)
 	opt.Parse([]string{})
 }
 
-// Verifies that a panic is reached when StringSliceMulti has wrong max
-func TestGetOptStringSliceMultiPanicWithWrongMax(t *testing.T) {
+// Verifies that a panic is reached when StringSlice has wrong max
+func TestGetOptStringSlicePanicWithWrongMax(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Wrong max didn't panic")
 		}
 	}()
 	opt := New()
-	opt.StringSliceMulti("string", 2, 1)
+	opt.StringSlice("string", 2, 1)
 	opt.Parse([]string{})
 }
 
-// Verifies that a panic is reached when StringMapMulti has wrong max
-func TestGetOptStringMapMultiPanicWithWrongMax(t *testing.T) {
+// Verifies that a panic is reached when StringMap has wrong max
+func TestGetOptStringMapPanicWithWrongMax(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Wrong max didn't panic")
 		}
 	}()
 	opt := New()
-	opt.StringMapMulti("string", 2, 1)
+	opt.StringMap("string", 2, 1)
 	opt.Parse([]string{})
 }
 
-// Verifies that a panic is reached when IntSliceMulti has wrong max
-func TestGetOptIntSliceMultiPanicWithWrongMax(t *testing.T) {
+// Verifies that a panic is reached when IntSlice has wrong max
+func TestGetOptIntSlicePanicWithWrongMax(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Wrong max didn't panic")
 		}
 	}()
 	opt := New()
-	opt.IntSliceMulti("int", 2, 1)
+	opt.IntSlice("int", 2, 1)
 	opt.Parse([]string{})
 }
 
@@ -1509,8 +1362,8 @@ func TestDefaultValues(t *testing.T) {
 	int2 := opt.Int("int2", 5)
 	opt.IntVar(&integer, "intVar", 0)
 	opt.IntVar(&integer2, "intVar2", 5)
-	opt.StringSlice("string-repeat")
-	opt.StringMap("string-map")
+	opt.StringSlice("string-repeat", 1, 1)
+	opt.StringMap("string-map", 1, 1)
 
 	_, err := opt.Parse([]string{})
 
@@ -1732,9 +1585,9 @@ func TestAll(t *testing.T) {
 	opt.StringVar(&str, "stringVar", "")
 	opt.Int("int", 0)
 	opt.IntVar(&integer, "intVar", 0)
-	opt.StringSlice("string-repeat")
-	opt.StringSliceMulti("string-slice-multi", 1, 3)
-	opt.StringMap("string-map")
+	opt.StringSlice("string-repeat", 1, 1)
+	opt.StringSlice("string-slice-multi", 1, 3)
+	opt.StringMap("string-map", 1, 1)
 
 	remaining, err := opt.Parse([]string{
 		"hello",

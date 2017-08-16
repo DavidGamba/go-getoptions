@@ -503,41 +503,8 @@ func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, aliases ...
 // StringSlice will accept multiple calls to the same option and append them
 // to the `[]string`.
 // For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
-func (gopt *GetOpt) StringSlice(name string, aliases ...string) *[]string {
-	s := []string{}
-	aliases = append(aliases, name)
-	gopt.failIfDefined(aliases)
-	gopt.setOption(name, newOption(name, aliases))
-	gopt.option(name).setStringSlicePtr(&s)
-	gopt.option(name).setHandler(gopt.handleSingleOption)
-	gopt.option(name).optType = stringRepeatType
-	return &s
-}
-
-// StringMap - define a `map[string]string` option and its aliases.
 //
-// StringMap will accept multiple calls of `key=value` type to the same option
-// and add them to the `map[string]string` result.
-// For example, when called with `--strMap k=v --strMap k2=v2`, the value is
-// `map[string]string{"k":"v", "k2": "v2"}`.
-func (gopt *GetOpt) StringMap(name string, aliases ...string) map[string]string {
-	s := make(map[string]string)
-	aliases = append(aliases, name)
-	gopt.failIfDefined(aliases)
-	gopt.setOption(name, newOption(name, aliases))
-	gopt.option(name).setStringMap(s)
-	gopt.option(name).setHandler(gopt.handleSingleOption)
-	gopt.option(name).optType = stringMapType
-	return s
-}
-
-// StringSliceMulti - define a `[]string` option and its aliases.
-//
-// StringSliceMulti will accept multiple calls to the same option and append them
-// to the `[]string`.
-// For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
-//
-// Addtionally, StringSliceMulti will allow to define a min and max amount of
+// Addtionally, StringSlice will allow to define a min and max amount of
 // arguments to be passed at once.
 // For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
 // the value is `[]string{"1", "2", "3"}`.
@@ -545,7 +512,7 @@ func (gopt *GetOpt) StringMap(name string, aliases ...string) map[string]string 
 //
 // When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
 // For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
-func (gopt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...string) *[]string {
+func (gopt *GetOpt) StringSlice(name string, min, max int, aliases ...string) *[]string {
 	s := []string{}
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
@@ -565,13 +532,13 @@ func (gopt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...strin
 	return &s
 }
 
-// IntSliceMulti - define a `[]int` option and its aliases.
+// IntSlice - define a `[]int` option and its aliases.
 //
-// IntSliceMulti will accept multiple calls to the same option and append them
+// IntSlice will accept multiple calls to the same option and append them
 // to the `[]int`.
 // For example, when called with `--intRpt 1 --intRpt 2`, the value is `[]int{1, 2}`.
 //
-// Addtionally, IntSliceMulti will allow to define a min and max amount of
+// Addtionally, IntSlice will allow to define a min and max amount of
 // arguments to be passed at once.
 // For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
 // the value is `[]int{1, 2, 3}`.
@@ -584,7 +551,7 @@ func (gopt *GetOpt) StringSliceMulti(name string, min, max int, aliases ...strin
 // For example, Instead of writting: `csv --columns 1 2 3` or
 // `csv --columns 1 --columns 2 --columns 3`
 // The input could be: `csv --columns 1..3`.
-func (gopt *GetOpt) IntSliceMulti(name string, min, max int, aliases ...string) *[]int {
+func (gopt *GetOpt) IntSlice(name string, min, max int, aliases ...string) *[]int {
 	s := []int{}
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
@@ -604,14 +571,14 @@ func (gopt *GetOpt) IntSliceMulti(name string, min, max int, aliases ...string) 
 	return &s
 }
 
-// StringMapMulti - define a `map[string]string` option and its aliases.
+// StringMap - define a `map[string]string` option and its aliases.
 //
-// StringMapMulti will accept multiple calls of `key=value` type to the same option
+// StringMap will accept multiple calls of `key=value` type to the same option
 // and add them to the `map[string]string` result.
 // For example, when called with `--strMap k=v --strMap k2=v2`, the value is
 // `map[string]string{"k":"v", "k2": "v2"}`.
 //
-// Addtionally, StringMapMulti will allow to define a min and max amount of
+// Addtionally, StringMap will allow to define a min and max amount of
 // arguments to be passed at once.
 // For example, when min is 1 and max is 3 and called with `--strMap k=v k2=v2 k3=v3`,
 // the value is `map[string]string{"k":"v", "k2": "v2", "k3": "v3"}`.
@@ -619,7 +586,7 @@ func (gopt *GetOpt) IntSliceMulti(name string, min, max int, aliases ...string) 
 //
 // When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
 // For example: with `min = 2`, you at least require `--strMap k=v k2=v2 --strMap k3=v3`
-func (gopt *GetOpt) StringMapMulti(name string, min, max int, aliases ...string) map[string]string {
+func (gopt *GetOpt) StringMap(name string, min, max int, aliases ...string) map[string]string {
 	s := make(map[string]string)
 	aliases = append(aliases, name)
 	gopt.failIfDefined(aliases)
@@ -640,7 +607,7 @@ func (gopt *GetOpt) StringMapMulti(name string, min, max int, aliases ...string)
 }
 
 func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAlias string) error {
-	Debug.Printf("handleStringSliceMulti\n")
+	Debug.Printf("handleStringSlice\n")
 	opt := gopt.option(name)
 	opt.setCalled()
 	argCounter := 0
@@ -735,7 +702,7 @@ func (gopt *GetOpt) handleIncrement(name string, argument string, usedAlias stri
 }
 
 // func (opt *GetOpt) StringMulti(name string, def []string, min int, max int, aliases ...string) {}
-// func (opt *GetOpt) StringMapMulti(name string, def map[string]string, min int, max int, aliases ...string) {}
+// func (opt *GetOpt) StringMap(name string, def map[string]string, min int, max int, aliases ...string) {}
 // func (opt *GetOpt) Procedure(name string, lambda_func int, aliases ...string) {}
 
 // Stringer - print a nice looking representation of the resulting `Option` map.

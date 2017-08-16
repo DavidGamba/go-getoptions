@@ -115,7 +115,7 @@ For example:
 +
 In `go-getoptions` this is accomplished with:
 +
-- `ptr := opt.StringSlice(name, aliases...)`.
+- `ptr := opt.StringSlice(name, 1, 1, aliases...)`.
 
 Options with Key Value arguments::
 This allows the same option to be used multiple times with arguments of key value type.
@@ -125,7 +125,7 @@ For example:
 +
 In `go-getoptions` this is accomplished with:
 +
-- `strMap := opt.StringMap(name, aliases...)`.
+- `strMap := opt.StringMap(name, 1, 1, aliases...)`.
 
 Both features above should support the basic types listed before: string, integer and floating point.
 
@@ -154,8 +154,8 @@ The option parser will leave any non option argument after the maximum in the `r
 +
 In `go-getoptions` this is accomplished with:
 +
-- `strSlice := opt.StringSliceMulti(name, minArgs, maxArgs, aliases...)`.
-- `intSlice := opt.IntSliceMulti(name, minArgs, maxArgs, aliases...)`.
+- `strSlice := opt.StringSlice(name, minArgs, maxArgs, aliases...)`.
+- `intSlice := opt.IntSlice(name, minArgs, maxArgs, aliases...)`.
 +
 Additionally, in the case of integers, positive integer ranges are allowed.
 For example:
@@ -166,7 +166,7 @@ The input could be: `csv --columns 1..3`.
 +
 In `go-getoptions` this is currently enabled by default when using:
 +
-`intSlice := opt.IntSliceMulti(name, minArgs, maxArgs, aliases...)`
+`intSlice := opt.IntSlice(name, minArgs, maxArgs, aliases...)`
 
 Options with key value arguments and multiple entries::
 This allows the user to save typing.
@@ -178,7 +178,7 @@ The input could be: `connection --server hostname=serverIP port=123 --client hos
 +
 In `go-getoptions` this is accomplished with:
 +
-- `strMap := opt.StringMapMulti(name, minArgs, maxArgs, aliases...)`.
+- `strMap := opt.StringMap(name, minArgs, maxArgs, aliases...)`.
 
 That covers a complete user interface that is flexible enough to accommodate most programs.
 The following are advanced features:
