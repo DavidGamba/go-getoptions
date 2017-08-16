@@ -18,7 +18,7 @@ Usage
 
 The following is a basic example:
 
-		import "github.com/davidgamba/go-getoptions" // As getoptions
+		import "github.com/DavidGamba/go-getoptions" // As getoptions
 
 		// Declare the GetOptions object
 		opt := getoptions.New()

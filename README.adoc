@@ -7,9 +7,9 @@ David Gamba, https://github.com/DavidGamba
 
 Go option parser inspired on the flexibility of Perl’s GetOpt::Long.
 
-This README is WIP. Please review the link:http://godoc.org/github.com/davidgamba/go-getoptions[godoc] for the most up to date information.
+This README is WIP. Please review the link:http://godoc.org/github.com/DavidGamba/go-getoptions[godoc] for the most up to date information.
 
-image:https://godoc.org/github.com/davidgamba/go-getoptions?status.svg[link="http://godoc.org/github.com/davidgamba/go-getoptions"]
+image:https://godoc.org/github.com/DavidGamba/go-getoptions?status.svg[link="http://godoc.org/github.com/DavidGamba/go-getoptions"]
 image:https://travis-ci.org/DavidGamba/go-getoptions.svg["Build Status", link="https://travis-ci.org/DavidGamba/go-getoptions"]
 image:https://codecov.io/github/DavidGamba/go-getoptions/coverage.svg?branch=master["Coverage via Codecov", link="https://codecov.io/github/DavidGamba/go-getoptions?branch=master"]
 
@@ -389,7 +389,7 @@ If you are looking for options, link:http://asciidoctor.org/[asciidoctor] has a 
 +
 [source,go,subs=attributes]
 ----
-import "github.com/davidgamba/go-getoptions" // As getoptions
+import "github.com/DavidGamba/go-getoptions" // As getoptions
 
 // Declare the GetOptions object
 opt := getoptions.New()
@@ -549,11 +549,11 @@ For example: You could define ':' and use `--string=mystring`, `--string:mystrin
 
 . Get it from github:
 +
-`go get github.com/davidgamba/go-getoptions`
+`go get github.com/DavidGamba/go-getoptions`
 
 . Then import it:
 +
-`import "github.com/davidgamba/go-getoptions" // As getoptions`
+`import "github.com/DavidGamba/go-getoptions" // As getoptions`
 
 . Enjoy!
 

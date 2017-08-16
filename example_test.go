@@ -11,7 +11,7 @@ package getoptions_test
 
 import (
 	"fmt"
-	"github.com/davidgamba/go-getoptions" // As getoptions
+	"github.com/DavidGamba/go-getoptions" // As getoptions
 )
 
 func Example() {
