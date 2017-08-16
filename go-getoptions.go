@@ -532,6 +532,25 @@ func (gopt *GetOpt) StringSlice(name string, min, max int, aliases ...string) *[
 	return &s
 }
 
+// StringSliceVar - define a `[]string` option and its aliases.
+//
+// StringSliceVar will accept multiple calls to the same option and append them
+// to the `[]string`.
+// For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
+//
+// Addtionally, StringSliceVar will allow to define a min and max amount of
+// arguments to be passed at once.
+// For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
+// the value is `[]string{"1", "2", "3"}`.
+// It could also be called with `--strRpt 1 --strRpt 2 --strRpt 3` for the same result.
+//
+// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
+// For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
+func (gopt *GetOpt) StringSliceVar(p *[]string, name string, min, max int, aliases ...string) {
+	gopt.StringSlice(name, min, max, aliases...)
+	gopt.option(name).setStringSlicePtr(p)
+}
+
 // IntSlice - define a `[]int` option and its aliases.
 //
 // IntSlice will accept multiple calls to the same option and append them
@@ -569,6 +588,30 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, aliases ...string) *[]in
 	}
 	Debug.Printf("IntMulti return: %v\n", s)
 	return &s
+}
+
+// IntSliceVar - define a `[]int` option and its aliases.
+//
+// IntSliceVar will accept multiple calls to the same option and append them
+// to the `[]int`.
+// For example, when called with `--intRpt 1 --intRpt 2`, the value is `[]int{1, 2}`.
+//
+// Addtionally, IntSliceVar will allow to define a min and max amount of
+// arguments to be passed at once.
+// For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
+// the value is `[]int{1, 2, 3}`.
+// It could also be called with `--strRpt 1 --strRpt 2 --strRpt 3` for the same result.
+//
+// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
+// For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
+//
+// Finally, possitive integer ranges are allowed.
+// For example, Instead of writting: `csv --columns 1 2 3` or
+// `csv --columns 1 --columns 2 --columns 3`
+// The input could be: `csv --columns 1..3`.
+func (gopt *GetOpt) IntSliceVar(p *[]int, name string, min, max int, aliases ...string) {
+	gopt.IntSlice(name, min, max, aliases...)
+	gopt.option(name).setIntSlicePtr(p)
 }
 
 // StringMap - define a `map[string]string` option and its aliases.

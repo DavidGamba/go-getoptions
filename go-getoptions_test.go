@@ -1069,6 +1069,17 @@ func TestGetOptStringSlice(t *testing.T) {
 	if !reflect.DeepEqual(*ss, []string{"hello", "world"}) {
 		t.Errorf("Wrong value: %v != %v", *ss, []string{"hello", "world"})
 	}
+
+	opt = New()
+	var ssVar []string
+	opt.StringSliceVar(&ssVar, "string", 1, 1)
+	_, err = opt.Parse([]string{"--string", "hello", "--string", "world"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !reflect.DeepEqual(ssVar, []string{"hello", "world"}) {
+		t.Errorf("Wrong value: %v != %v", ssVar, []string{"hello", "world"})
+	}
 }
 
 func TestGetOptIntSlice(t *testing.T) {
@@ -1188,6 +1199,27 @@ func TestGetOptIntSlice(t *testing.T) {
 	}
 	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "3..1") {
 		t.Errorf("Error int didn't match expected value: %s", err)
+	}
+
+	opt = New()
+	is := opt.IntSlice("int", 1, 1)
+	_, err = opt.Parse([]string{"--int", "1", "--int", "2"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !reflect.DeepEqual(*is, []int{1, 2}) {
+		t.Errorf("Wrong value: %v != %v", *is, []int{1, 2})
+	}
+
+	opt = New()
+	var isVar []int
+	opt.IntSliceVar(&isVar, "int", 1, 1)
+	_, err = opt.Parse([]string{"--int", "1", "--int", "2"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !reflect.DeepEqual(isVar, []int{1, 2}) {
+		t.Errorf("Wrong value: %v != %v", isVar, []int{1, 2})
 	}
 }
 
