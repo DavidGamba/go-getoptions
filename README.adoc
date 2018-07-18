@@ -385,6 +385,7 @@ Don't be lazy, write a man page for your program and create the program's synops
 
 If you are looking for options, link:http://asciidoctor.org/[asciidoctor] has a manpage backend that can generate manpages written in the Asciidoc markup.
 
+[[quick_overview]]
 == Quick overview
 
 . Define your command line specification:
