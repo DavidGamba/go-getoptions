@@ -100,10 +100,13 @@ For example: `--string=--hello` and `--int=-123`.
 
 • Options with optional arguments.
 If the default argument is not passed the default is set.
+For example: You can call `--int 123` wich yields `123` or `--int` wich yields the given default.
 
 • Allows abbreviations when the provided option is not ambiguous.
+For example: An option called `build` can be called with `--b`, `--bu`, `--bui`, `--buil` and `--build` as long as there is no ambiguity.
+In the case of ambiguity, the shortest non ambiguous combination is required.
 
-• Called method indicates if the option was passed on the command line.
+• `Called()` method indicates if the option was passed on the command line.
 
 • Errors exposed as public variables to allow overriding them for internationalization.
 
