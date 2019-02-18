@@ -1,6 +1,6 @@
 // This file is part of go-getoptions.
 //
-// Copyright (C) 2015-2017  David Gamba Rios
+// Copyright (C) 2015-2019  David Gamba Rios
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,41 +18,33 @@ Usage
 
 The following is a basic example:
 
-		import "github.com/DavidGamba/go-getoptions" // As getoptions
+	import "github.com/DavidGamba/go-getoptions" // As getoptions
 
-		// Declare the GetOptions object
-		opt := getoptions.New()
+	// Declare the GetOptions object
+	opt := getoptions.New()
 
-		// Use methods that return pointers
-		bp := opt.Bool("bp", false)
-		sp := opt.String("sp", "")
-		ip := opt.Int("ip", 0)
+	// Declare the variables you want your options to update
+	var flag bool
+	var str string
+	var i int
+	var f float64
+	opt.BoolVar(&flag, "flag", true, "f", "alias-2") // Aliases can be defined
+	opt.StringVar(&str, "string", "")
+	opt.IntVar(&i, "i", 0)
+	opt.Float64Var(&f, "float", 0)
 
-		// Use methods by passing pointers
-		var b bool
-		var s string
-		var i int
-		opt.BoolVar(&b, "b", true, "alias", "alias2") // Aliases can be defined
-		opt.StringVar(&s, "s", "")
-		opt.IntVar(&i, "i", 456)
+	// Parse cmdline arguments or any provided []string
+	remaining, err := opt.Parse(os.Args[1:])
 
-		// Parse cmdline arguments or any provided []string
-		remaining, err := opt.Parse(os.Args[1:])
+	// Check if the option was called on the cli
+	if opt.Called("i") {
+	// ... do something with i
+	}
 
-		if *bp {
-			// ... do something
-		}
-
-		if opt.Called("i") {
-			// ... do something with i
-		}
-
-		// Use subcommands by operating on the remaining items
-		// Requires `opt.SetRequireOrder()` before the initial `opt.Parse` call.
-		opt2 := getoptions.New()
-		// ...
-		remaining2, err := opt.Parse(remaining)
-
+	// Or check that the option value is different from its default
+	if i != 0 {
+	// ... do something with i
+	}
 
 Features
 
