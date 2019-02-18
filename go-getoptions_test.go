@@ -1,6 +1,6 @@
 // This file is part of go-getoptions.
 //
-// Copyright (C) 2015-2017  David Gamba Rios
+// Copyright (C) 2015-2019  David Gamba Rios
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -628,8 +628,8 @@ func TestGetOptString(t *testing.T) {
 			[]string{"--string=--hello", "world"},
 			"--hello",
 		},
-		// TODO: Set up a flag to decide wheter or not to err on this
-		// To have the definition of string overriden. This should probably fail since it is most likely not what the user intends.
+		// TODO: Set up a flag to decide whether or not to err on this
+		// To have the definition of string overridden. This should probably fail since it is most likely not what the user intends.
 		{setup(),
 			"string",
 			[]string{"--string", "hello", "--string", "world"},
@@ -831,7 +831,7 @@ func TestGetOptFloat64(t *testing.T) {
 	}
 }
 
-// TODO: Allow passig : as the map divider
+// TODO: Allow passing : as the map divider
 func TestGetOptStringMap(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()

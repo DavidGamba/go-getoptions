@@ -92,7 +92,7 @@ For example: `--string=--hello` and `--int=-123`.
 
 • Options with optional arguments.
 If the default argument is not passed the default is set.
-For example: You can call `--int 123` wich yields `123` or `--int` wich yields the given default.
+For example: You can call `--int 123` which yields `123` or `--int` which yields the given default.
 
 • Allows abbreviations when the provided option is not ambiguous.
 For example: An option called `build` can be called with `--b`, `--bu`, `--bui`, `--buil` and `--build` as long as there is no ambiguity.
@@ -304,7 +304,7 @@ func (gopt *GetOpt) SetMapKeysToLower() {
 }
 
 // Bool - define a `bool` option and its aliases.
-// It returnns a `*bool` pointing to the variable holding the result.
+// It returns a `*bool` pointing to the variable holding the result.
 // If the option is found, the result will be the opposite of the provided default.
 func (gopt *GetOpt) Bool(name string, def bool, aliases ...string) *bool {
 	aliases = append(aliases, name)
@@ -514,7 +514,7 @@ func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, aliases ...
 // to the `[]string`.
 // For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
 //
-// Addtionally, StringSlice will allow to define a min and max amount of
+// Additionally, StringSlice will allow to define a min and max amount of
 // arguments to be passed at once.
 // For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
 // the value is `[]string{"1", "2", "3"}`.
@@ -548,7 +548,7 @@ func (gopt *GetOpt) StringSlice(name string, min, max int, aliases ...string) *[
 // to the `[]string`.
 // For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
 //
-// Addtionally, StringSliceVar will allow to define a min and max amount of
+// Additionally, StringSliceVar will allow to define a min and max amount of
 // arguments to be passed at once.
 // For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
 // the value is `[]string{"1", "2", "3"}`.
@@ -567,7 +567,7 @@ func (gopt *GetOpt) StringSliceVar(p *[]string, name string, min, max int, alias
 // to the `[]int`.
 // For example, when called with `--intRpt 1 --intRpt 2`, the value is `[]int{1, 2}`.
 //
-// Addtionally, IntSlice will allow to define a min and max amount of
+// Additionally, IntSlice will allow to define a min and max amount of
 // arguments to be passed at once.
 // For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
 // the value is `[]int{1, 2, 3}`.
@@ -576,8 +576,8 @@ func (gopt *GetOpt) StringSliceVar(p *[]string, name string, min, max int, alias
 // When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
 // For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
 //
-// Finally, possitive integer ranges are allowed.
-// For example, Instead of writting: `csv --columns 1 2 3` or
+// Finally, positive integer ranges are allowed.
+// For example, Instead of writing: `csv --columns 1 2 3` or
 // `csv --columns 1 --columns 2 --columns 3`
 // The input could be: `csv --columns 1..3`.
 func (gopt *GetOpt) IntSlice(name string, min, max int, aliases ...string) *[]int {
@@ -606,7 +606,7 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, aliases ...string) *[]in
 // to the `[]int`.
 // For example, when called with `--intRpt 1 --intRpt 2`, the value is `[]int{1, 2}`.
 //
-// Addtionally, IntSliceVar will allow to define a min and max amount of
+// Additionally, IntSliceVar will allow to define a min and max amount of
 // arguments to be passed at once.
 // For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
 // the value is `[]int{1, 2, 3}`.
@@ -615,7 +615,7 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, aliases ...string) *[]in
 // When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
 // For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
 //
-// Finally, possitive integer ranges are allowed.
+// Finally, positive integer ranges are allowed.
 // For example, Instead of writting: `csv --columns 1 2 3` or
 // `csv --columns 1 --columns 2 --columns 3`
 // The input could be: `csv --columns 1..3`.
@@ -631,7 +631,7 @@ func (gopt *GetOpt) IntSliceVar(p *[]int, name string, min, max int, aliases ...
 // For example, when called with `--strMap k=v --strMap k2=v2`, the value is
 // `map[string]string{"k":"v", "k2": "v2"}`.
 //
-// Addtionally, StringMap will allow to define a min and max amount of
+// Additionally, StringMap will allow to define a min and max amount of
 // arguments to be passed at once.
 // For example, when min is 1 and max is 3 and called with `--strMap k=v k2=v2 k3=v3`,
 // the value is `map[string]string{"k":"v", "k2": "v2", "k3": "v3"}`.
@@ -879,7 +879,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 			// Check for termination: '--'
 			if optList[0] == "--" {
 				Debug.Printf("Parse -- found\n")
-				// move index to next possition (to not include '--') and return remaining.
+				// move index to next position (to not include '--') and return remaining.
 				gopt.args.next()
 				remaining = append(remaining, gopt.args.remaining()...)
 				Debug.Printf("return %v, %v", remaining, nil)

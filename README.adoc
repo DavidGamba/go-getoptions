@@ -140,7 +140,7 @@ Options with array arguments and multiple entries::
 This allows the user to save typing.
 For example:
 +
-Instead of writting: `color --r 10 --g 20 --b 30 --next-option` or `color --rgb 10 --rgb 20 --rgb 30 --next-option`
+Instead of writing: `color --r 10 --g 20 --b 30 --next-option` or `color --rgb 10 --rgb 20 --rgb 30 --next-option`
 +
 The input could be: `color --rgb 10 20 30 --next-option`.
 +
@@ -162,7 +162,7 @@ In `go-getoptions` this is accomplished with:
 Additionally, in the case of integers, positive integer ranges are allowed.
 For example:
 +
-Instead of writting: `csv --columns 1 2 3` or `csv --columns 1 --columns 2 --columns 3`
+Instead of writing: `csv --columns 1 2 3` or `csv --columns 1 --columns 2 --columns 3`
 +
 The input could be: `csv --columns 1..3`.
 +
@@ -277,7 +277,7 @@ The disadvantage of providing non basic types is that the option parser grows in
 Not yet implemented in `go-getoptions`.
 
 Options with optional arguments::
-With regular options, when the argument is not passed (for example: `--level` intead of `--level=debug`) you will get a _Missing argument_ error.
+With regular options, when the argument is not passed (for example: `--level` instead of `--level=debug`) you will get a _Missing argument_ error.
 When using options with optional arguments, If the argument is not passed, the option will set the default value for the option type.
 For this feature to be fully effective in strong typed languages where types have defaults, there must be a means to query the option parser to determine whether or not the option was called or not.
 +
@@ -455,7 +455,7 @@ The list of arguments will be saved into an Array like structure inside the prog
 
 * Options with array arguments and multiple entries.
 +
-For example, instead of writting:
+For example, instead of writing:
 `color --r 10 --g 20 --b 30 --next-option`
 or
 `color --rgb 10 --rgb 20 --rgb 30 --next-option`
@@ -464,7 +464,7 @@ the input could be:
 
 * When using integer array options with multiple arguments, positive integer ranges are allowed.
 +
-For example, Instead of writting:
+For example, Instead of writing:
 `csv --columns 1 2 3`
 or
 `csv --columns 1 --columns 2 --columns 3`
@@ -473,7 +473,7 @@ The input could be:
 
 * Options with key value arguments and multiple entries.
 +
-For example, instead of writting:
+For example, instead of writing:
 `connection --server hostname=serverIP --server port=123 --client hostname=localhost --client port=456`
 the input could be:
 `connection --server hostname=serverIP port=123 --client hostname=localhost port=456`
@@ -498,7 +498,7 @@ For example: `--string=--hello` and `--int=-123`.
 * Options with optional arguments.
 If the default argument is not passed the default is set.
 +
-For example: You can call `--int 123` wich yields `123` or `--int` wich yields the given default.
+For example: You can call `--int 123` which yields `123` or `--int` which yields the given default.
 
 * Allows abbreviations when the provided option is not ambiguous.
 +
