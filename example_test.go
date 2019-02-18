@@ -1,6 +1,6 @@
 // This file is part of go-getoptions.
 //
-// Copyright (C) 2015-2017  David Gamba Rios
+// Copyright (C) 2015-2019  David Gamba Rios
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,6 +11,7 @@ package getoptions_test
 
 import (
 	"fmt"
+
 	"github.com/DavidGamba/go-getoptions" // As getoptions
 )
 
@@ -18,30 +19,25 @@ func Example() {
 	// Declare the GetOptions object
 	opt := getoptions.New()
 
-	// Use methods that return pointers
-	bp := opt.Bool("bp", false)
-	sp := opt.String("sp", "")
-	ip := opt.Int("ip", 0)
-
-	// Use methods by passing pointers
-	var b bool
-	var s string
+	// Declare the variables you want your options to update
+	var flag bool
+	var str string
 	var i int
-	opt.BoolVar(&b, "b", true, "alias", "alias2") // Aliases can be defined
-	opt.StringVar(&s, "s", "")
+	var f float64
+	opt.BoolVar(&flag, "flag", false, opt.Alias("f", "alias2")) // Aliases can be defined
+	opt.StringVar(&str, "string", "")
 	opt.IntVar(&i, "i", 456)
+	opt.Float64Var(&f, "float", 0)
 
+	// Parse cmdline arguments or any provided []string
 	// Normally you would run Parse on `os.Args[1:]`:
 	// remaining, err := opt.Parse(os.Args[1:])
 	remaining, err := opt.Parse([]string{
-		"--bp",
-		"word1",            // Non options can be mixed with options at any place
-		"--sp", "strValue", // Values can be separated by space
-		"--ip=123", // Or they can be passed after an equal `=` sign
-		"word2",
-		"--alias", // You can use any alias to call an option
-		"--s=string",
-		"word3",
+		"non-option", // Non options can be mixed with options at any place
+		"-f",
+		"--string=mystring", // Arguments can be passed with equals
+		"--float", "3.14",   // Or with space
+		"non-option2",
 		"--", "--not-parsed", // -- indicates end of parsing
 	})
 
@@ -52,35 +48,27 @@ func Example() {
 	// The remaining slice holds non-options and anything after --
 	fmt.Printf("remaining: %v\n", remaining)
 
-	if *bp {
-		fmt.Println("*bp is true")
-	}
-
-	// In the case of Bool and BoolVar, the value when called is the negated default
-	if !b {
-		fmt.Println("b is false")
+	if flag {
+		fmt.Println("flag is true")
 	}
 
 	// Called method tells you if an option was actually called or not
-	if opt.Called("ip") {
-		fmt.Printf("*ip is %d\n", *ip)
+	if opt.Called("string") {
+		fmt.Printf("srt is %s\n", str)
 	}
-
-	fmt.Printf("*sp is %s\n", *sp)
-	fmt.Printf("s is %s\n", s)
 
 	// When the option is not called, it will have the provided default
 	if !opt.Called("i") {
 		fmt.Printf("i is %d\n", i)
 	}
 
+	fmt.Printf("f is %.2f", f)
+
 	// Output:
-	// remaining: [word1 word2 word3 --not-parsed]
-	// *bp is true
-	// b is false
-	// *ip is 123
-	// *sp is strValue
-	// s is string
+	// remaining: [non-option non-option2 --not-parsed]
+	// flag is true
+	// srt is mystring
 	// i is 456
+	// f is 3.14
 
 }

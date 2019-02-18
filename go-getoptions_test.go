@@ -78,8 +78,8 @@ func TestDuplicateAlias(t *testing.T) {
 		}
 	}()
 	opt := New()
-	opt.Bool("flag", false, "t")
-	opt.Bool("bool", false, "t")
+	opt.Bool("flag", false, opt.Alias("t"))
+	opt.Bool("bool", false, opt.Alias("t"))
 }
 
 // Verifies that a panic is reached when an alias is named after an option.
@@ -91,7 +91,7 @@ func TestAliasMatchesOption(t *testing.T) {
 	}()
 	opt := New()
 	opt.Bool("flag", false)
-	opt.Bool("bool", false, "flag")
+	opt.Bool("bool", false, opt.Alias("flag"))
 }
 
 // TODO
@@ -245,7 +245,7 @@ func TestOptionals(t *testing.T) {
 
 	// Missing argument with default
 	opt = New()
-	opt.StringOptional("string", "default")
+	opt.StringOptional("string", "default", opt.Alias("alias"))
 	_, err = opt.Parse([]string{"--string"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -255,7 +255,7 @@ func TestOptionals(t *testing.T) {
 	}
 
 	opt = New()
-	opt.IntOptional("int", 123)
+	opt.IntOptional("int", 123, opt.Alias("alias"))
 	_, err = opt.Parse([]string{"--int"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -401,7 +401,7 @@ func TestGetOptBool(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
 		opt.Bool("flag", false)
-		opt.NBool("nflag", false)
+		opt.NBool("nflag", false, opt.Alias("neg"))
 		return opt
 	}
 
@@ -419,6 +419,11 @@ func TestGetOptBool(t *testing.T) {
 		{setup(),
 			"nflag",
 			[]string{"--nflag"},
+			true,
+		},
+		{setup(),
+			"nflag",
+			[]string{"--neg"},
 			true,
 		},
 		{setup(),
@@ -522,7 +527,7 @@ func TestEndOfParsing(t *testing.T) {
 func TestGetOptAliases(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
-		opt.Bool("flag", false, "f", "h")
+		opt.Bool("flag", false, opt.Alias("f", "h"))
 		return opt
 	}
 
@@ -579,7 +584,7 @@ func TestGetOptAliases(t *testing.T) {
 	// https://github.com/DavidGamba/go-getoptions/issues/1
 	opt = New()
 	opt.Bool("fleg", false)
-	opt.Bool("flag", false, "f")
+	opt.Bool("flag", false, opt.Alias("f"))
 	_, err = opt.Parse([]string{"f"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -592,7 +597,7 @@ func TestGetOptAliases(t *testing.T) {
 func TestGetOptString(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
-		opt.String("string", "")
+		opt.String("string", "", opt.Alias("alias"))
 		return opt
 	}
 
@@ -615,6 +620,11 @@ func TestGetOptString(t *testing.T) {
 		{setup(),
 			"string",
 			[]string{"--string", "hello"},
+			"hello",
+		},
+		{setup(),
+			"string",
+			[]string{"--alias", "hello"},
 			"hello",
 		},
 		{setup(),
@@ -660,7 +670,7 @@ func TestGetOptString(t *testing.T) {
 func TestGetOptInt(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
-		opt.Int("int", 0)
+		opt.Int("int", 0, opt.Alias("alias"))
 		return opt
 	}
 
@@ -683,6 +693,11 @@ func TestGetOptInt(t *testing.T) {
 		{setup(),
 			"int",
 			[]string{"--int", "123"},
+			123,
+		},
+		{setup(),
+			"int",
+			[]string{"--alias", "123"},
 			123,
 		},
 		{setup(),
@@ -747,7 +762,7 @@ func TestGetOptInt(t *testing.T) {
 func TestGetOptFloat64(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
-		opt.Float64("float", 0)
+		opt.Float64("float", 0, opt.Alias("alias"))
 		return opt
 	}
 
@@ -770,6 +785,11 @@ func TestGetOptFloat64(t *testing.T) {
 		{setup(),
 			"float",
 			[]string{"--float", "1.23"},
+			1.23,
+		},
+		{setup(),
+			"float",
+			[]string{"--alias", "1.23"},
 			1.23,
 		},
 		{setup(),
@@ -835,7 +855,7 @@ func TestGetOptFloat64(t *testing.T) {
 func TestGetOptStringMap(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
-		opt.StringMap("string", 1, 3)
+		opt.StringMap("string", 1, 3, opt.Alias("alias"))
 		opt.String("opt", "")
 		return opt
 	}
@@ -849,6 +869,11 @@ func TestGetOptStringMap(t *testing.T) {
 		{setup(),
 			"string",
 			[]string{"--string=hello=world"},
+			map[string]string{"hello": "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--alias=hello=world"},
 			map[string]string{"hello": "world"},
 		},
 		{setup(),
@@ -985,7 +1010,7 @@ func TestGetOptStringMap(t *testing.T) {
 func TestGetOptStringSlice(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
-		opt.StringSlice("string", 1, 3)
+		opt.StringSlice("string", 1, 3, opt.Alias("alias"))
 		opt.String("opt", "")
 		return opt
 	}
@@ -1008,6 +1033,11 @@ func TestGetOptStringSlice(t *testing.T) {
 		{setup(),
 			"string",
 			[]string{"--string", "hello", "world"},
+			[]string{"hello", "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--alias", "hello", "world"},
 			[]string{"hello", "world"},
 		},
 		{setup(),
@@ -1101,7 +1131,7 @@ func TestGetOptStringSlice(t *testing.T) {
 func TestGetOptIntSlice(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
-		opt.IntSlice("int", 1, 3)
+		opt.IntSlice("int", 1, 3, opt.Alias("alias"))
 		opt.String("opt", "")
 		return opt
 	}
@@ -1134,6 +1164,11 @@ func TestGetOptIntSlice(t *testing.T) {
 		{setup(),
 			"int",
 			[]string{"--int", "123", "456", "789"},
+			[]int{123, 456, 789},
+		},
+		{setup(),
+			"int",
+			[]string{"--alias", "123", "456", "789"},
 			[]int{123, 456, 789},
 		},
 		{setup(),
@@ -1538,7 +1573,7 @@ func TestSingleDash(t *testing.T) {
 func TestIncrement(t *testing.T) {
 	var i, j int
 	opt := New()
-	opt.IncrementVar(&i, "i", 0)
+	opt.IncrementVar(&i, "i", 0, opt.Alias("alias"))
 	opt.IncrementVar(&j, "j", 0)
 	ip := opt.Increment("ip", 0)
 	_, err := opt.Parse([]string{
@@ -1558,11 +1593,11 @@ func TestIncrement(t *testing.T) {
 		t.Errorf("ip didn't have expected value: %v != %v", *ip, 1)
 	}
 	opt = New()
-	opt.IncrementVar(&i, "i", 0)
+	opt.IncrementVar(&i, "i", 0, opt.Alias("alias"))
 	opt.IncrementVar(&j, "j", 0)
 	ip = opt.Increment("ip", 0)
 	_, err = opt.Parse([]string{
-		"--i", "hello", "--i", "world", "--i",
+		"--i", "hello", "--i", "world", "--alias",
 		"--ip", "--ip", "--ip", "--ip", "--ip",
 	})
 	if err != nil {
