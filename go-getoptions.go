@@ -616,7 +616,7 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, aliases ...string) *[]in
 // For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
 //
 // Finally, positive integer ranges are allowed.
-// For example, Instead of writting: `csv --columns 1 2 3` or
+// For example, Instead of writing: `csv --columns 1 2 3` or
 // `csv --columns 1 --columns 2 --columns 3`
 // The input could be: `csv --columns 1..3`.
 func (gopt *GetOpt) IntSliceVar(p *[]int, name string, min, max int, aliases ...string) {
