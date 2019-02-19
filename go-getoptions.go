@@ -20,14 +20,16 @@ The following is a basic example:
 
 	import "github.com/DavidGamba/go-getoptions" // As getoptions
 
-	// Declare the GetOptions object
-	opt := getoptions.New()
-
 	// Declare the variables you want your options to update
 	var flag bool
 	var str string
 	var i int
 	var f float64
+
+	// Declare the GetOptions object
+	opt := getoptions.New()
+
+	// Options definition
 	opt.BoolVar(&flag, "flag", true, opt.Alias("f", "alias-2")) // Aliases can be defined
 	opt.StringVar(&str, "string", "", opt.Required())           // Mark option as required
 	opt.IntVar(&i, "i", 0)

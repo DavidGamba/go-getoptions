@@ -16,14 +16,16 @@ import (
 )
 
 func Example() {
-	// Declare the GetOptions object
-	opt := getoptions.New()
-
 	// Declare the variables you want your options to update
 	var flag bool
 	var str string
 	var i int
 	var f float64
+
+	// Declare the GetOptions object
+	opt := getoptions.New()
+
+	// Options definition
 	opt.BoolVar(&flag, "flag", false, opt.Alias("f", "alias2")) // Aliases can be defined
 	opt.StringVar(&str, "string", "", opt.Required())           // Mark option as required
 	opt.IntVar(&i, "i", 456)
