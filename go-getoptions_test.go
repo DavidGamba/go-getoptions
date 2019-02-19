@@ -94,6 +94,35 @@ func TestAliasMatchesOption(t *testing.T) {
 	opt.Bool("bool", false, opt.Alias("flag"))
 }
 
+func TestRequired(t *testing.T) {
+	opt := New()
+	opt.Bool("flag", false, opt.Required())
+	_, err := opt.Parse([]string{"--flag"})
+	if err != nil {
+		t.Errorf("Required option called but error raised")
+	}
+
+	opt = New()
+	opt.Bool("flag", false, opt.Required())
+	_, err = opt.Parse([]string{})
+	if err == nil {
+		t.Errorf("Required option missing didn't raise error")
+	}
+	if err != nil && err.Error() != "Missing required option 'flag'!" {
+		t.Errorf("Error string didn't match expected value")
+	}
+
+	opt = New()
+	opt.Bool("flag", false, opt.Required("Missing --flag!"))
+	_, err = opt.Parse([]string{})
+	if err == nil {
+		t.Errorf("Required option missing didn't raise error")
+	}
+	if err != nil && err.Error() != "Missing --flag!" {
+		t.Errorf("Error string didn't match expected value")
+	}
+}
+
 // TODO
 func TestUnknownOptionModes(t *testing.T) {
 	// Default

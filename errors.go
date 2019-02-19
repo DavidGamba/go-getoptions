@@ -14,6 +14,10 @@ package getoptions
 // It has a string placeholder '%s' for the name of the option missing the argument.
 var ErrorMissingArgument = "Missing argument for option '%s'!"
 
+// ErrorMissingRequiredOption holds the text for missing required option error.
+// It has a string placeholder '%s' for the name of the missing option.
+var ErrorMissingRequiredOption = "Missing required option '%s'!"
+
 // ErrorArgumentIsNotKeyValue holds the text for Map type options where the argument is not of key=value type.
 // It has a string placeholder '%s' for the name of the option missing the argument.
 var ErrorArgumentIsNotKeyValue = "Argument error for option '%s': Should be of type 'key=value'!"

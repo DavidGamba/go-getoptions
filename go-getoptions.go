@@ -29,7 +29,7 @@ The following is a basic example:
 	var i int
 	var f float64
 	opt.BoolVar(&flag, "flag", true, opt.Alias("f", "alias-2")) // Aliases can be defined
-	opt.StringVar(&str, "string", "")
+	opt.StringVar(&str, "string", "", opt.Required())           // Mark option as required
 	opt.IntVar(&i, "i", 0)
 	opt.Float64Var(&f, "float", 0)
 
@@ -118,6 +118,8 @@ Allows the same option to be called multiple times to increment a counter.
 
 • Supports case sensitive options.
 For example, you can use `v` to define `verbose` and `V` to define `Version`.
+
+• Support indicating if an option is required and allows overriding default error message.
 
 Panic
 
@@ -311,6 +313,19 @@ func (gopt *GetOpt) Alias(alias ...string) ModifyFn {
 	gopt.failIfDefined(alias)
 	return func(opt *option) {
 		opt.setAlias(alias...)
+	}
+}
+
+// Required - Automatically return an error if the option is not called.
+// Optionally provide an error message if the option is not called.
+// A default error message will be used otherwise.
+func (gopt *GetOpt) Required(msg ...string) ModifyFn {
+	var errTxt string
+	if len(msg) >= 1 {
+		errTxt = msg[0]
+	}
+	return func(opt *option) {
+		opt.setRequired(errTxt)
 	}
 }
 
@@ -965,6 +980,21 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 				return remaining, nil
 			}
 			remaining = append(remaining, arg)
+		}
+	}
+	// After parsing all options, verify that all required options where called.
+	for _, option := range gopt.obj {
+		if option.isRequired {
+			if !option.called {
+				var err error
+				if option.isRequiredErr != "" {
+					err = fmt.Errorf(option.isRequiredErr)
+				} else {
+					err = fmt.Errorf(ErrorMissingRequiredOption, option.name)
+				}
+				Debug.Printf("return %v, %v", nil, err)
+				return nil, err
+			}
 		}
 	}
 	Debug.Printf("return %v, %v", remaining, nil)

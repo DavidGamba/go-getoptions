@@ -260,6 +260,20 @@ For example:
 +
 `opt.BoolVar(&flag, "flag", false, opt.Alias("alias", "alias-2"))`
 
+Required options::
+Mark an option as required.
+Return an error if the option is not called.
++
+In `go-getoptions`, pass `opt.Required()` to any option.
+For example:
++
+`opt.BoolVar(&flag, "flag", false, opt.Required())`
++
+Optionally, override the default error message with `opt.Required(msg)`.
+For example:
++
+`opt.BoolVar(&flag, "flag", false, opt.Required("Missing --flag!"))`
+
 Incremental option::
 Some options can be passed more than once to increment an internal counter.
 For example:
@@ -405,8 +419,8 @@ var flag bool
 var str string
 var i int
 var f float64
-opt.BoolVar(&flag, "flag", true, "f", "alias-2") // Aliases can be defined
-opt.StringVar(&str, "string", "")
+opt.BoolVar(&flag, "flag", true, "f", "alias-2")  // Aliases can be defined
+opt.StringVar(&str, "string", "", opt.Required()) // Mark option as required
 opt.IntVar(&i, "i", 0)
 opt.Float64Var(&f, "float", 0)
 
@@ -528,6 +542,8 @@ Allows the same option to be called multiple times to increment a counter.
 
 * Supports case sensitive options.
 For example, you can use `v` to define `verbose` and `V` to define `Version`.
+
+* Support indicating if an option is required and allows overriding default error message.
 
 [[roadmap]]
 == ROADMAP

@@ -36,6 +36,11 @@ type option struct {
 	isOptionalOpt  bool        // Indicates if an option has an optional argument
 	mapKeysToLower bool        // Indicates if the option of map type has it keys set ToLower
 	optType        optionType  // Option Type
+	minArgs        int         // minimum args when using multi
+	maxArgs        int         // maximum args when using multi
+	isRequired     bool        // Indicates if the option is required.
+	isRequiredErr  string      // Error message for the required option.
+
 	// Pointer receivers:
 	pBool    *bool             // receiver for bool pointer
 	pString  *string           // receiver for string pointer
@@ -44,8 +49,6 @@ type option struct {
 	pStringS *[]string         // receiver for string slice pointer
 	pIntS    *[]int            // receiver for int slice pointer
 	stringM  map[string]string // receiver for string map pointer
-	minArgs  int               // minimum args when using multi
-	maxArgs  int               // maximum args when using multi
 }
 
 func newOption(name string, aliases []string) *option {
@@ -57,6 +60,11 @@ func newOption(name string, aliases []string) *option {
 
 func (opt *option) setAlias(alias ...string) {
 	opt.aliases = append(opt.aliases, alias...)
+}
+
+func (opt *option) setRequired(msg string) {
+	opt.isRequired = true
+	opt.isRequiredErr = msg
 }
 
 func (opt *option) setHandler(h handlerType) {

@@ -25,7 +25,7 @@ func Example() {
 	var i int
 	var f float64
 	opt.BoolVar(&flag, "flag", false, opt.Alias("f", "alias2")) // Aliases can be defined
-	opt.StringVar(&str, "string", "")
+	opt.StringVar(&str, "string", "", opt.Required())           // Mark option as required
 	opt.IntVar(&i, "i", 456)
 	opt.Float64Var(&f, "float", 0)
 
