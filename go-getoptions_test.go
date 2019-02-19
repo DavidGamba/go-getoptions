@@ -1741,6 +1741,82 @@ func TestStringer(t *testing.T) {
 	// }`
 }
 
+func TestSynopsis(t *testing.T) {
+	opt := New()
+	opt.Bool("flag", false, opt.Alias("f"))
+	opt.String("string", "")
+	opt.String("str", "str", opt.Required())
+	opt.Int("int", 0, opt.Required())
+	opt.Float64("float", 0)
+	opt.StringSlice("strSlice", 1, 2, opt.ArgName("my_value"))
+	opt.StringSlice("list", 1, 1)
+	opt.StringSlice("req-list", 1, 2, opt.Required(), opt.ArgName("item"))
+	opt.IntSlice("intSlice", 1, 1, opt.Description("This option is using an int slice\nLets see how multiline works"))
+	opt.StringMap("strMap", 1, 2, opt.Description("Hello world"))
+	_, err := opt.Parse([]string{"--str", "a", "--int", "0", "--req-list", "a"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	synopsis := opt.HelpSynopsis()
+	optionList := opt.HelpOptionList()
+	expectedSynopsis := `SYNOPSIS:
+go-getoptions.test --int <int> <--req-list <item>...>... --str <string>
+                   [--flag|--f] [--float <float64>] [--intSlice <int>]...
+                   [--list <string>]... [--strMap <key=value>...]...
+                   [--strSlice <my_value>...]... [--string <string>]
+`
+	expectedOptionList := `REQUIRED PARAMETERS:
+    --int <int>                
+
+    --req-list <item>...       
+
+    --str <string>             
+
+OPTIONS:
+    --flag|--f                 (default: false)
+
+    --float <float64>          (default: 0.000000)
+
+    --intSlice <int>...        This option is using an int slice
+                               Lets see how multiline works (default: [])
+
+    --list <string>...         (default: [])
+
+    --strMap <key=value>...    Hello world (default: {})
+
+    --strSlice <my_value>...   (default: [])
+
+    --string <string>          (default: "")
+
+`
+
+	firstDiff := func(got, expected string) string {
+		same := ""
+		for i, gc := range got {
+			if gc != []rune(expected)[i] {
+				return fmt.Sprintf("Index: %d | diff: got '%c' - exp '%c'\n%s\n", i, gc, []rune(expected)[i], same)
+			} else {
+				same += string(gc)
+			}
+		}
+		if len(expected) > len(got) {
+			return fmt.Sprintf("Index: %d | diff: got '%s' - exp '%s'\n", len(got), got, expected)
+		}
+		return ""
+	}
+	if synopsis != expectedSynopsis {
+		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+		t.Fatalf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+	}
+	if optionList != expectedOptionList {
+		fmt.Printf("got:\n%s\nexpected:\n%s\n", optionList, expectedOptionList)
+		t.Fatalf("Unexpected option list:\n%s", firstDiff(optionList, expectedOptionList))
+	}
+	if opt.Help() != expectedSynopsis+"\n"+expectedOptionList {
+		t.Fatalf("Unexpected help:\n---\n%s\n---\n", opt.Help())
+	}
+}
+
 func TestAll(t *testing.T) {
 	var flag, nflag, nflag2 bool
 	var str string

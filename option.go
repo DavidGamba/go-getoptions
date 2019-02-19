@@ -33,15 +33,18 @@ type option struct {
 	aliases        []string
 	usedAlias      string      // Alias used when the option was called
 	value          interface{} // Value without type safety
-	called         bool        // Indicates if the option was passed on the command line.
+	called         bool        // Indicates if the option was passed on the command line
 	handler        handlerType // method used to handle the option
 	isOptionalOpt  bool        // Indicates if an option has an optional argument
 	mapKeysToLower bool        // Indicates if the option of map type has it keys set ToLower
 	optType        optionType  // Option Type
 	minArgs        int         // minimum args when using multi
 	maxArgs        int         // maximum args when using multi
-	isRequired     bool        // Indicates if the option is required.
-	isRequiredErr  string      // Error message for the required option.
+	isRequired     bool        // Indicates if the option is required
+	isRequiredErr  string      // Error message for the required option
+	defaultStr     string      // String representation of default value
+	description    string      // Optional description used for help
+	helpArgName    string      // Optional arg name used for help
 
 	// Pointer receivers:
 	pBool    *bool             // receiver for bool pointer

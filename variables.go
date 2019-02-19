@@ -38,3 +38,12 @@ var ErrorConvertToFloat64 = "Argument error for option '%s': Can't convert strin
 // MessageOnUnknown holds the text for the unknown option message.
 // It has a string placeholder '%s' for the name of the option missing the argument.
 var MessageOnUnknown = "Unknown option '%s'"
+
+// HelpSynopsisHeader holds the header text for the synopsis
+var HelpSynopsisHeader = "SYNOPSIS"
+
+// HelpRequiredOptionsHeader holds the header text for the required parameters
+var HelpRequiredOptionsHeader = "REQUIRED PARAMETERS"
+
+// HelpOptionsHeader holds the header text for the option list
+var HelpOptionsHeader = "OPTIONS"
