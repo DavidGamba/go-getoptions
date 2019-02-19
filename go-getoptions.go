@@ -337,6 +337,7 @@ func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
 	gopt.setOption(name, newOption(name, []string{name}))
 	gopt.option(name).setBoolPtr(&def)
 	gopt.option(name).setHandler(gopt.handleBool)
+	gopt.option(name).optType = boolType
 	for _, fn := range fns {
 		fn(gopt.option(name))
 	}
@@ -356,8 +357,7 @@ func (gopt *GetOpt) handleBool(name string, argument string, usedAlias string) e
 	Debug.Println("handleBool")
 	opt := gopt.option(name)
 	opt.setCalled()
-	opt.setBool(!opt.getBool())
-	return nil
+	return opt.save(name)
 }
 
 // NBool - define a *Negatable* `bool` option and its aliases.
@@ -370,6 +370,7 @@ func (gopt *GetOpt) NBool(name string, def bool, fns ...ModifyFn) *bool {
 	gopt.setOption(name, newOption(name, []string{name}))
 	gopt.option(name).setBoolPtr(&def)
 	gopt.option(name).setHandler(gopt.handleNBool)
+	gopt.option(name).optType = boolType
 	for _, fn := range fns {
 		fn(gopt.option(name))
 	}
@@ -400,7 +401,7 @@ func (gopt *GetOpt) handleNBool(name string, argument string, usedAlias string) 
 	opt := gopt.option(name)
 	opt.setCalled()
 	if !strings.HasPrefix(usedAlias, "no-") {
-		opt.setBool(!opt.getBool())
+		return opt.save(name)
 	}
 	return nil
 }
@@ -435,6 +436,7 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 	gopt.setOption(name, newOption(name, []string{name}))
 	gopt.option(name).setStringPtr(&def)
 	gopt.option(name).setHandler(gopt.handleSingleOption)
+	gopt.option(name).optType = stringType
 	for _, fn := range fns {
 		fn(gopt.option(name))
 	}
@@ -461,6 +463,7 @@ func (gopt *GetOpt) StringOptional(name string, def string, fns ...ModifyFn) *st
 	gopt.option(name).setStringPtr(&def)
 	gopt.option(name).setIsOptional()
 	gopt.option(name).setHandler(gopt.handleSingleOption)
+	gopt.option(name).optType = stringType
 	for _, fn := range fns {
 		fn(gopt.option(name))
 	}

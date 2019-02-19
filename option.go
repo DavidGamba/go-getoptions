@@ -19,7 +19,8 @@ import (
 type optionType int
 
 const (
-	stringType optionType = iota
+	boolType optionType = iota
+	stringType
 	intType
 	float64Type
 	stringRepeatType
@@ -169,6 +170,10 @@ func (opt *option) max() int {
 func (opt *option) save(name string, a ...string) error {
 	Debug.Printf("optType: %d\n", opt.optType)
 	switch opt.optType {
+	case stringType:
+		opt.value = a[0]
+		*opt.pString = a[0]
+		return nil
 	case intType:
 		i, err := strconv.Atoi(a[0])
 		if err != nil {
@@ -233,9 +238,8 @@ func (opt *option) save(name string, a ...string) error {
 		}
 		opt.setKeyValueToStringMap(keyValue[0], keyValue[1])
 		return nil
-	default: // strType
-		opt.value = a[0]
-		*opt.pString = a[0]
+	default: // boolType
+		opt.setBool(!opt.getBool())
 		return nil
 	}
 }
