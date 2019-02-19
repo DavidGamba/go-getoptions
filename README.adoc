@@ -419,8 +419,8 @@ var flag bool
 var str string
 var i int
 var f float64
-opt.BoolVar(&flag, "flag", true, "f", "alias-2")  // Aliases can be defined
-opt.StringVar(&str, "string", "", opt.Required()) // Mark option as required
+opt.BoolVar(&flag, "flag", true, opt.Alias("f", "alias-2")) // Aliases can be defined
+opt.StringVar(&str, "string", "", opt.Required())           // Mark option as required
 opt.IntVar(&i, "i", 0)
 opt.Float64Var(&f, "float", 0)
 
