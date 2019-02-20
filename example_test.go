@@ -11,6 +11,7 @@ package getoptions_test
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/DavidGamba/go-getoptions" // As getoptions
 )
@@ -26,6 +27,7 @@ func Example() {
 	opt := getoptions.New()
 
 	// Options definition
+	opt.Bool("help", false, opt.Alias("?"))
 	opt.BoolVar(&flag, "flag", false, opt.Alias("f", "alias2")) // Aliases can be defined
 	opt.StringVar(&str, "string", "", opt.Required())           // Mark option as required
 	opt.IntVar(&i, "i", 456)
@@ -43,8 +45,15 @@ func Example() {
 		"--", "--not-parsed", // -- indicates end of parsing
 	})
 
+	// Handle help before handling user errors
+	if opt.Called("help") {
+		// ...
+	}
+
+	// Handle user errors
 	if err != nil {
-		fmt.Printf("ERROR: %s\n", err)
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		os.Exit(1)
 	}
 
 	// The remaining slice holds non-options and anything after --

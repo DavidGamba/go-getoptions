@@ -20,6 +20,14 @@ The following is a basic example:
 
 	import "github.com/DavidGamba/go-getoptions" // As getoptions
 
+	func synopsis() {
+		synopsis := `script [--flag|-f] --string <string> [-i <int>] [--float <float>]
+
+	script [--help|-?]
+	`
+		fmt.Fprintln(os.Stderr, synopsis)
+	}
+
 	// Declare the variables you want your options to update
 	var flag bool
 	var str string
@@ -30,6 +38,7 @@ The following is a basic example:
 	opt := getoptions.New()
 
 	// Options definition
+	opt.Bool("help", false, opt.Alias("?"))
 	opt.BoolVar(&flag, "flag", true, opt.Alias("f", "alias-2")) // Aliases can be defined
 	opt.StringVar(&str, "string", "", opt.Required())           // Mark option as required
 	opt.IntVar(&i, "i", 0)
@@ -37,6 +46,18 @@ The following is a basic example:
 
 	// Parse cmdline arguments or any provided []string
 	remaining, err := opt.Parse(os.Args[1:])
+
+	// Handle help before handling user errors
+	if opt.Called("help") {
+		synopsis()
+		os.Exit(1)
+	}
+
+	// Handle user errors
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		os.Exit(1)
+	}
 
 	// Check if the option was called on the cli
 	if opt.Called("i") {
