@@ -407,7 +407,7 @@ If you are looking for options, link:http://asciidoctor.org/[asciidoctor] has a 
 
 . Define your command line specification:
 +
-[source,go,subs=attributes]
+[source,go]
 ----
 import "github.com/DavidGamba/go-getoptions" // As getoptions
 
