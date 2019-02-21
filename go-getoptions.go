@@ -81,9 +81,13 @@ Features
  - Bundling
  - SingleDash
 
-• Boolean, String, Int and Float64 type options.
+• `Called()` method indicates if the option was passed on the command line.
 
 • Multiple aliases for the same option. e.g. `help`, `man`.
+
+• `CalledAs()` method indicates what alias was used to call the option on the command line.
+
+• Boolean, String, Int and Float64 type options.
 
 • Negatable Boolean options.
 For example: `--verbose`, `--no-verbose` or `--noverbose`.
@@ -93,6 +97,7 @@ The same option can be used multiple times with different arguments.
 The list of arguments will be saved into an Array like structure inside the program.
 
 • Options with array arguments and multiple entries.
+For example: `color --rgb 10 20 30 --next-option`
 
 • When using integer array options with multiple arguments, positive integer ranges are allowed.
 For example: `1..3` to indicate `1 2 3`.
@@ -104,8 +109,6 @@ This allows the same option to be used multiple times with arguments of key valu
 For example: `rpmbuild --define name=myrpm --define version=123`.
 
 • Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
-
-• Supports subcommands (stop parsing arguments when non option is passed).
 
 • Supports command line options with '='.
 For example: You can use `--string=mystring` and `--string mystring`.
@@ -121,18 +124,6 @@ For example: You can call `--int 123` which yields `123` or `--int` which yields
 For example: An option called `build` can be called with `--b`, `--bu`, `--bui`, `--buil` and `--build` as long as there is no ambiguity.
 In the case of ambiguity, the shortest non ambiguous combination is required.
 
-• `Called()` method indicates if the option was passed on the command line.
-
-• Errors exposed as public variables to allow overriding them for internationalization.
-
-• Multiple ways of managing unknown options:
-  - Fail on unknown (default).
-  - Warn on unknown.
-  - Pass through, allows for subcommands and can be combined with Require Order.
-
-• Require order: Allows for subcommands. Stop parsing arguments when the first non-option is found.
-When mixed with Pass through, it also stops parsing arguments when the first unmatched option is found.
-
 • Support for the lonesome dash "-".
 To indicate, for example, when to read input from STDIO.
 
@@ -143,6 +134,18 @@ Allows the same option to be called multiple times to increment a counter.
 For example, you can use `v` to define `verbose` and `V` to define `Version`.
 
 • Support indicating if an option is required and allows overriding default error message.
+
+• Errors exposed as public variables to allow overriding them for internationalization.
+
+• Supports subcommands (stop parsing arguments when non option is passed).
+
+• Multiple ways of managing unknown options:
+  - Fail on unknown (default).
+  - Warn on unknown.
+  - Pass through, allows for subcommands and can be combined with Require Order.
+
+• Require order: Allows for subcommands. Stop parsing arguments when the first non-option is found.
+When mixed with Pass through, it also stops parsing arguments when the first unmatched option is found.
 
 Panic
 
@@ -220,6 +223,19 @@ func (gopt *GetOpt) Called(name string) bool {
 		return v.called
 	}
 	return false
+}
+
+// CalledAs - Returns the alias used to call the option.
+// Empty string otherwise.
+//
+// If the `name` is an option that wasn't declared it will return an empty string.
+//
+// For options that can be called multiple times, the last alias used is returned.
+func (gopt *GetOpt) CalledAs(name string) string {
+	if v, ok := gopt.obj[name]; ok {
+		return v.usedAlias
+	}
+	return ""
 }
 
 // Option - Returns the value of the given option.
@@ -380,6 +396,7 @@ func (gopt *GetOpt) handleBool(name string, argument string, usedAlias string) e
 	Debug.Println("handleBool")
 	opt := gopt.option(name)
 	opt.setCalled()
+	opt.usedAlias = usedAlias
 	return opt.save(name)
 }
 
@@ -423,6 +440,7 @@ func (gopt *GetOpt) handleNBool(name string, argument string, usedAlias string) 
 	Debug.Println("handleNBool")
 	opt := gopt.option(name)
 	opt.setCalled()
+	opt.usedAlias = usedAlias
 	if !strings.HasPrefix(usedAlias, "no-") {
 		return opt.save(name)
 	}
@@ -432,6 +450,7 @@ func (gopt *GetOpt) handleNBool(name string, argument string, usedAlias string) 
 func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias string) error {
 	opt := gopt.option(name)
 	opt.setCalled()
+	opt.usedAlias = usedAlias
 	if argument != "" {
 		return opt.save(name, argument)
 	}
@@ -738,6 +757,7 @@ func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAli
 	Debug.Printf("handleStringSlice\n")
 	opt := gopt.option(name)
 	opt.setCalled()
+	opt.usedAlias = usedAlias
 	opt.mapKeysToLower = gopt.mapKeysToLower
 	argCounter := 0
 
@@ -828,6 +848,7 @@ func (gopt *GetOpt) handleIncrement(name string, argument string, usedAlias stri
 	Debug.Println("handleIncrement")
 	opt := gopt.option(name)
 	opt.setCalled()
+	opt.usedAlias = usedAlias
 	opt.setInt(opt.getInt() + 1)
 	return nil
 }
@@ -854,7 +875,7 @@ func (gopt *GetOpt) Stringer() string {
 }
 
 // TODO: Add case insensitive matching.
-func (gopt *GetOpt) getOptionFromAliases(alias string) (optName string, found bool) {
+func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias string, found bool) {
 	found = false
 	for name, option := range gopt.obj {
 		for _, v := range option.aliases {
@@ -862,6 +883,7 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName string, found bo
 			if v == alias {
 				found = true
 				optName = name
+				usedAlias = v
 				break
 			}
 		}
@@ -875,6 +897,7 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName string, found bo
 				if strings.HasPrefix(v, alias) {
 					Debug.Printf("found: %s, %s\n", v, alias)
 					matches = append(matches, name)
+					usedAlias = v
 					continue
 				}
 			}
@@ -885,8 +908,8 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName string, found bo
 			optName = matches[0]
 		}
 	}
-	Debug.Printf("return: %s, %v\n", optName, found)
-	return optName, found
+	Debug.Printf("getOptionFromAliases return: %s, %s, %v\n", optName, usedAlias, found)
+	return optName, usedAlias, found
 }
 
 var isOptionRegex = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
@@ -965,12 +988,12 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 			Debug.Printf("Parse continue\n")
 			for _, optElement := range optList {
 				Debug.Printf("Parse optElement: %s\n", optElement)
-				if optName, ok := gopt.getOptionFromAliases(optElement); ok {
+				if optName, usedAlias, ok := gopt.getOptionFromAliases(optElement); ok {
 					Debug.Printf("Parse found opt_list\n")
 					opt := gopt.option(optName)
 					handler := opt.handler
 					Debug.Printf("handler found: name %s, argument %s, index %d, list %s\n", optName, argument, gopt.args.index(), optList[0])
-					err := handler(optName, argument, optElement)
+					err := handler(optName, argument, usedAlias)
 					if err != nil {
 						Debug.Printf("handler return: value %v, return %v, %v", opt.value, nil, err)
 						return nil, err

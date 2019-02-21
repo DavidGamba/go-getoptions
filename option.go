@@ -31,6 +31,7 @@ const (
 type option struct {
 	name           string
 	aliases        []string
+	usedAlias      string      // Alias used when the option was called
 	value          interface{} // Value without type safety
 	called         bool        // Indicates if the option was passed on the command line.
 	handler        handlerType // method used to handle the option

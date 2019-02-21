@@ -538,6 +538,67 @@ func TestCalled(t *testing.T) {
 		t.Errorf("unknown didn't have expected value %v", false)
 	}
 }
+func TestCalledAs(t *testing.T) {
+	opt := New()
+	opt.Bool("flag", false, opt.Alias("f", "hello"))
+	_, err := opt.Parse([]string{"--flag"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.CalledAs("flag") != "flag" {
+		t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("flag"), "flag")
+	}
+
+	opt = New()
+	opt.Bool("flag", false, opt.Alias("f", "hello"))
+	_, err = opt.Parse([]string{"--hello"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.CalledAs("flag") != "hello" {
+		t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("flag"), "hello")
+	}
+
+	opt = New()
+	opt.Bool("flag", false, opt.Alias("f", "hello"))
+	_, err = opt.Parse([]string{"--h"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.CalledAs("flag") != "hello" {
+		t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("flag"), "hello")
+	}
+
+	opt = New()
+	opt.Bool("flag", false, opt.Alias("f", "hello"))
+	_, err = opt.Parse([]string{})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.CalledAs("flag") != "" {
+		t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("flag"), "")
+	}
+
+	opt = New()
+	opt.Bool("flag", false, opt.Alias("f", "hello"))
+	_, err = opt.Parse([]string{})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.CalledAs("x") != "" {
+		t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("x"), "")
+	}
+
+	opt = New()
+	opt.StringSlice("list", 1, 1, opt.Alias("array", "slice"))
+	_, err = opt.Parse([]string{"--list=list", "--array=array", "--slice=slice"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if opt.CalledAs("list") != "slice" {
+		t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("list"), "slice")
+	}
+}
 
 func TestEndOfParsing(t *testing.T) {
 	opt := New()
