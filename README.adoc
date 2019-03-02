@@ -36,18 +36,36 @@ import (
 var logger = log.New(os.Stderr, "DEBUG: ", log.LstdFlags)
 
 func main() {
+	// Declare the variables you want your options to update
 	var debug bool
 	var greetCount int
+
+	// Declare the GetOptions object
 	opt := getoptions.New()
-	opt.Bool("help", false, opt.Alias("h", "?"))
+
+	// Options definition
+	opt.Bool("help", false, opt.Alias("h", "?")) // Aliases can be defined
 	opt.BoolVar(&debug, "debug", false)
-	opt.IntVar(&greetCount, "greet", 0, opt.Required(),
-		opt.Description("Number of times to greet."), opt.ArgName("number"))
+	opt.IntVar(&greetCount, "greet", 0,
+		opt.Required(), // Mark option as required
+		opt.Description("Number of times to greet."), // Set the automated help description
+		opt.ArgName("number"),                        // Change the help synopsis arg from <int> to <number>
+	)
+	greetings := opt.StringMap("list", 1, 99,
+		opt.Description("Greeting list by language."),
+		opt.ArgName("lang=msg"), // Change the help synopsis arg from <key=value> to <lang=msg>
+	)
+
+	// Parse cmdline arguments or any provided []string
 	remaining, err := opt.Parse(os.Args[1:])
+
+	// Handle help before handling user errors
 	if opt.Called("help") {
 		fmt.Fprintf(os.Stderr, opt.Help())
 		os.Exit(1)
 	}
+
+	// Handle user errors
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
 		fmt.Fprintf(os.Stderr, opt.HelpSynopsis())
@@ -61,6 +79,12 @@ func main() {
 	for i := 0; i < greetCount; i++ {
 		fmt.Println("Hello World, from go-getoptions!")
 	}
+	if len(greetings) > 0 {
+		fmt.Printf("Greeting List:\n")
+		for k, v := range greetings {
+			fmt.Printf("\t%s=%s\n", k, v)
+		}
+	}
 }
 
 ----
@@ -70,7 +94,7 @@ func main() {
 ----
 $ ./myscript --help
 SYNOPSIS:
-myscript --greet <number> [--debug] [--help|-h|-?]
+myscript --greet <number> [--debug] [--help|-h|-?] [--list <lang=msg>...]...
 
 REQUIRED PARAMETERS:
     --greet <number>             Number of times to greet. 
@@ -80,6 +104,7 @@ OPTIONS:
 
     --help|-h|-?                 (default: false)
 
+    --list <lang=msg>...         Greeting list by language. (default: {})
 
 ----
 +
@@ -88,7 +113,7 @@ $ ./myscript
 ERROR: Missing required option 'greet'!
 
 SYNOPSIS:
-myscript --greet <number> [--debug] [--help|-h|-?]
+myscript --greet <number> [--debug] [--help|-h|-?] [--list <lang=msg>...]...
 ----
 +
 ----
@@ -96,7 +121,7 @@ $ ./myscript -g
 ERROR: Missing argument for option 'greet'!
 
 SYNOPSIS:
-myscript --greet <number> [--debug] [--help|-h|-?]
+myscript --greet <number> [--debug] [--help|-h|-?] [--list <lang=msg>...]...
 ----
 +
 ----
@@ -110,6 +135,13 @@ Hello World, from go-getoptions!
 $ ./myscript --debug -g 1 other stuff
 DEBUG: 2019/03/02 10:27:48 Remaining: [other stuff]
 Hello World, from go-getoptions!
+----
++
+----
+./myscript -g 0 -l en='Hello World' es='Hola Mundo'
+Greeting List:
+        en=Hello World
+        es=Hola Mundo
 ----
 
 == Features

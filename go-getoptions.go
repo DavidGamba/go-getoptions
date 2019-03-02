@@ -18,55 +18,69 @@ Usage
 
 The following is a basic example:
 
-	import "github.com/DavidGamba/go-getoptions" // As getoptions
+	package main
 
-	func synopsis() {
-		synopsis := `script [--flag|-f] --string <string> [-i <int>] [--float <float>]
+	import (
+		"fmt"
+		"io/ioutil"
+		"log"
+		"os"
 
-	script [--help|-?]
-	`
-		fmt.Fprintln(os.Stderr, synopsis)
-	}
+		"github.com/DavidGamba/go-getoptions"
+	)
 
-	// Declare the variables you want your options to update
-	var flag bool
-	var str string
-	var i int
-	var f float64
+	var logger = log.New(os.Stderr, "DEBUG: ", log.LstdFlags)
 
-	// Declare the GetOptions object
-	opt := getoptions.New()
+	func main() {
+		// Declare the variables you want your options to update
+		var debug bool
+		var greetCount int
 
-	// Options definition
-	opt.Bool("help", false, opt.Alias("?"))
-	opt.BoolVar(&flag, "flag", true, opt.Alias("f", "alias-2")) // Aliases can be defined
-	opt.StringVar(&str, "string", "", opt.Required())           // Mark option as required
-	opt.IntVar(&i, "i", 0)
-	opt.Float64Var(&f, "float", 0)
+		// Declare the GetOptions object
+		opt := getoptions.New()
 
-	// Parse cmdline arguments or any provided []string
-	remaining, err := opt.Parse(os.Args[1:])
+		// Options definition
+		opt.Bool("help", false, opt.Alias("h", "?")) // Aliases can be defined
+		opt.BoolVar(&debug, "debug", false)
+		opt.IntVar(&greetCount, "greet", 0,
+			opt.Required(), // Mark option as required
+			opt.Description("Number of times to greet."), // Set the automated help description
+			opt.ArgName("number"),                        // Change the help synopsis arg from <int> to <number>
+		)
+		greetings := opt.StringMap("list", 1, 99,
+			opt.Description("Greeting list by language."),
+			opt.ArgName("lang=msg"), // Change the help synopsis arg from <key=value> to <lang=msg>
+		)
 
-	// Handle help before handling user errors
-	if opt.Called("help") {
-		synopsis()
-		os.Exit(1)
-	}
+		// Parse cmdline arguments or any provided []string
+		remaining, err := opt.Parse(os.Args[1:])
 
-	// Handle user errors
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
-		os.Exit(1)
-	}
+		// Handle help before handling user errors
+		if opt.Called("help") {
+			fmt.Fprintf(os.Stderr, opt.Help())
+			os.Exit(1)
+		}
 
-	// Check if the option was called on the cli
-	if opt.Called("i") {
-	// ... do something with i
-	}
+		// Handle user errors
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
+			fmt.Fprintf(os.Stderr, opt.HelpSynopsis())
+			os.Exit(1)
+		}
+		if !debug {
+			logger.SetOutput(ioutil.Discard)
+		}
+		logger.Printf("Remaining: %v\n", remaining)
 
-	// Or check that the option value is different from its default
-	if i != 0 {
-	// ... do something with i
+		for i := 0; i < greetCount; i++ {
+			fmt.Println("Hello World, from go-getoptions!")
+		}
+		if len(greetings) > 0 {
+			fmt.Printf("Greeting List:\n")
+			for k, v := range greetings {
+				fmt.Printf("\t%s=%s\n", k, v)
+			}
+		}
 	}
 
 Features
@@ -86,6 +100,8 @@ Features
 • Multiple aliases for the same option. e.g. `help`, `man`.
 
 • `CalledAs()` method indicates what alias was used to call the option on the command line.
+
+• Simple synopsis and option list automated help.
 
 • Boolean, String, Int and Float64 type options.
 
