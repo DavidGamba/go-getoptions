@@ -675,12 +675,25 @@ func TestGetOptAliases(t *testing.T) {
 	opt = New()
 	opt.Bool("fleg", false)
 	opt.Bool("flag", false, opt.Alias("f"))
-	_, err = opt.Parse([]string{"f"})
+	_, err = opt.Parse([]string{"--f"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	if opt.Called("flag") {
+	if opt.Called("fleg") {
+		t.Errorf("fleg should not have been called")
+	}
+	if !opt.Called("flag") {
 		t.Errorf("flag not called")
+	}
+
+	opt = New()
+	opt.Int("flag", 0, opt.Alias("f", "h"))
+	_, err = opt.Parse([]string{"--h"})
+	if err == nil {
+		t.Errorf("Int didn't raise errors")
+	}
+	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "h") {
+		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 }
 

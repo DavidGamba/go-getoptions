@@ -616,14 +616,14 @@ func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias s
 		if opt.isOptional() {
 			return nil
 		}
-		return fmt.Errorf(ErrorMissingArgument, name)
+		return fmt.Errorf(ErrorMissingArgument, usedAlias)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 		if opt.isOptional() {
 			return nil
 		}
-		return fmt.Errorf(ErrorArgumentWithDash, name)
+		return fmt.Errorf(ErrorArgumentWithDash, usedAlias)
 	}
 	gopt.args.next()
 	return opt.save(name, gopt.args.value())
@@ -927,6 +927,10 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 	return s
 }
 
+// NOTE: Options that can be called multiple times and thus modify the used
+// alias, don't use usedAlias for their errors because the error is used to
+// check the min, max args.
+// TODO: Do a regex instead of matching the full error to enable usedAlias in errors.
 func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAlias string) error {
 	Debug.Printf("handleStringSlice\n")
 	opt := gopt.option(name)
