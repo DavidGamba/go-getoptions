@@ -1760,7 +1760,7 @@ func TestSynopsis(t *testing.T) {
 	opt.String("string", "")
 	opt.String("str", "str", opt.Required())
 	opt.Int("int", 0, opt.Required())
-	opt.Float64("float", 0)
+	opt.Float64("float", 0, opt.Alias("fl"))
 	opt.StringSlice("strSlice", 1, 2, opt.ArgName("my_value"))
 	opt.StringSlice("list", 1, 1)
 	opt.StringSlice("req-list", 1, 2, opt.Required(), opt.ArgName("item"))
@@ -1774,32 +1774,32 @@ func TestSynopsis(t *testing.T) {
 	optionList := opt.HelpOptionList()
 	expectedSynopsis := `SYNOPSIS:
 go-getoptions.test --int <int> <--req-list <item>...>... --str <string>
-                   [--flag|--f] [--float <float64>] [--intSlice <int>]...
+                   [--flag|-f] [--float|--fl <float64>] [--intSlice <int>]...
                    [--list <string>]... [--strMap <key=value>...]...
                    [--strSlice <my_value>...]... [--string <string>]
 `
 	expectedOptionList := `REQUIRED PARAMETERS:
-    --int <int>                
+    --int <int>                  
 
-    --req-list <item>...       
+    --req-list <item>...         
 
-    --str <string>             
+    --str <string>               
 
 OPTIONS:
-    --flag|--f                 (default: false)
+    --flag|-f                    (default: false)
 
-    --float <float64>          (default: 0.000000)
+    --float|--fl <float64>       (default: 0.000000)
 
-    --intSlice <int>...        This option is using an int slice
-                               Lets see how multiline works (default: [])
+    --intSlice <int>...          This option is using an int slice
+                                 Lets see how multiline works (default: [])
 
-    --list <string>...         (default: [])
+    --list <string>...           (default: [])
 
-    --strMap <key=value>...    Hello world (default: {})
+    --strMap <key=value>...      Hello world (default: {})
 
-    --strSlice <my_value>...   (default: [])
+    --strSlice <my_value>...     (default: [])
 
-    --string <string>          (default: "")
+    --string <string>            (default: "")
 
 `
 

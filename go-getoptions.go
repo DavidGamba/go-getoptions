@@ -414,7 +414,11 @@ func (gopt *GetOpt) HelpSynopsis() string {
 		txt := ""
 		aliases := []string{}
 		for _, alias := range gopt.option(name).aliases {
-			aliases = append(aliases, fmt.Sprintf("--%s", alias))
+			if len(alias) > 1 {
+				aliases = append(aliases, fmt.Sprintf("--%s", alias))
+			} else {
+				aliases = append(aliases, fmt.Sprintf("-%s", alias))
+			}
 		}
 		aliasStr := strings.Join(aliases, "|")
 		open := ""
@@ -466,8 +470,11 @@ func (gopt *GetOpt) HelpOptionList() string {
 	for _, option := range gopt.obj {
 		l := len(option.aliases)
 		for _, alias := range option.aliases {
-			// --alias
-			l += len(alias) + 2
+			// --alias || -a
+			l += len(alias) + 1
+			if len(alias) > 1 {
+				l++
+			}
 		}
 		if l > aliasListLength {
 			aliasListLength = l
@@ -485,7 +492,11 @@ func (gopt *GetOpt) HelpOptionList() string {
 		for _, name := range nameList {
 			aliases := []string{}
 			for _, alias := range gopt.option(name).aliases {
-				aliases = append(aliases, fmt.Sprintf("--%s", alias))
+				if len(alias) > 1 {
+					aliases = append(aliases, fmt.Sprintf("--%s", alias))
+				} else {
+					aliases = append(aliases, fmt.Sprintf("-%s", alias))
+				}
 			}
 			aliasStr := strings.Join(aliases, "|")
 			factor := aliasListLength + 16
