@@ -42,6 +42,9 @@ var MessageOnUnknown = "Unknown option '%s'"
 // HelpSynopsisHeader holds the header text for the synopsis
 var HelpSynopsisHeader = "SYNOPSIS"
 
+// HelpCommandsHeader holds the header text for the command list
+var HelpCommandsHeader = "COMMANDS"
+
 // HelpRequiredOptionsHeader holds the header text for the required parameters
 var HelpRequiredOptionsHeader = "REQUIRED PARAMETERS"
 

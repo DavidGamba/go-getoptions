@@ -13,17 +13,6 @@ import (
 
 var logger = log.New(ioutil.Discard, "", log.LstdFlags)
 
-func synopsis() {
-	synopsis := `git [--help] <command> <args>
-
-Commands:
-
-	log        Show commit logs
-	show       Show various types of objects
-`
-	fmt.Fprintln(os.Stderr, synopsis)
-}
-
 var commandList = []string{
 	"log",
 	"show",
@@ -44,6 +33,8 @@ func main() {
 	opt.Bool("debug", false)
 	opt.SetRequireOrder()
 	opt.SetUnknownMode("pass")
+	opt.Command("log", "Log stuff")
+	opt.Command("show", "Show stuff")
 	remaining, err := opt.Parse(os.Args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
@@ -55,7 +46,7 @@ func main() {
 	log.Println(remaining)
 
 	if len(remaining) == 0 {
-		synopsis()
+		fmt.Fprintf(os.Stderr, opt.Help())
 		os.Exit(1)
 	}
 	command := remaining[0]
@@ -67,7 +58,7 @@ func main() {
 		command = remaining[0]
 		remaining[0] = "--help"
 	} else if opt.Called("help") || command == "help" {
-		synopsis()
+		fmt.Fprintf(os.Stderr, opt.Help())
 		os.Exit(1)
 	}
 

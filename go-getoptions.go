@@ -33,6 +33,12 @@ type GetOpt struct {
 	Writer         io.Writer // io.Writer locations to write warnings to. Defaults to os.Stderr.
 	obj            map[string]*option
 	args           *argList
+	commands       map[string]*command
+}
+
+type command struct {
+	name        string
+	description string // Optional description used for help
 }
 
 // ModifyFn - Function signature for functions that modify an option.
@@ -48,8 +54,9 @@ type handlerType func(optName string, argument string, usedAlias string) error
 //   opt := getoptions.New()
 func New() *GetOpt {
 	gopt := &GetOpt{
-		obj:    make(map[string]*option),
-		Writer: os.Stderr,
+		obj:      make(map[string]*option),
+		commands: make(map[string]*command),
+		Writer:   os.Stderr,
 	}
 	return gopt
 }
@@ -243,7 +250,16 @@ func (gopt *GetOpt) ArgName(name string) ModifyFn {
 
 // Help - Default help string that is composed of the HelpSynopsis and HelpOptionList.
 func (gopt *GetOpt) Help() string {
-	return gopt.HelpSynopsis() + "\n" + gopt.HelpOptionList()
+	help := ""
+	help += gopt.HelpSynopsis()
+	help += "\n"
+	commands := gopt.HelpCommandList()
+	if commands != "" {
+		help += commands
+		help += "\n"
+	}
+	help += gopt.HelpOptionList()
+	return help
 }
 
 // HelpSynopsis - Return a default synopsis.
@@ -308,8 +324,35 @@ func (gopt *GetOpt) HelpSynopsis() string {
 			line += fmt.Sprintf(" %s", syn)
 		}
 	}
+	if len(gopt.commands) > 0 {
+		syn := "<command> [<args>]"
+		if len(line)+len(syn) > 80 {
+			out += line + "\n"
+			line = fmt.Sprintf("%s %s", strings.Repeat(" ", len(scriptName)), syn)
+		} else {
+			line += fmt.Sprintf(" %s", syn)
+		}
+	}
 	out += line
 	return fmt.Sprintf("%s:\n%s\n", HelpSynopsisHeader, out)
+}
+
+// HelpCommandList - Return a default command list.
+func (gopt *GetOpt) HelpCommandList() string {
+	if len(gopt.commands) <= 0 {
+		return ""
+	}
+	names := []string{}
+	for _, command := range gopt.commands {
+		names = append(names, command.name)
+	}
+	sort.Strings(names)
+	factor := longestStringLen(names)
+	out := ""
+	for _, command := range names {
+		out += fmt.Sprintf("    %s    %s\n", pad(command, factor), gopt.commands[command].description)
+	}
+	return fmt.Sprintf("%s:\n%s", HelpCommandsHeader, out)
 }
 
 // HelpOptionList - Return a formatted list of options and their descriptions.
@@ -382,6 +425,10 @@ func (gopt *GetOpt) HelpOptionList() string {
 		out += fmt.Sprintf("%s:\n%s", HelpOptionsHeader, helpString(optionNames))
 	}
 	return out
+}
+
+func (gopt *GetOpt) Command(name string, description string) {
+	gopt.commands[name] = &command{name: name, description: description}
 }
 
 // Bool - define a `bool` option and its aliases.

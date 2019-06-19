@@ -1766,17 +1766,25 @@ func TestSynopsis(t *testing.T) {
 	opt.StringSlice("req-list", 1, 2, opt.Required(), opt.ArgName("item"))
 	opt.IntSlice("intSlice", 1, 1, opt.Description("This option is using an int slice\nLets see how multiline works"))
 	opt.StringMap("strMap", 1, 2, opt.Description("Hello world"))
+	opt.Command("log", "Log stuff")
+	opt.Command("show", "Show stuff")
 	_, err := opt.Parse([]string{"--str", "a", "--int", "0", "--req-list", "a"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	synopsis := opt.HelpSynopsis()
+	commandList := opt.HelpCommandList()
 	optionList := opt.HelpOptionList()
 	expectedSynopsis := `SYNOPSIS:
 go-getoptions.test --int <int> <--req-list <item>...>... --str <string>
                    [--flag|-f] [--float|--fl <float64>] [--intSlice <int>]...
                    [--list <string>]... [--strMap <key=value>...]...
                    [--strSlice <my_value>...]... [--string <string>]
+                   <command> [<args>]
+`
+	expectedCommandList := `COMMANDS:
+    log     Log stuff
+    show    Show stuff
 `
 	expectedOptionList := `REQUIRED PARAMETERS:
     --int <int>                  
@@ -1806,6 +1814,9 @@ OPTIONS:
 	firstDiff := func(got, expected string) string {
 		same := ""
 		for i, gc := range got {
+			if len([]rune(expected)) <= i {
+				return fmt.Sprintf("Index: %d | diff: got '%s' - exp '%s'\n", len(expected), got, expected)
+			}
 			if gc != []rune(expected)[i] {
 				return fmt.Sprintf("Index: %d | diff: got '%c' - exp '%c'\n%s\n", i, gc, []rune(expected)[i], same)
 			} else {
@@ -1821,12 +1832,52 @@ OPTIONS:
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
 		t.Fatalf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
 	}
+	if commandList != expectedCommandList {
+		fmt.Printf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
+		t.Fatalf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
+	}
 	if optionList != expectedOptionList {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", optionList, expectedOptionList)
 		t.Fatalf("Unexpected option list:\n%s", firstDiff(optionList, expectedOptionList))
 	}
-	if opt.Help() != expectedSynopsis+"\n"+expectedOptionList {
+	if opt.Help() != expectedSynopsis+"\n"+expectedCommandList+"\n"+expectedOptionList {
 		t.Fatalf("Unexpected help:\n---\n%s\n---\n", opt.Help())
+	}
+
+	opt = New()
+	opt.Command("log", "Log stuff")
+	opt.Command("show", "Show stuff")
+	_, err = opt.Parse([]string{})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	synopsis = opt.HelpSynopsis()
+	expectedSynopsis = `SYNOPSIS:
+go-getoptions.test <command> [<args>]
+`
+	if synopsis != expectedSynopsis {
+		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+		t.Fatalf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+	}
+
+	opt = New()
+	_, err = opt.Parse([]string{})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	synopsis = opt.HelpSynopsis()
+	commandList = opt.HelpCommandList()
+	expectedSynopsis = `SYNOPSIS:
+go-getoptions.test
+`
+	expectedCommandList = ""
+	if synopsis != expectedSynopsis {
+		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+		t.Fatalf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+	}
+	if commandList != expectedCommandList {
+		fmt.Printf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
+		t.Fatalf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
 	}
 }
 

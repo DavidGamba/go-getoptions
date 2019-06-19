@@ -56,6 +56,17 @@ func isOption(s string, mode string) (options []string, argument string) {
 	return []string{}, ""
 }
 
+// longestStringLen - Given a slice of strings it returns the length of the longest string in the slice
+func longestStringLen(s []string) int {
+	i := 0
+	for _, e := range s {
+		if len(e) > i {
+			i = len(e)
+		}
+	}
+	return i
+}
+
 // pad - Given a string and a padding factor it will return the string padded with spaces.
 func pad(s string, factor int) string {
 	return fmt.Sprintf("%-"+strconv.Itoa(factor)+"s", s)
