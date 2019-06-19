@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 
 	"github.com/DavidGamba/go-getoptions"
 )
@@ -25,7 +24,6 @@ func Log(args []string) {
 	opt := getoptions.New()
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false)
-	opt.SetUnknownMode("pass")
 	remaining, err := opt.Parse(args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
@@ -39,11 +37,5 @@ func Log(args []string) {
 		logger.SetOutput(os.Stderr)
 	}
 	log.Println(remaining)
-	cmd := exec.Command("git", append([]string{"log"}, remaining...)...)
-	stdoutStderr, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", stdoutStderr)
-		os.Exit(1)
-	}
-	fmt.Printf("%s\n", stdoutStderr)
+	fmt.Printf("log output...\n")
 }
