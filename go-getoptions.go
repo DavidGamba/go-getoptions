@@ -180,7 +180,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -1116,47 +1115,6 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias strin
 	}
 	Debug.Printf("getOptionFromAliases return: %s, %s, %v\n", optName, usedAlias, found)
 	return optName, usedAlias, found
-}
-
-var isOptionRegex = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
-var isOptionRegexEquals = regexp.MustCompile(`^=`)
-
-/*
-func isOption - Check if the given string is an option (starts with - or --).
-Return the option(s) without the starting dash and an argument if the string contained one.
-The behaviour changes depending on the mode: normal, bundling or singleDash.
-Also, handle the single dash '-' and double dash '--' especial options.
-*/
-func isOption(s string, mode string) (options []string, argument string) {
-	// Handle especial cases
-	if s == "--" {
-		return []string{"--"}, ""
-	} else if s == "-" {
-		return []string{"-"}, ""
-	}
-
-	match := isOptionRegex.FindStringSubmatch(s)
-	if len(match) > 0 {
-		// check long option
-		if match[1] == "--" {
-			options = []string{match[2]}
-			argument = isOptionRegexEquals.ReplaceAllString(match[3], "")
-			return
-		}
-		switch mode {
-		case "bundling":
-			options = strings.Split(match[2], "")
-			argument = isOptionRegexEquals.ReplaceAllString(match[3], "")
-		case "singleDash":
-			options = []string{strings.Split(match[2], "")[0]}
-			argument = strings.Join(strings.Split(match[2], "")[1:], "") + match[3]
-		default:
-			options = []string{match[2]}
-			argument = isOptionRegexEquals.ReplaceAllString(match[3], "")
-		}
-		return
-	}
-	return []string{}, ""
 }
 
 // Parse - Call the parse method when done describing.
