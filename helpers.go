@@ -9,7 +9,9 @@
 package getoptions
 
 import (
+	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -52,4 +54,9 @@ func isOption(s string, mode string) (options []string, argument string) {
 		return
 	}
 	return []string{}, ""
+}
+
+// pad - Given a string and a padding factor it will return the string padded with spaces.
+func pad(s string, factor int) string {
+	return fmt.Sprintf("%-"+strconv.Itoa(factor)+"s", s)
 }

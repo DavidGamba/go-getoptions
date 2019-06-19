@@ -349,11 +349,10 @@ func (gopt *GetOpt) HelpOptionList() string {
 				}
 			}
 			aliasStr := strings.Join(aliases, "|")
+			// TODO: Calculate argName length.
+			// 16: Longest default argName is <key=value> plus space plus 4 spaces.
 			factor := aliasListLength + 16
 			padding := strings.Repeat(" ", factor)
-			pad := func(s string, factor int) string {
-				return fmt.Sprintf("%-"+strconv.Itoa(factor)+"s", s)
-			}
 			argName := gopt.option(name).helpArgName
 			switch gopt.option(name).optType {
 			case boolType:
