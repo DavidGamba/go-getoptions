@@ -1,6 +1,5 @@
 = go-getoptions
 David Gamba, https://github.com/DavidGamba
-:version: 0.11.0
 :idprefix:
 :name: go-getoptions
 :toc: macro

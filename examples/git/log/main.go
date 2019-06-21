@@ -9,7 +9,7 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var logger = log.New(ioutil.Discard, "", log.LstdFlags)
+var logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
 
 func synopsis() {
 	synopsis := `NAME
@@ -36,6 +36,6 @@ func Log(args []string) {
 	if opt.Called("debug") {
 		logger.SetOutput(os.Stderr)
 	}
-	log.Println(remaining)
+	logger.Println(remaining)
 	fmt.Printf("log output...\n")
 }
