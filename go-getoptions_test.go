@@ -1776,11 +1776,11 @@ func TestSynopsis(t *testing.T) {
 	commandList := opt.HelpCommandList()
 	optionList := opt.HelpOptionList()
 	expectedSynopsis := `SYNOPSIS:
-go-getoptions.test --int <int> <--req-list <item>...>... --str <string>
-                   [--flag|-f] [--float|--fl <float64>] [--intSlice <int>]...
-                   [--list <string>]... [--strMap <key=value>...]...
-                   [--strSlice <my_value>...]... [--string <string>]
-                   <command> [<args>]
+    go-getoptions.test --int <int> <--req-list <item>...>... --str <string>
+                       [--flag|-f] [--float|--fl <float64>] [--intSlice <int>]...
+                       [--list <string>]... [--strMap <key=value>...]...
+                       [--strSlice <my_value>...]... [--string <string>]
+                       <command> [<args>]
 `
 	expectedCommandList := `COMMANDS:
     log     Log stuff
@@ -1853,7 +1853,7 @@ OPTIONS:
 	}
 	synopsis = opt.HelpSynopsis()
 	expectedSynopsis = `SYNOPSIS:
-go-getoptions.test <command> [<args>]
+    go-getoptions.test <command> [<args>]
 `
 	if synopsis != expectedSynopsis {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
@@ -1868,7 +1868,7 @@ go-getoptions.test <command> [<args>]
 	synopsis = opt.HelpSynopsis()
 	commandList = opt.HelpCommandList()
 	expectedSynopsis = `SYNOPSIS:
-go-getoptions.test
+    go-getoptions.test
 `
 	expectedCommandList = ""
 	if synopsis != expectedSynopsis {

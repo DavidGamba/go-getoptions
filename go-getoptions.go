@@ -264,7 +264,8 @@ func (gopt *GetOpt) Help() string {
 
 // HelpSynopsis - Return a default synopsis.
 func (gopt *GetOpt) HelpSynopsis() string {
-	scriptName := filepath.Base(os.Args[0])
+	// 4 spaces padding
+	scriptName := "    " + filepath.Base(os.Args[0])
 	optionNames := []string{}
 	requiredNames := []string{}
 	for _, option := range gopt.obj {
