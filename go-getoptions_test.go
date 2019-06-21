@@ -1772,9 +1772,13 @@ func TestSynopsis(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
+	name := opt.HelpName()
 	synopsis := opt.HelpSynopsis()
 	commandList := opt.HelpCommandList()
 	optionList := opt.HelpOptionList()
+	expectedName := `NAME:
+    go-getoptions.test
+`
 	expectedSynopsis := `SYNOPSIS:
     go-getoptions.test --int <int> <--req-list <item>...>... --str <string>
                        [--flag|-f] [--float|--fl <float64>] [--intSlice <int>]...
@@ -1828,6 +1832,10 @@ OPTIONS:
 		}
 		return ""
 	}
+	if name != expectedName {
+		fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
+		t.Fatalf("Unexpected name:\n%s", firstDiff(name, expectedName))
+	}
 	if synopsis != expectedSynopsis {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
 		t.Fatalf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
@@ -1847,17 +1855,29 @@ OPTIONS:
 	opt = New()
 	opt.Command("log", "Log stuff")
 	opt.Command("show", "Show stuff")
+	opt.Self("name", "description...")
 	_, err = opt.Parse([]string{})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
+	name = opt.HelpName()
 	synopsis = opt.HelpSynopsis()
-	expectedSynopsis = `SYNOPSIS:
-    go-getoptions.test <command> [<args>]
+	expectedName = `NAME:
+    go-getoptions.test name - description...
 `
+	expectedSynopsis = `SYNOPSIS:
+    go-getoptions.test name <command> [<args>]
+`
+	if name != expectedName {
+		fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
+		t.Fatalf("Unexpected name:\n%s", firstDiff(name, expectedName))
+	}
 	if synopsis != expectedSynopsis {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
 		t.Fatalf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+	}
+	if opt.Help() != expectedName+"\n"+expectedSynopsis+"\n"+opt.HelpCommandList()+"\n"+opt.HelpOptionList() {
+		t.Fatalf("Unexpected help:\n---\n%s\n---\n", opt.Help())
 	}
 
 	opt = New()

@@ -11,17 +11,9 @@ import (
 
 var logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
 
-func synopsis() {
-	synopsis := `NAME
-	git-log - Show commit logs
-USAGE
-	log [--help]
-`
-	fmt.Fprintln(os.Stderr, synopsis)
-}
-
 func Log(args []string) {
 	opt := getoptions.New()
+	opt.Self("log", "Show commit logs")
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false)
 	remaining, err := opt.Parse(args)
@@ -30,7 +22,7 @@ func Log(args []string) {
 		os.Exit(1)
 	}
 	if opt.Called("help") {
-		synopsis()
+		fmt.Fprintf(os.Stderr, opt.Help())
 		os.Exit(1)
 	}
 	if opt.Called("debug") {

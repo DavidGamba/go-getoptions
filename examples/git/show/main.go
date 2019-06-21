@@ -11,17 +11,9 @@ import (
 
 var logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
 
-func synopsis() {
-	synopsis := `NAME
-	git-show - Show various types of objects
-USAGE
-	show [--help]
-`
-	fmt.Fprintln(os.Stderr, synopsis)
-}
-
 func Show(args []string) {
 	opt := getoptions.New()
+	opt.Self("show", "Show various types of objects")
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false)
 	remaining, err := opt.Parse(args)
@@ -30,7 +22,7 @@ func Show(args []string) {
 		os.Exit(1)
 	}
 	if opt.Called("help") {
-		synopsis()
+		fmt.Fprintf(os.Stderr, opt.Help())
 		os.Exit(1)
 	}
 	if opt.Called("debug") {

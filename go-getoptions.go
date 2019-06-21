@@ -34,8 +34,16 @@ type GetOpt struct {
 	obj            map[string]*option
 	args           *argList
 	commands       map[string]*command
+	self           *self
 }
 
+// command type used for help purposes
+type self struct {
+	name        string
+	description string // Optional description used for help
+}
+
+// command type used for help purposes
 type command struct {
 	name        string
 	description string // Optional description used for help
@@ -57,6 +65,7 @@ func New() *GetOpt {
 		obj:      make(map[string]*option),
 		commands: make(map[string]*command),
 		Writer:   os.Stderr,
+		self:     &self{},
 	}
 	return gopt
 }
@@ -251,6 +260,10 @@ func (gopt *GetOpt) ArgName(name string) ModifyFn {
 // Help - Default help string that is composed of the HelpSynopsis and HelpOptionList.
 func (gopt *GetOpt) Help() string {
 	help := ""
+	if gopt.self.name != "" || gopt.self.description != "" {
+		help += gopt.HelpName()
+		help += "\n"
+	}
 	help += gopt.HelpSynopsis()
 	help += "\n"
 	commands := gopt.HelpCommandList()
@@ -262,10 +275,25 @@ func (gopt *GetOpt) Help() string {
 	return help
 }
 
+func (gopt *GetOpt) HelpName() string {
+	scriptName := "    " + filepath.Base(os.Args[0])
+	out := scriptName
+	if gopt.self.name != "" {
+		out += fmt.Sprintf(" %s", gopt.self.name)
+	}
+	if gopt.self.description != "" {
+		out += fmt.Sprintf(" - %s", gopt.self.description)
+	}
+	return fmt.Sprintf("%s:\n%s\n", HelpNameHeader, out)
+}
+
 // HelpSynopsis - Return a default synopsis.
 func (gopt *GetOpt) HelpSynopsis() string {
 	// 4 spaces padding
 	scriptName := "    " + filepath.Base(os.Args[0])
+	if gopt.self.name != "" {
+		scriptName += " " + gopt.self.name
+	}
 	optionNames := []string{}
 	requiredNames := []string{}
 	for _, option := range gopt.obj {
@@ -430,6 +458,13 @@ func (gopt *GetOpt) HelpOptionList() string {
 
 func (gopt *GetOpt) Command(name string, description string) {
 	gopt.commands[name] = &command{name: name, description: description}
+}
+
+// Self - Set a custom name and description that will show in the automated help.
+// If name is an empty string, it will only use the description and use the name as the executable name.
+func (gopt *GetOpt) Self(name string, description string) {
+	gopt.self.name = name
+	gopt.self.description = description
 }
 
 // Bool - define a `bool` option and its aliases.
