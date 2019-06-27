@@ -97,7 +97,6 @@ func main() {
 
 . Call it:
 +
-+
 .Show help
 ----
 $ ./myscript --help
