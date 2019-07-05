@@ -45,6 +45,7 @@ func TestGetChildNames(t *testing.T) {
 		{"get commands", rootNode, "log", []string{"log", "logger"}},
 		{"get commands", rootNode, "show", []string{"show"}},
 		{"get options", rootNode, "-", []string{"-h", "--help", "-v", "--version"}},
+		{"get options", rootNode, "-h", []string{"-h"}},
 		{"get commands", rootNode.GetChildByName("x"), "", []string{}},
 		{"filter out hidden files", rootNode.GetChildByName("log"), "", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
 		{"show hidden files", rootNode.GetChildByName("log"), ".", []string{"./", "../", ".aFile2", "..aFile2", "...aFile2"}},
@@ -74,6 +75,8 @@ func TestGetChildNames(t *testing.T) {
 		{"top level", rootNode, "./executable log", []string{"log", "logger"}},
 		{"top level", rootNode, "./executable sh", []string{"show"}},
 		{"options", rootNode, "./executable -", []string{"-h", "--help", "-v", "--version"}},
+		{"options", rootNode, "./executable -h", []string{"-h"}},
+		{"options", rootNode, "./executable -h ", []string{"log", "logger", "show"}},
 		{"command", rootNode, "./executable log ", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
 		{"command", rootNode, "./executable show", []string{"abcd1234", "bbcd/1234", "..hola", "--hola"}},
 	}

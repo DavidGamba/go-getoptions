@@ -124,6 +124,16 @@ func (n *Node) GetChildByName(name string) *Node {
 	return NewNode("", Root, []string{})
 }
 
+func (n *Node) GetChildrenByKind(kind kind) []*Node {
+	children := []*Node{}
+	for _, child := range n.Children {
+		if child.Kind == kind {
+			children = append(children, child)
+		}
+	}
+	return children
+}
+
 // keepByPrefix - Given a list and a prefix filter, it returns a list subset of the elements that start with the prefix.
 func keepByPrefix(list []string, prefix string) []string {
 	keepList := []string{}
@@ -170,6 +180,19 @@ func (n *Node) CompLineComplete(compLine string) []string {
 			// Recurse into the child node's completion
 			return child.CompLineComplete(strings.Join(compLineParts, " "))
 		}
+		// Check if the current fully matches an option
+		for _, child := range append(n.GetChildrenByKind(OptionsNode), n.GetChildrenByKind(CustomNode)...) {
+			for _, e := range child.Entries {
+				if current == e {
+					if len(compLineParts) == 1 {
+						return []string{current}
+					}
+					// Recurse into the node self completion
+					return n.CompLineComplete(strings.Join(compLineParts, " "))
+				}
+			}
+		}
+
 		// Return a partial match
 		return n.Completions(current)
 	}
