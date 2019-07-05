@@ -35,9 +35,9 @@ func main() {
 	opt.Bool("debug", false)
 	opt.SetRequireOrder()
 	opt.SetUnknownMode("pass")
-	opt.Command("log", gitlog.Options(), "Log stuff")
-	opt.Command("show", gitshow.Options(), "Show stuff")
-	opt.Command("help", nil, "Show help")
+	opt.Command(gitlog.Options())
+	opt.Command(gitshow.Options())
+	opt.Command(getoptions.New().Self("help", "Show help"))
 	remaining, err := opt.Parse(os.Args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)

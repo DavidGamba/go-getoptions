@@ -84,9 +84,10 @@ func (gopt *GetOpt) completionAppendAliases(aliases []string) {
 
 // Self - Set a custom name and description that will show in the automated help.
 // If name is an empty string, it will only use the description and use the name as the executable name.
-func (gopt *GetOpt) Self(name string, description string) {
+func (gopt *GetOpt) Self(name string, description string) *GetOpt {
 	gopt.name = name
 	gopt.description = description
+	return gopt
 }
 
 // TODO: Consider extracting, gopt.obj can be passed as an arg.
@@ -337,22 +338,16 @@ func (gopt *GetOpt) HelpOptionList() string {
 	return help.HelpOptionList(options)
 }
 
-func (gopt *GetOpt) Command(name string, options *GetOpt, description string) {
+func (gopt *GetOpt) Command(options *GetOpt) {
 	if options == nil {
 		options = New()
-		options.Self(name, description)
 	}
-	if options.name == "" {
-		options.name = name
-	}
-	if options.description == "" {
-		options.description = description
-	}
+	// TODO: Add check to see if options.name is != "", panic otherwise.
 	node := options.completion
 	node.Kind = completion.StringNode
-	node.Name = name
+	node.Name = options.name
 	gopt.completion.AddChild(node)
-	gopt.commands[name] = options
+	gopt.commands[options.name] = options
 }
 
 // Bool - define a `bool` option and its aliases.

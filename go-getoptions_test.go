@@ -1768,8 +1768,8 @@ func TestSynopsis(t *testing.T) {
 	opt.StringSlice("req-list", 1, 2, opt.Required(), opt.ArgName("item"))
 	opt.IntSlice("intSlice", 1, 1, opt.Description("This option is using an int slice\nLets see how multiline works"))
 	opt.StringMap("strMap", 1, 2, opt.Description("Hello world"))
-	opt.Command("log", nil, "Log stuff")
-	opt.Command("show", nil, "Show stuff")
+	opt.Command(New().Self("log", "Log stuff"))
+	opt.Command(New().Self("show", "Show stuff"))
 	_, err := opt.Parse([]string{"--str", "a", "--int", "0", "--req-list", "a"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -1855,8 +1855,8 @@ OPTIONS:
 	}
 
 	opt = New()
-	opt.Command("log", nil, "Log stuff")
-	opt.Command("show", nil, "Show stuff")
+	opt.Command(New().Self("log", "Log stuff"))
+	opt.Command(New().Self("show", "Show stuff"))
 	opt.Self("name", "description...")
 	_, err = opt.Parse([]string{})
 	if err != nil {
