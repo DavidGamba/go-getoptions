@@ -22,7 +22,7 @@ func TestListDir(t *testing.T) {
 		err     string
 	}{
 		{"dir", "test_tree", "", []string{"aFile1", "aFile2", ".aFile2", "..aFile2", "...aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}, ""},
-		{"dir", "test_tree", ".", []string{".aFile2", "..aFile2", "...aFile2"}, ""},
+		{"dir", "test_tree", ".", []string{"./", "../", ".aFile2", "..aFile2", "...aFile2"}, ""},
 		{"dir", "test_tree", "b", []string{"bDir1/", "bDir2/"}, ""},
 		{"error", "x", "", []string{}, "open x: no such file or directory"},
 		{"error", "test_tree/aFile1", "", []string{}, "readdirent: not a directory"},

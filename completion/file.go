@@ -92,6 +92,10 @@ func sortForCompletion(list []string) {
 // NOTE: dot (".") is a valid dirname.
 func listDir(dirname string, prefix string) ([]string, error) {
 	filenames := []string{}
+	if prefix == "." {
+		filenames = append(filenames, "./")
+		filenames = append(filenames, "../")
+	}
 	fileInfoList, err := readDirNoSort(dirname)
 	if err != nil {
 		return filenames, err

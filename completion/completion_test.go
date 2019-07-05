@@ -47,7 +47,7 @@ func TestGetChildNames(t *testing.T) {
 		{"get options", rootNode, "-", []string{"-h", "--help", "-v", "--version"}},
 		{"get commands", rootNode.GetChildByName("x"), "", []string{}},
 		{"filter out hidden files", rootNode.GetChildByName("log"), "", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
-		{"show hidden files", rootNode.GetChildByName("log"), ".", []string{".aFile2", "..aFile2", "...aFile2"}},
+		{"show hidden files", rootNode.GetChildByName("log"), ".", []string{"./", "../", ".aFile2", "..aFile2", "...aFile2"}},
 		{"show custom output", rootNode.GetChildByName("show"), "", []string{"abcd1234", "bbcd/1234", "..hola", "--hola"}},
 	}
 	for _, tt := range tests {
