@@ -1,4 +1,4 @@
-package show
+package log
 
 import (
 	"fmt"
@@ -9,13 +9,19 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
+var logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
 
-func Show(args []string) {
+func Options() *getoptions.GetOpt {
 	opt := getoptions.New()
-	opt.Self("show", "Show various types of objects")
+	opt.Self("log", "Show commit logs")
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false)
+	opt.Bool("log-option", false, opt.Alias("l"))
+	return opt
+}
+
+func Log(args []string) {
+	opt := Options()
 	remaining, err := opt.Parse(args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
@@ -29,5 +35,5 @@ func Show(args []string) {
 		logger.SetOutput(os.Stderr)
 	}
 	logger.Println(remaining)
-	fmt.Printf("show output...\n")
+	fmt.Printf("log output...\n")
 }

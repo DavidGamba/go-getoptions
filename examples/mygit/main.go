@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/DavidGamba/go-getoptions"
-	gitlog "github.com/DavidGamba/go-getoptions/examples/git/log"
-	gitshow "github.com/DavidGamba/go-getoptions/examples/git/show"
+	gitlog "github.com/DavidGamba/go-getoptions/examples/mygit/log"
+	gitshow "github.com/DavidGamba/go-getoptions/examples/mygit/show"
 )
 
 var logger = log.New(ioutil.Discard, "", log.LstdFlags)
@@ -29,14 +29,15 @@ func contains(s []string, x string) bool {
 }
 
 func main() {
+	// getoptions.Debug.SetOutput(os.Stderr)
 	opt := getoptions.New()
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false)
 	opt.SetRequireOrder()
 	opt.SetUnknownMode("pass")
-	opt.Command("log", "Log stuff")
-	opt.Command("show", "Show stuff")
-	opt.Command("help", "Show help")
+	opt.Command("log", gitlog.Options(), "Log stuff")
+	opt.Command("show", gitshow.Options(), "Show stuff")
+	opt.Command("help", nil, "Show help")
 	remaining, err := opt.Parse(os.Args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
