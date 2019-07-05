@@ -9,11 +9,14 @@
 package completion
 
 import (
+	"os"
 	"reflect"
 	"testing"
 )
 
 func TestGetChildNames(t *testing.T) {
+	Debug.SetOutput(os.Stderr)
+
 	// Tree setup
 	rootNode := NewNode("executable", Root, nil)
 	rootNode.AddChild(NewNode("options", OptionsNode, []string{"--version", "--help", "-v", "-h"}))
@@ -78,6 +81,8 @@ func TestGetChildNames(t *testing.T) {
 		{"options", rootNode, "./executable -h", []string{"-h"}},
 		{"options", rootNode, "./executable -h ", []string{"log", "logger", "show"}},
 		{"command", rootNode, "./executable log ", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
+		{"command", rootNode, "./executable log bDir1/f", []string{"bDir1/file"}},
+		{"command", rootNode, "./executable log bDir1/file ", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
 		{"command", rootNode, "./executable show", []string{"abcd1234", "bbcd/1234", "..hola", "--hola"}},
 	}
 	for _, tt := range compLineTests {

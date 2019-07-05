@@ -9,8 +9,12 @@
 package completion
 
 import (
+	"io/ioutil"
+	"log"
 	"strings"
 )
+
+var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 /*
 Node -
@@ -171,18 +175,38 @@ func (n *Node) CompLineComplete(compLine string) []string {
 	// We have a possibly partial request
 	if len(compLineParts) >= 1 {
 		current := compLineParts[0]
+		Debug.Printf("current: %s\n", current)
+
 		if len(compLineParts) == 1 && len(n.Completions(current)) > 1 {
+			Debug.Printf("Multiple completions for this compline: %v\n", n.Completions(current))
 			return n.Completions(current)
 		}
 		// Check if the current fully matches a command (child node)
 		child := n.GetChildByName(current)
 		if child.Name == current && child.Kind == StringNode {
+			Debug.Printf("Recursing into command: %s\n", current)
 			// Recurse into the child node's completion
 			return child.CompLineComplete(strings.Join(compLineParts, " "))
 		}
 		// Check if the current fully matches an option
-		for _, child := range append(n.GetChildrenByKind(OptionsNode), n.GetChildrenByKind(CustomNode)...) {
+		list := n.GetChildrenByKind(OptionsNode)
+		list = append(list, n.GetChildrenByKind(CustomNode)...)
+		for _, child := range list {
 			for _, e := range child.Entries {
+				if current == e {
+					if len(compLineParts) == 1 {
+						Debug.Printf("Fully matched Option/Custom: %s\n", current)
+						return []string{current}
+					}
+					Debug.Printf("Fully matched Option/Custom: %s, Recursing to self\n", current)
+					// Recurse into the node self completion
+					return n.CompLineComplete(strings.Join(compLineParts, " "))
+				}
+			}
+		}
+		for _, child := range n.GetChildrenByKind(FileListNode) {
+			for _, e := range child.SelfCompletions(current) {
+				Debug.Printf("debug: %v\n", child.SelfCompletions(current))
 				if current == e {
 					if len(compLineParts) == 1 {
 						return []string{current}
@@ -194,6 +218,7 @@ func (n *Node) CompLineComplete(compLine string) []string {
 		}
 
 		// Return a partial match
+		Debug.Printf("Partial match: %s\n", current)
 		return n.Completions(current)
 	}
 
