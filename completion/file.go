@@ -10,6 +10,7 @@ package completion
 
 import (
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -74,8 +75,16 @@ func trimLeftDashes(s string) (int, string) {
 func sortForCompletion(list []string) {
 	sort.Slice(list,
 		func(i, j int) bool {
-			an, a := trimLeftDots(list[i])
-			bn, b := trimLeftDots(list[j])
+			var a, b string
+			if filepath.Dir(list[i]) == filepath.Dir(list[j]) {
+				a = filepath.Base(list[i])
+				b = filepath.Base(list[j])
+			} else {
+				a = list[i]
+				b = list[j]
+			}
+			an, a := trimLeftDots(a)
+			bn, b := trimLeftDots(b)
 			if a == b {
 				return an < bn
 			}
@@ -92,11 +101,18 @@ func sortForCompletion(list []string) {
 // NOTE: dot (".") is a valid dirname.
 func listDir(dirname string, prefix string) ([]string, error) {
 	filenames := []string{}
+	usedDirname := dirname
+	dir := ""
 	if prefix == "." {
 		filenames = append(filenames, "./")
 		filenames = append(filenames, "../")
 	}
-	fileInfoList, err := readDirNoSort(dirname)
+	if strings.Contains(prefix, "/") {
+		dir = filepath.Dir(prefix) + string(os.PathSeparator)
+		prefix = strings.TrimLeft(prefix, dir)
+		usedDirname = filepath.Join(dirname, dir) + string(os.PathSeparator)
+	}
+	fileInfoList, err := readDirNoSort(usedDirname)
 	if err != nil {
 		return filenames, err
 	}
@@ -105,6 +121,9 @@ func listDir(dirname string, prefix string) ([]string, error) {
 		if !strings.HasPrefix(name, prefix) {
 			continue
 		}
+		if dirname != usedDirname {
+			name = filepath.Join(dir, name)
+		}
 		if fi.IsDir() {
 			filenames = append(filenames, name+"/")
 		} else {
@@ -112,6 +131,8 @@ func listDir(dirname string, prefix string) ([]string, error) {
 		}
 	}
 	sortForCompletion(filenames)
+	if len(filenames) == 1 && strings.HasSuffix(filenames[0], "/") {
+		filenames = append(filenames, filenames[0]+" ")
+	}
 	return filenames, err
 }
-
