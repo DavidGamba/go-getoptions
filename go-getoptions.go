@@ -15,11 +15,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/DavidGamba/go-getoptions/completion"
+	"github.com/DavidGamba/go-getoptions/help"
 	"github.com/DavidGamba/go-getoptions/option"
 )
 
@@ -300,189 +300,52 @@ func (gopt *GetOpt) Help() string {
 }
 
 func (gopt *GetOpt) HelpName() string {
-	scriptName := "    " + filepath.Base(os.Args[0])
-	out := scriptName
-	if gopt.self.name != "" {
-		out += fmt.Sprintf(" %s", gopt.self.name)
-	}
-	if gopt.self.description != "" {
-		out += fmt.Sprintf(" - %s", gopt.self.description)
-	}
-	return fmt.Sprintf("%s:\n%s\n", HelpNameHeader, out)
+	scriptName := filepath.Base(os.Args[0])
+	return help.HelpName(scriptName, gopt.name, gopt.description)
 }
 
 // HelpSynopsis - Return a default synopsis.
 func (gopt *GetOpt) HelpSynopsis() string {
-	// 4 spaces padding
-	scriptName := "    " + filepath.Base(os.Args[0])
-	if gopt.self.name != "" {
-		scriptName += " " + gopt.self.name
-	}
-	optionNames := []string{}
-	requiredNames := []string{}
+	scriptName := filepath.Base(os.Args[0])
+	options := []*option.Option{}
+	commands := []string{}
 	for _, option := range gopt.obj {
-		if option.isRequired {
-			requiredNames = append(requiredNames, option.name)
-		} else {
-			optionNames = append(optionNames, option.name)
-		}
+		options = append(options, option)
 	}
-	sort.Strings(optionNames)
-	sort.Strings(requiredNames)
-	optSynopsis := func(name string) string {
-		txt := ""
-		aliases := []string{}
-		for _, alias := range gopt.option(name).aliases {
-			if len(alias) > 1 {
-				aliases = append(aliases, fmt.Sprintf("--%s", alias))
-			} else {
-				aliases = append(aliases, fmt.Sprintf("-%s", alias))
-			}
-		}
-		aliasStr := strings.Join(aliases, "|")
-		open := ""
-		close := ""
-		if !gopt.option(name).isRequired {
-			open = "["
-			close = "]"
-		}
-		argName := gopt.option(name).helpArgName
-		switch gopt.option(name).optType {
-		case boolType:
-			txt += fmt.Sprintf("%s%s%s", open, aliasStr, close)
-		case stringType, intType, float64Type:
-			txt += fmt.Sprintf("%s%s <%s>%s", open, aliasStr, argName, close)
-		case stringRepeatType, intRepeatType, stringMapType:
-			if gopt.option(name).isRequired {
-				open = "<"
-				close = ">"
-			}
-			repeat := ""
-			if gopt.option(name).maxArgs > 1 {
-				repeat = "..."
-			}
-			txt += fmt.Sprintf("%s%s <%s>%s%s...", open, aliasStr, argName, repeat, close)
-		}
-		return txt
+	for _, command := range gopt.commands {
+		commands = append(commands, command.name)
 	}
-	var out string
-	line := scriptName
-	for _, name := range append(requiredNames, optionNames...) {
-		syn := optSynopsis(name)
-		// fmt.Printf("%d - %d - %d | %s | %s\n", len(line), len(syn), len(line)+len(syn), syn, line)
-		if len(line)+len(syn) > 80 {
-			out += line + "\n"
-			line = fmt.Sprintf("%s %s", strings.Repeat(" ", len(scriptName)), syn)
-		} else {
-			line += fmt.Sprintf(" %s", syn)
-		}
-	}
-	if len(gopt.commands) > 0 {
-		syn := "<command> [<args>]"
-		if len(line)+len(syn) > 80 {
-			out += line + "\n"
-			line = fmt.Sprintf("%s %s", strings.Repeat(" ", len(scriptName)), syn)
-		} else {
-			line += fmt.Sprintf(" %s", syn)
-		}
-	}
-	out += line
-	return fmt.Sprintf("%s:\n%s\n", HelpSynopsisHeader, out)
+	return help.HelpSynopsis(scriptName, gopt.name, options, commands)
 }
 
 // HelpCommandList - Return a default command list.
 func (gopt *GetOpt) HelpCommandList() string {
-	if len(gopt.commands) <= 0 {
-		return ""
-	}
-	names := []string{}
+	m := make(map[string]string)
 	for _, command := range gopt.commands {
-		names = append(names, command.name)
+		m[command.name] = command.description
 	}
-	sort.Strings(names)
-	factor := longestStringLen(names)
-	out := ""
-	for _, command := range names {
-		out += fmt.Sprintf("    %s    %s\n", pad(command, factor), gopt.commands[command].description)
-	}
-	return fmt.Sprintf("%s:\n%s", HelpCommandsHeader, out)
+	return help.HelpCommandList(m)
 }
 
 // HelpOptionList - Return a formatted list of options and their descriptions.
 func (gopt *GetOpt) HelpOptionList() string {
-	aliasListLength := 0
-	optionNames := []string{}
-	requiredNames := []string{}
+	options := []*option.Option{}
 	for _, option := range gopt.obj {
-		l := len(option.Aliases)
-		for _, alias := range option.Aliases {
-			// --alias || -a
-			l += len(alias) + 1
-			if len(alias) > 1 {
-				l++
-			}
-		}
-		if l > aliasListLength {
-			aliasListLength = l
-		}
-		if option.IsRequired {
-			requiredNames = append(requiredNames, option.Name)
-		} else {
-			optionNames = append(optionNames, option.Name)
-		}
+		options = append(options, option)
 	}
-	sort.Strings(optionNames)
-	sort.Strings(requiredNames)
-	helpString := func(nameList []string) string {
-		txt := ""
-		for _, name := range nameList {
-			aliases := []string{}
-			for _, alias := range gopt.option(name).Aliases {
-				if len(alias) > 1 {
-					aliases = append(aliases, fmt.Sprintf("--%s", alias))
-				} else {
-					aliases = append(aliases, fmt.Sprintf("-%s", alias))
-				}
-			}
-			aliasStr := strings.Join(aliases, "|")
-			// TODO: Calculate argName length.
-			// 16: Longest default argName is <key=value> plus space plus 4 spaces.
-			factor := aliasListLength + 16
-			padding := strings.Repeat(" ", factor)
-			argName := gopt.option(name).HelpArgName
-			switch gopt.option(name).OptType {
-			case option.BoolType:
-				txt += fmt.Sprintf("    %s", pad(aliasStr+"", factor))
-			case option.StringType, option.IntType, option.Float64Type:
-				txt += fmt.Sprintf("    %s", pad(aliasStr+" <"+argName+">", factor))
-			case option.StringRepeatType, option.IntRepeatType, option.StringMapType:
-				txt += fmt.Sprintf("    %s", pad(aliasStr+" <"+argName+">...", factor))
-			}
-			if gopt.option(name).Description != "" {
-				description := strings.Replace(gopt.option(name).Description, "\n", "\n    "+padding, -1)
-				txt += fmt.Sprintf("%s ", description)
-			}
-			if !gopt.option(name).IsRequired {
-				txt += fmt.Sprintf("(default: %s)\n\n", gopt.option(name).DefaultStr)
-			} else {
-				txt += "\n\n"
-			}
-		}
-		return txt
-	}
-	out := ""
-	if len(requiredNames) > 0 {
-		out += fmt.Sprintf("%s:\n%s", HelpRequiredOptionsHeader, helpString(requiredNames))
-	}
-	if len(optionNames) > 0 {
-		out += fmt.Sprintf("%s:\n%s", HelpOptionsHeader, helpString(optionNames))
-	}
-	return out
+	return help.HelpOptionList(options)
 }
 
 func (gopt *GetOpt) Command(name string, options *GetOpt, description string) {
 	if options == nil {
 		options = New()
+		options.Self(name, description)
+	}
+	if options.name == "" {
+		options.name = name
+	}
+	if options.description == "" {
+		options.description = description
 	}
 	node := options.completion
 	node.Kind = completion.StringNode

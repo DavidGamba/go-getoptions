@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -280,4 +281,11 @@ func (opt *Option) Save(a ...string) error {
 		opt.SetBool(!opt.GetBool())
 		return nil
 	}
+}
+
+// Sort Interface
+func Sort(list []*Option) {
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].Name < list[j].Name
+	})
 }
