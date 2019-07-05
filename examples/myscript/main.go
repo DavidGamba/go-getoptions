@@ -47,14 +47,23 @@ func main() {
 		fmt.Fprintf(os.Stderr, opt.HelpSynopsis())
 		os.Exit(1)
 	}
+
+	// Use the passed command line options
+
+	// Use the bool variable
 	if !debug {
 		logger.SetOutput(ioutil.Discard)
 	}
+
+	// Show non-options in the remaining array
 	logger.Printf("Remaining: %v\n", remaining)
 
+	// Use the int variable
 	for i := 0; i < greetCount; i++ {
 		fmt.Println("Hello World, from go-getoptions!")
 	}
+
+	// Use the map[string]string variable
 	if len(greetings) > 0 {
 		fmt.Printf("Greeting List:\n")
 		for k, v := range greetings {
