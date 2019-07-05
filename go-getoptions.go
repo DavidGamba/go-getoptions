@@ -21,6 +21,7 @@ import (
 	"github.com/DavidGamba/go-getoptions/completion"
 	"github.com/DavidGamba/go-getoptions/help"
 	"github.com/DavidGamba/go-getoptions/option"
+	"github.com/DavidGamba/go-getoptions/text"
 )
 
 // Debug Logger instance set to `ioutil.Discard` by default.
@@ -445,14 +446,14 @@ func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias s
 		if opt.IsOptional {
 			return nil
 		}
-		return fmt.Errorf(ErrorMissingArgument, usedAlias)
+		return fmt.Errorf(text.ErrorMissingArgument, usedAlias)
 	}
 	// Check if next arg is option
 	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 		if opt.IsOptional {
 			return nil
 		}
-		return fmt.Errorf(ErrorArgumentWithDash, usedAlias)
+		return fmt.Errorf(text.ErrorArgumentWithDash, usedAlias)
 	}
 	gopt.args.next()
 	return opt.Save(gopt.args.value())
@@ -787,19 +788,19 @@ func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAli
 		Debug.Printf("total arguments: %d, index: %d, counter %d", gopt.args.size(), gopt.args.index(), argCounter)
 		if !gopt.args.existsNext() {
 			if required {
-				return fmt.Errorf(ErrorMissingArgument, name)
+				return fmt.Errorf(text.ErrorMissingArgument, name)
 			}
 			return fmt.Errorf("NoMoreArguments")
 		}
 		// Check if next arg is option
 		if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 			Debug.Printf("Next arg is option: %s\n", gopt.args.peekNextValue())
-			return fmt.Errorf(ErrorArgumentWithDash, name)
+			return fmt.Errorf(text.ErrorArgumentWithDash, name)
 		}
 		// Check if next arg is not key=value
 		if opt.OptType == option.StringMapType && !strings.Contains(gopt.args.peekNextValue(), "=") {
 			if required {
-				return fmt.Errorf(ErrorArgumentIsNotKeyValue, name)
+				return fmt.Errorf(text.ErrorArgumentIsNotKeyValue, name)
 			}
 			return nil
 		}
@@ -826,8 +827,8 @@ func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAli
 			// always fail if errors under min args
 			// After min args, skip missing arg errors
 			if argCounter <= opt.MinArgs ||
-				(err.Error() != fmt.Sprintf(ErrorMissingArgument, name) &&
-					err.Error() != fmt.Sprintf(ErrorArgumentWithDash, name)) {
+				(err.Error() != fmt.Sprintf(text.ErrorMissingArgument, name) &&
+					err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, name)) {
 				Debug.Printf("return value: %v, err: %v", opt.Value(), err)
 				return err
 			}
@@ -992,11 +993,11 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 						remaining = append(remaining, arg)
 						break
 					case "warn":
-						fmt.Fprintf(gopt.Writer, MessageOnUnknown, optElement)
+						fmt.Fprintf(gopt.Writer, text.MessageOnUnknown, optElement)
 						remaining = append(remaining, arg)
 						break
 					default:
-						err := fmt.Errorf(MessageOnUnknown, optElement)
+						err := fmt.Errorf(text.MessageOnUnknown, optElement)
 						Debug.Printf("return %v, %v", nil, err)
 						return nil, err
 					}
@@ -1020,7 +1021,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 				if option.IsRequiredErr != "" {
 					err = fmt.Errorf(option.IsRequiredErr)
 				} else {
-					err = fmt.Errorf(ErrorMissingRequiredOption, option.Name)
+					err = fmt.Errorf(text.ErrorMissingRequiredOption, option.Name)
 				}
 				Debug.Printf("return %v, %v", nil, err)
 				return nil, err

@@ -14,6 +14,8 @@ import (
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/DavidGamba/go-getoptions/text"
 )
 
 func TestIsOption(t *testing.T) {
@@ -153,7 +155,7 @@ func TestUnknownOptionModes(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	if buf.String() != fmt.Sprintf(MessageOnUnknown, "flags") {
+	if buf.String() != fmt.Sprintf(text.MessageOnUnknown, "flags") {
 		t.Errorf("Warning message didn't match expected value: %s", buf.String())
 	}
 	if !reflect.DeepEqual(remaining, []string{"--flags"}) {
@@ -268,7 +270,7 @@ func TestOptionals(t *testing.T) {
 	if err == nil {
 		t.Errorf("Missing argument for option 'string' didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "string") {
 		t.Errorf("Error string didn't match expected value")
 	}
 
@@ -411,7 +413,7 @@ func TestOptionals(t *testing.T) {
 	if err == nil {
 		t.Errorf("Int cast didn't raise errors")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello") {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 
@@ -421,7 +423,7 @@ func TestOptionals(t *testing.T) {
 	if err == nil {
 		t.Errorf("Int cast didn't raise errors")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello") {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 }
@@ -692,7 +694,7 @@ func TestGetOptAliases(t *testing.T) {
 	if err == nil {
 		t.Errorf("Int didn't raise errors")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "h") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "h") {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 }
@@ -765,7 +767,7 @@ func TestGetOptString(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing option where argument expected didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, "string") {
 		t.Errorf("Error string didn't match expected value")
 	}
 }
@@ -826,7 +828,7 @@ func TestGetOptInt(t *testing.T) {
 	if err == nil {
 		t.Errorf("Int didn't raise errors")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "int") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "int") {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 
@@ -837,7 +839,7 @@ func TestGetOptInt(t *testing.T) {
 	if err == nil {
 		t.Errorf("Int cast didn't raise errors")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello") {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 
@@ -847,7 +849,7 @@ func TestGetOptInt(t *testing.T) {
 	if err == nil {
 		t.Errorf("Int cast didn't raise errors")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello") {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 
@@ -857,7 +859,7 @@ func TestGetOptInt(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing option where argument expected didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "int") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, "int") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 }
@@ -918,7 +920,7 @@ func TestGetOptFloat64(t *testing.T) {
 	if err == nil {
 		t.Errorf("Float64 didn't raise errors")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "float") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "float") {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 
@@ -929,7 +931,7 @@ func TestGetOptFloat64(t *testing.T) {
 	if err == nil {
 		t.Errorf("Float cast didn't raise errors")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToFloat64, "float", "hello") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToFloat64, "float", "hello") {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 
@@ -939,7 +941,7 @@ func TestGetOptFloat64(t *testing.T) {
 	if err == nil {
 		t.Errorf("Int cast didn't raise errors")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToFloat64, "float", "hello") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToFloat64, "float", "hello") {
 		t.Errorf("Error string didn't match expected value '%s'", err)
 	}
 
@@ -949,7 +951,7 @@ func TestGetOptFloat64(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing option where argument expected didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "float") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, "float") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 }
@@ -1037,13 +1039,13 @@ func TestGetOptStringMap(t *testing.T) {
 	opt := New()
 	opt.StringMap("string", 1, 3)
 	_, err := opt.Parse([]string{"--string", "hello"})
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentIsNotKeyValue, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 	opt = New()
 	opt.StringMap("string", 1, 3)
 	_, err = opt.Parse([]string{"--string=hello"})
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentIsNotKeyValue, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 	opt = New()
@@ -1052,7 +1054,7 @@ func TestGetOptStringMap(t *testing.T) {
 	if err == nil {
 		t.Errorf("Missing argument for option 'string' didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 	opt = New()
@@ -1061,7 +1063,7 @@ func TestGetOptStringMap(t *testing.T) {
 	if err == nil {
 		t.Errorf("Missing argument for option 'string' didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 
@@ -1084,7 +1086,7 @@ func TestGetOptStringMap(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing less than min didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 
@@ -1094,7 +1096,7 @@ func TestGetOptStringMap(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing less than min didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentIsNotKeyValue, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentIsNotKeyValue, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 
@@ -1185,7 +1187,7 @@ func TestGetOptStringSlice(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing less than min didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "string") {
 		t.Errorf("Error string didn't match expected value")
 	}
 
@@ -1195,7 +1197,7 @@ func TestGetOptStringSlice(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing option where argument expected didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 
@@ -1205,7 +1207,7 @@ func TestGetOptStringSlice(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing option where argument expected didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorArgumentWithDash, "string") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, "string") {
 		t.Errorf("Error string didn't match expected value: %s", err.Error())
 	}
 
@@ -1311,7 +1313,7 @@ func TestGetOptIntSlice(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing less than min didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorMissingArgument, "int") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "int") {
 		t.Errorf("Error int didn't match expected value")
 	}
 
@@ -1321,7 +1323,7 @@ func TestGetOptIntSlice(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing string didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello") {
 		t.Errorf("Error int didn't match expected value: %s", err)
 	}
 
@@ -1331,7 +1333,7 @@ func TestGetOptIntSlice(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing string didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "hello..3") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello..3") {
 		t.Errorf("Error int didn't match expected value: %s", err)
 	}
 
@@ -1341,7 +1343,7 @@ func TestGetOptIntSlice(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing string didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "1..hello") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "1..hello") {
 		t.Errorf("Error int didn't match expected value: %s", err)
 	}
 
@@ -1351,7 +1353,7 @@ func TestGetOptIntSlice(t *testing.T) {
 	if err == nil {
 		t.Errorf("Passing string didn't raise error")
 	}
-	if err != nil && err.Error() != fmt.Sprintf(ErrorConvertToInt, "int", "3..1") {
+	if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "3..1") {
 		t.Errorf("Error int didn't match expected value: %s", err)
 	}
 
