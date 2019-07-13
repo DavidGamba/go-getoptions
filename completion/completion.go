@@ -14,6 +14,7 @@ import (
 	"strings"
 )
 
+// Debug - Debug logger set to ioutil.Discard by default
 var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 /*
@@ -88,24 +89,33 @@ func (n *Node) SelfCompletions(prefix string) []string {
 	case Root:
 	case StringNode:
 		if strings.HasPrefix(n.Name, prefix) {
+			Debug.Printf("SelfCompletions - node: %s > %v\n", n.Name, []string{n.Name})
 			return []string{n.Name}
 		}
 	case FileListNode:
 		files, _ := listDir(n.Name, prefix)
 		if strings.HasPrefix(prefix, ".") {
+			Debug.Printf("SelfCompletions - node: %s > %v\n", n.Name, files)
 			return files
 		}
 		// Don't return hidden files unless requested by the prefix
-		return discardByPrefix(files, ".")
+		ff := discardByPrefix(files, ".")
+		Debug.Printf("SelfCompletions - node: %s > %v\n", n.Name, ff)
+		return ff
 	case OptionsNode:
 		if strings.HasPrefix(prefix, "-") {
 			sortForCompletion(n.Entries)
-			return keepByPrefix(n.Entries, prefix)
+			ee := keepByPrefix(n.Entries, prefix)
+			Debug.Printf("SelfCompletions - node: %s > %v\n", n.Name, ee)
+			return ee
 		}
 	case CustomNode:
 		sortForCompletion(n.Entries)
-		return keepByPrefix(n.Entries, prefix)
+		ee := keepByPrefix(n.Entries, prefix)
+		Debug.Printf("SelfCompletions - node: %s > %v\n", n.Name, ee)
+		return ee
 	}
+	Debug.Printf("SelfCompletions - node: %s > %v\n", n.Name, []string{})
 	return []string{}
 }
 
@@ -115,6 +125,7 @@ func (n *Node) Completions(prefix string) []string {
 	for _, child := range n.Children {
 		results = append(results, child.SelfCompletions(prefix)...)
 	}
+	Debug.Printf("Completions - node: %s, prefix %s > %v\n", n.Name, prefix, results)
 	return results
 }
 
@@ -166,6 +177,7 @@ func (n *Node) CompLineComplete(compLine string) []string {
 	compLineParts := strings.Split(compLine, " ")
 	// return compLineParts
 	if len(compLineParts) == 0 || compLineParts[0] == "" {
+		Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Empty compLineParts\n", n.Name, compLine, []string{})
 		return []string{}
 	}
 
@@ -175,16 +187,16 @@ func (n *Node) CompLineComplete(compLine string) []string {
 	// We have a possibly partial request
 	if len(compLineParts) >= 1 {
 		current := compLineParts[0]
-		Debug.Printf("current: %s\n", current)
 
-		if len(compLineParts) == 1 && len(n.Completions(current)) > 1 {
-			Debug.Printf("Multiple completions for this compline: %v\n", n.Completions(current))
-			return n.Completions(current)
+		cc := n.Completions(current)
+		if len(compLineParts) == 1 && len(cc) > 1 {
+			Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Multiple completions for this compLine\n", n.Name, compLine, cc)
+			return cc
 		}
 		// Check if the current fully matches a command (child node)
 		child := n.GetChildByName(current)
 		if child.Name == current && child.Kind == StringNode {
-			Debug.Printf("Recursing into command: %s\n", current)
+			Debug.Printf("CompLineComplete - node: %s, compLine %s - Recursing into command %s\n", n.Name, compLine, current)
 			// Recurse into the child node's completion
 			return child.CompLineComplete(strings.Join(compLineParts, " "))
 		}
@@ -195,22 +207,25 @@ func (n *Node) CompLineComplete(compLine string) []string {
 			for _, e := range child.Entries {
 				if current == e {
 					if len(compLineParts) == 1 {
-						Debug.Printf("Fully matched Option/Custom: %s\n", current)
+						Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Fully Matched Option/Custom\n", n.Name, compLine, current)
 						return []string{current}
 					}
-					Debug.Printf("Fully matched Option/Custom: %s, Recursing to self\n", current)
+					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched Option/Custom %s, recursing to self\n", n.Name, compLine, current)
 					// Recurse into the node self completion
 					return n.CompLineComplete(strings.Join(compLineParts, " "))
 				}
 			}
 		}
+		// Get FileList completions after all other completions
 		for _, child := range n.GetChildrenByKind(FileListNode) {
-			for _, e := range child.SelfCompletions(current) {
-				Debug.Printf("debug: %v\n", child.SelfCompletions(current))
+			cc := child.SelfCompletions(current)
+			for _, e := range cc {
 				if current == e {
 					if len(compLineParts) == 1 {
+						Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Fully matched File\n", n.Name, compLine, current)
 						return []string{current}
 					}
+					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched File %s, recursing to self\n", n.Name, compLine, current)
 					// Recurse into the node self completion
 					return n.CompLineComplete(strings.Join(compLineParts, " "))
 				}
@@ -218,10 +233,11 @@ func (n *Node) CompLineComplete(compLine string) []string {
 		}
 
 		// Return a partial match
-		Debug.Printf("Partial match: %s\n", current)
+		Debug.Printf("CompLineComplete - node: %s, compLine %s - Partial match %s\n", n.Name, compLine, current)
 		return n.Completions(current)
 	}
 
+	Debug.Printf("CompLineComplete - node: %s, compLine %s > [] - Return all results\n", n.Name, compLine)
 	// No partial request, return all results
 	return n.Completions("")
 }

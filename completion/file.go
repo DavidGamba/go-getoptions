@@ -83,6 +83,22 @@ func sortForCompletion(list []string) {
 				a = list[i]
 				b = list[j]
 			}
+
+			// . always is less
+			if filepath.Base(list[i]) == "." {
+				return true
+			}
+			if filepath.Base(list[j]) == "." {
+				return false
+			}
+			// .. is always less in any other case
+			if filepath.Base(list[i]) == ".." {
+				return true
+			}
+			if filepath.Base(list[j]) == ".." {
+				return false
+			}
+
 			an, a := trimLeftDots(a)
 			bn, b := trimLeftDots(b)
 			if a == b {
@@ -103,17 +119,20 @@ func listDir(dirname string, prefix string) ([]string, error) {
 	filenames := []string{}
 	usedDirname := dirname
 	dir := ""
-	if prefix == "." {
-		filenames = append(filenames, "./")
-		filenames = append(filenames, "../")
-	}
 	if strings.Contains(prefix, "/") {
 		dir = filepath.Dir(prefix) + string(os.PathSeparator)
-		prefix = strings.TrimLeft(prefix, dir)
+		prefix = strings.TrimPrefix(prefix, dir)
 		usedDirname = filepath.Join(dirname, dir) + string(os.PathSeparator)
+	}
+	if prefix == "." {
+		filenames = append(filenames, dir+"./")
+		filenames = append(filenames, dir+"../")
+	} else if prefix == ".." {
+		filenames = append(filenames, dir+"../")
 	}
 	fileInfoList, err := readDirNoSort(usedDirname)
 	if err != nil {
+		Debug.Printf("listDir - dirname %s, prefix %s > files %v\n", dirname, prefix, filenames)
 		return filenames, err
 	}
 	for _, fi := range fileInfoList {
@@ -134,5 +153,6 @@ func listDir(dirname string, prefix string) ([]string, error) {
 	if len(filenames) == 1 && strings.HasSuffix(filenames[0], "/") {
 		filenames = append(filenames, filenames[0]+" ")
 	}
+	Debug.Printf("listDir - dirname %s, prefix %s > files %v\n", dirname, prefix, filenames)
 	return filenames, err
 }

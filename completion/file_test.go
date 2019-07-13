@@ -28,6 +28,7 @@ func TestListDir(t *testing.T) {
 		{"dir", "test_tree", "bDir1/", []string{"bDir1/file", "bDir1/.file"}, ""},
 		{"dir", "test_tree", "bDir1/f", []string{"bDir1/file"}, ""},
 		{"dir", "test_tree/bDir1", "../", []string{"../aFile1", "../aFile2", "../.aFile2", "../..aFile2", "../...aFile2", "../bDir1/", "../bDir2/", "../cFile1", "../cFile2"}, ""},
+		{"dir", "test_tree/bDir1", "../.", []string{".././", "../../", "../.aFile2", "../..aFile2", "../...aFile2"}, ""},
 		{"error", "x", "", []string{}, "open x: no such file or directory"},
 		{"error", "test_tree/aFile1", "", []string{}, "readdirent: not a directory"},
 	}
@@ -42,6 +43,29 @@ func TestListDir(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.list) {
 				t.Errorf("getFileList() got = %v, want %v", got, tt.list)
+			}
+		})
+	}
+}
+
+func TestSortForCompletion(t *testing.T) {
+	tests := []struct {
+		name   string
+		list   []string
+		sorted []string
+	}{
+		{"basic", []string{"b", "a"}, []string{"a", "b"}},
+		{"level up", []string{"..", ".", "a"}, []string{".", "..", "a"}},
+		{"level up", []string{".", "..", "a"}, []string{".", "..", "a"}},
+		{"level up", []string{"a", ".", ".."}, []string{".", "..", "a"}},
+		{"level up", []string{"../", "./"}, []string{"./", "../"}},
+		{"level up", []string{"../../", ".././"}, []string{".././", "../../"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sortForCompletion(tt.list)
+			if !reflect.DeepEqual(tt.list, tt.sorted) {
+				t.Errorf("sortForCompletion() got = %v, want %v", tt.list, tt.sorted)
 			}
 		})
 	}
