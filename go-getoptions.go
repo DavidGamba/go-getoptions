@@ -133,15 +133,15 @@ func (gopt *GetOpt) CalledAs(name string) string {
 // Type assertions are required in cases where the compiler can't determine the type by context.
 // For example: `opt.Value("flag").(bool)`.
 func (gopt *GetOpt) Value(name string) interface{} {
-	opt := gopt.option(name)
+	opt := gopt.Option(name)
 	if opt != nil {
 		return opt.Value()
 	}
 	return nil
 }
 
-// option - Returns the *option for name.
-func (gopt *GetOpt) option(name string) *option.Option {
+// Option - Returns the *option.Option for name.
+func (gopt *GetOpt) Option(name string) *option.Option {
 	if value, ok := gopt.obj[name]; ok {
 		return value
 	}
@@ -373,12 +373,12 @@ func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
 func (gopt *GetOpt) BoolVar(p *bool, name string, def bool, fns ...ModifyFn) {
 	gopt.Bool(name, def, fns...)
 	*p = def
-	gopt.option(name).SetBoolPtr(p)
+	gopt.Option(name).SetBoolPtr(p)
 }
 
 func (gopt *GetOpt) handleBool(name string, argument string, usedAlias string) error {
 	Debug.Println("handleBool")
-	opt := gopt.option(name)
+	opt := gopt.Option(name)
 	opt.SetCalled(usedAlias)
 	return opt.Save()
 }
@@ -418,12 +418,12 @@ func (gopt *GetOpt) NBool(name string, def bool, fns ...ModifyFn) *bool {
 func (gopt *GetOpt) NBoolVar(p *bool, name string, def bool, fns ...ModifyFn) {
 	gopt.NBool(name, def, fns...)
 	*p = def
-	gopt.option(name).SetBoolPtr(p)
+	gopt.Option(name).SetBoolPtr(p)
 }
 
 func (gopt *GetOpt) handleNBool(name string, argument string, usedAlias string) error {
 	Debug.Println("handleNBool")
-	opt := gopt.option(name)
+	opt := gopt.Option(name)
 	opt.SetCalled(usedAlias)
 	if !strings.HasPrefix(usedAlias, "no-") {
 		return opt.Save()
@@ -432,7 +432,7 @@ func (gopt *GetOpt) handleNBool(name string, argument string, usedAlias string) 
 }
 
 func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias string) error {
-	opt := gopt.option(name)
+	opt := gopt.Option(name)
 	opt.SetCalled(usedAlias)
 	if argument != "" {
 		return opt.Save(argument)
@@ -477,7 +477,7 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 func (gopt *GetOpt) StringVar(p *string, name, def string, fns ...ModifyFn) {
 	gopt.String(name, def, fns...)
 	*p = def
-	gopt.option(name).SetStringPtr(p)
+	gopt.Option(name).SetStringPtr(p)
 }
 
 // StringOptional - define a `string` option and its aliases.
@@ -510,7 +510,7 @@ func (gopt *GetOpt) StringOptional(name string, def string, fns ...ModifyFn) *st
 func (gopt *GetOpt) StringVarOptional(p *string, name, def string, fns ...ModifyFn) {
 	gopt.StringOptional(name, def, fns...)
 	*p = def
-	gopt.option(name).SetStringPtr(p)
+	gopt.Option(name).SetStringPtr(p)
 }
 
 // Int - define an `int` option and its aliases.
@@ -534,7 +534,7 @@ func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
 func (gopt *GetOpt) IntVar(p *int, name string, def int, fns ...ModifyFn) {
 	gopt.Int(name, def, fns...)
 	*p = def
-	gopt.option(name).SetIntPtr(p)
+	gopt.Option(name).SetIntPtr(p)
 }
 
 // IntOptional - define a `int` option and its aliases.
@@ -567,7 +567,7 @@ func (gopt *GetOpt) IntOptional(name string, def int, fns ...ModifyFn) *int {
 func (gopt *GetOpt) IntVarOptional(p *int, name string, def int, fns ...ModifyFn) {
 	gopt.IntOptional(name, def, fns...)
 	*p = def
-	gopt.option(name).SetIntPtr(p)
+	gopt.Option(name).SetIntPtr(p)
 }
 
 // Float64 - define an `float64` option and its aliases.
@@ -591,7 +591,7 @@ func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 
 func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, fns ...ModifyFn) {
 	gopt.Float64(name, def, fns...)
 	*p = def
-	gopt.option(name).SetFloat64Ptr(p)
+	gopt.Option(name).SetFloat64Ptr(p)
 }
 
 // StringSlice - define a `[]string` option and its aliases.
@@ -649,7 +649,7 @@ func (gopt *GetOpt) StringSlice(name string, min, max int, fns ...ModifyFn) *[]s
 // For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
 func (gopt *GetOpt) StringSliceVar(p *[]string, name string, min, max int, fns ...ModifyFn) {
 	gopt.StringSlice(name, min, max, fns...)
-	gopt.option(name).SetStringSlicePtr(p)
+	gopt.Option(name).SetStringSlicePtr(p)
 }
 
 // IntSlice - define a `[]int` option and its aliases.
@@ -717,7 +717,7 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int 
 // The input could be: `csv --columns 1..3`.
 func (gopt *GetOpt) IntSliceVar(p *[]int, name string, min, max int, fns ...ModifyFn) {
 	gopt.IntSlice(name, min, max, fns...)
-	gopt.option(name).SetIntSlicePtr(p)
+	gopt.Option(name).SetIntSlicePtr(p)
 }
 
 // StringMap - define a `map[string]string` option and its aliases.
@@ -766,7 +766,7 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 // TODO: Do a regex instead of matching the full error to enable usedAlias in errors.
 func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAlias string) error {
 	Debug.Printf("handleStringSlice\n")
-	opt := gopt.option(name)
+	opt := gopt.Option(name)
 	opt.SetCalled(usedAlias)
 	opt.MapKeysToLower = gopt.mapKeysToLower
 	argCounter := 0
@@ -854,12 +854,12 @@ func (gopt *GetOpt) Increment(name string, def int, fns ...ModifyFn) *int {
 func (gopt *GetOpt) IncrementVar(p *int, name string, def int, fns ...ModifyFn) {
 	gopt.Increment(name, def, fns...)
 	*p = def
-	gopt.option(name).SetIntPtr(p)
+	gopt.Option(name).SetIntPtr(p)
 }
 
 func (gopt *GetOpt) handleIncrement(name string, argument string, usedAlias string) error {
 	Debug.Println("handleIncrement")
-	opt := gopt.option(name)
+	opt := gopt.Option(name)
 	opt.SetCalled(usedAlias)
 	opt.SetInt(opt.GetInt() + 1)
 	return nil
@@ -967,7 +967,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 				Debug.Printf("Parse optElement: %s\n", optElement)
 				if optName, usedAlias, ok := gopt.getOptionFromAliases(optElement); ok {
 					Debug.Printf("Parse found opt_list\n")
-					opt := gopt.option(optName)
+					opt := gopt.Option(optName)
 					handler := opt.Handler
 					Debug.Printf("handler found: name %s, argument %s, index %d, list %s\n", optName, argument, gopt.args.index(), optList[0])
 					err := handler(optName, argument, usedAlias)
