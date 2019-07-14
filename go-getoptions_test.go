@@ -281,7 +281,7 @@ func TestOptionals(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	if opt.Option("string") != "default" {
+	if opt.Value("string") != "default" {
 		t.Errorf("Default value not set for 'string'")
 	}
 
@@ -291,7 +291,7 @@ func TestOptionals(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	if opt.Option("int") != 123 {
+	if opt.Value("int") != 123 {
 		t.Errorf("Default value not set for 'int'")
 	}
 
@@ -303,7 +303,7 @@ func TestOptionals(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	if opt.Option("string") != "default" {
+	if opt.Value("string") != "default" {
 		t.Errorf("Default value not set for 'string'")
 	}
 	opt = New()
@@ -313,7 +313,7 @@ func TestOptionals(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	if opt.Option("int") != 123 {
+	if opt.Value("int") != 123 {
 		t.Errorf("Default value not set for 'int'")
 	}
 
@@ -325,10 +325,10 @@ func TestOptionals(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	if opt.Option("string") != "arg" {
+	if opt.Value("string") != "arg" {
 		t.Errorf("string Optional didn't take argument")
 	}
-	if opt.Option("int") != 456 {
+	if opt.Value("int") != 456 {
 		t.Errorf("int Optional didn't take argument")
 	}
 	opt = New()
@@ -338,10 +338,10 @@ func TestOptionals(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	if opt.Option("string") != "arg" {
+	if opt.Value("string") != "arg" {
 		t.Errorf("string Optional didn't take argument")
 	}
-	if opt.Option("int") != 456 {
+	if opt.Value("int") != 456 {
 		t.Errorf("int Optional didn't take argument")
 	}
 
@@ -468,8 +468,8 @@ func TestGetOptBool(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		if c.opt.Option(c.option) != c.value {
-			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		if c.opt.Value(c.option) != c.value {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
 		}
 	}
 
@@ -656,8 +656,8 @@ func TestGetOptAliases(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		if c.opt.Option(c.option) != c.value {
-			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		if c.opt.Value(c.option) != c.value {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
 		}
 	}
 
@@ -756,8 +756,8 @@ func TestGetOptString(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		if c.opt.Option(c.option) != c.value {
-			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		if c.opt.Value(c.option) != c.value {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
 		}
 	}
 
@@ -816,8 +816,8 @@ func TestGetOptInt(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		if c.opt.Option(c.option) != c.value {
-			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		if c.opt.Value(c.option) != c.value {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
 		}
 	}
 
@@ -908,8 +908,8 @@ func TestGetOptFloat64(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		if c.opt.Option(c.option) != c.value {
-			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		if c.opt.Value(c.option) != c.value {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
 		}
 	}
 
@@ -1032,8 +1032,8 @@ func TestGetOptStringMap(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		if !reflect.DeepEqual(c.opt.Option(c.option), c.value) {
-			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		if !reflect.DeepEqual(c.opt.Value(c.option), c.value) {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
 		}
 	}
 	opt := New()
@@ -1176,8 +1176,8 @@ func TestGetOptStringSlice(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		if !reflect.DeepEqual(c.opt.Option(c.option), c.value) {
-			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		if !reflect.DeepEqual(c.opt.Value(c.option), c.value) {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
 		}
 	}
 
@@ -1302,8 +1302,8 @@ func TestGetOptIntSlice(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		if !reflect.DeepEqual(c.opt.Option(c.option), c.value) {
-			t.Errorf("Wrong value: %v != %v", c.opt.Option(c.option), c.value)
+		if !reflect.DeepEqual(c.opt.Value(c.option), c.value) {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
 		}
 	}
 
@@ -1575,8 +1575,8 @@ func TestDefaultValues(t *testing.T) {
 	}
 
 	for k := range expected {
-		if !reflect.DeepEqual(opt.Option(k), expected[k]) {
-			t.Errorf("Wrong value: %s\n%v !=\n%v", k, opt.Option(k), expected[k])
+		if !reflect.DeepEqual(opt.Value(k), expected[k]) {
+			t.Errorf("Wrong value: %s\n%v !=\n%v", k, opt.Value(k), expected[k])
 		}
 	}
 
@@ -1607,20 +1607,20 @@ func TestDefaultValues(t *testing.T) {
 
 	// Tested above, but it gives me a feel for how it would be used
 
-	if opt.Option("flag").(bool) {
-		t.Errorf("flag didn't have expected value: %v != %v", opt.Option("flag"), false)
+	if opt.Value("flag").(bool) {
+		t.Errorf("flag didn't have expected value: %v != %v", opt.Value("flag"), false)
 	}
-	if opt.Option("non-used-flag") != nil && opt.Option("non-used-flag").(bool) {
-		t.Errorf("non-used-flag didn't have expected value: %v != %v", opt.Option("non-used-flag"), nil)
+	if opt.Value("non-used-flag") != nil && opt.Value("non-used-flag").(bool) {
+		t.Errorf("non-used-flag didn't have expected value: %v != %v", opt.Value("non-used-flag"), nil)
 	}
-	if opt.Option("flag") != nil && opt.Option("nflag").(bool) {
-		t.Errorf("nflag didn't have expected value: %v != %v", opt.Option("nflag"), nil)
+	if opt.Value("flag") != nil && opt.Value("nflag").(bool) {
+		t.Errorf("nflag didn't have expected value: %v != %v", opt.Value("nflag"), nil)
 	}
-	if opt.Option("string") != "" {
-		t.Errorf("str didn't have expected value: %v != %v", opt.Option("string"), "")
+	if opt.Value("string") != "" {
+		t.Errorf("str didn't have expected value: %v != %v", opt.Value("string"), "")
 	}
-	if opt.Option("int") != 0 {
-		t.Errorf("int didn't have expected value: %v != %v", opt.Option("int"), 0)
+	if opt.Value("int") != 0 {
+		t.Errorf("int didn't have expected value: %v != %v", opt.Value("int"), 0)
 	}
 }
 
@@ -1963,8 +1963,8 @@ func TestAll(t *testing.T) {
 	}
 
 	for k := range expected {
-		if !reflect.DeepEqual(opt.Option(k), expected[k]) {
-			t.Errorf("Wrong value: %v != %v", opt.Option(k), expected[k])
+		if !reflect.DeepEqual(opt.Value(k), expected[k]) {
+			t.Errorf("Wrong value: %v != %v", opt.Value(k), expected[k])
 		}
 	}
 
@@ -1986,19 +1986,19 @@ func TestAll(t *testing.T) {
 
 	// Tested above, but it gives me a feel for how it would be used
 
-	if !opt.Option("flag").(bool) {
-		t.Errorf("flag didn't have expected value: %v != %v", opt.Option("flag"), true)
+	if !opt.Value("flag").(bool) {
+		t.Errorf("flag didn't have expected value: %v != %v", opt.Value("flag"), true)
 	}
-	if opt.Option("non-used-flag").(bool) {
-		t.Errorf("non-used-flag didn't have expected value: %v != %v", opt.Option("non-used-flag"), false)
+	if opt.Value("non-used-flag").(bool) {
+		t.Errorf("non-used-flag didn't have expected value: %v != %v", opt.Value("non-used-flag"), false)
 	}
-	if opt.Option("nflag").(bool) {
-		t.Errorf("nflag didn't have expected value: %v != %v", opt.Option("nflag"), true)
+	if opt.Value("nflag").(bool) {
+		t.Errorf("nflag didn't have expected value: %v != %v", opt.Value("nflag"), true)
 	}
-	if opt.Option("string") != "hello" {
-		t.Errorf("str didn't have expected value: %v != %v", opt.Option("string"), "hello")
+	if opt.Value("string") != "hello" {
+		t.Errorf("str didn't have expected value: %v != %v", opt.Value("string"), "hello")
 	}
-	if opt.Option("int") != 123 {
-		t.Errorf("int didn't have expected value: %v != %v", opt.Option("int"), 123)
+	if opt.Value("int") != 123 {
+		t.Errorf("int didn't have expected value: %v != %v", opt.Value("int"), 123)
 	}
 }

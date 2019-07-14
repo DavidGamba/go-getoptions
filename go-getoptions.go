@@ -128,11 +128,11 @@ func (gopt *GetOpt) CalledAs(name string) string {
 	return ""
 }
 
-// Option - Returns the value of the given option.
+// Value - Returns the value of the given option.
 //
 // Type assertions are required in cases where the compiler can't determine the type by context.
-// For example: `opt.Option("flag").(bool)`.
-func (gopt *GetOpt) Option(name string) interface{} {
+// For example: `opt.Value("flag").(bool)`.
+func (gopt *GetOpt) Value(name string) interface{} {
 	opt := gopt.option(name)
 	if opt != nil {
 		return opt.Value()
