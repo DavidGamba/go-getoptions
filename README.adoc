@@ -273,7 +273,7 @@ When mixed with Pass through, it also stops parsing arguments when the first unm
 
 == Dependencies
 
-Go 1.5+
+Go 1.10+
 
 [[roadmap]]
 == ROADMAP

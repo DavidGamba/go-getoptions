@@ -1,0 +1,106 @@
+= Changelog
+:toc:
+
+== master Breaking Changes
+
+=== Breaking changes
+
+• Remove support for Go < v1.10 (v1.5 - v1.9).
+
+=== New Features
+
+• Implement bash completion by default.
++
+Add the following to your `.bashrc`: +
+`complete -o nosort -C "/binary/location/myscript" myscript`
+
+=== Minor changes
+
+• Pad SYNOPSIS content with 4 spaces.
+• Add `Self` method to populate help NAME section.
+
+=== Backend changes
+
+• Refactor the code into more modular pieces.
+
+
+== v0.13.0 Feature release
+
+=== New Features
+
+• Experimental implementation of help messages.
+• Show used alias in errors for single options (not slice or maps).
+• Add opt.CalledAs method to know how the option was called.
+
+=== Minor changes
+
+• Add example script.
+• Add golang 1.12 to test suite.
+
+
+== v0.12.0 Breaking Changes
+
+=== Breaking change: Update function signatures
+
+Change all function signatures from:
+
+	XVar(p *bool, name string, def bool, aliases ...string)
+
+To:
+
+	XVar(p *bool, name string, def bool, fns ...ModifyFn)
+
+This change allows to pass different functions to the option that will
+modify single option behaviour and will allow for multiple features
+without future breaking changes in the function signature.
+
+As part as this change, a new function, `opt.Alias` is added to support
+previous functionality.
+
+To update, change the aliases from a list of aliases as the variadic
+last argument to a list of aliases passed to the `opt.Alias` function.
+For example:
+
+[source, diff]
+----
+- opt.BoolVar(&flag, "flag", false, "f", "alias2")
++ opt.BoolVar(&flag, "flag", false, opt.Alias("f", "alias2"))
+----
+
+=== New Features
+
+• Add `opt.Alias` option modifier to assign option aliases.
+• Add `opt.Required` option modifier to indicate if an option is required.
+
+
+== v0.11.0 Breaking Changes
+
+=== Fix `go tip` case sensitive import path
+
+	davidgamba -> DavidGamba
+
+=== Deprecate and rename redundant methods
+
+• `StringSlice` is redundant with `StringSliceMulti`.  +
+Calling: +
+`StringSlice(name, aliases...)` +
+Is the same as Calling: +
+`StringSliceMulti(name, 1, 1, aliases...)` +
+Consolidate API to: +
+`StringSlice(name, min, max, aliases...)`
+
+• `StringMap` is redundant with `StringMapMulti`. +
+Calling: +
+`StringMap(name, aliases...)` +
+Is the same as Calling: +
+`StringMapMulti(name, 1, 1, aliases...)` +
+Consolidate API to: +
+`StringMap(name, min, max, aliases...)` +
+
+• Rename `IntSliceMulti` to `IntSlice`.
+
+=== New features
+
+• Add `StringSliceVar` and `IntSliceVar` methods.
+• Add option to `SetMapKeysToLower`.
+
