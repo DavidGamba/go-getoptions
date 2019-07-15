@@ -63,14 +63,14 @@ type Option struct {
 	HelpArgName string // Optional arg name used for help
 
 	// Pointer receivers:
-	value    interface{}       // Value without type safety
-	pBool    *bool             // receiver for bool pointer
-	pString  *string           // receiver for string pointer
-	pInt     *int              // receiver for int pointer
-	pFloat64 *float64          // receiver for float64 pointer
-	pStringS *[]string         // receiver for string slice pointer
-	pIntS    *[]int            // receiver for int slice pointer
-	stringM  map[string]string // receiver for string map pointer
+	value    interface{}        // Value without type safety
+	pBool    *bool              // receiver for bool pointer
+	pString  *string            // receiver for string pointer
+	pInt     *int               // receiver for int pointer
+	pFloat64 *float64           // receiver for float64 pointer
+	pStringS *[]string          // receiver for string slice pointer
+	pIntS    *[]int             // receiver for int slice pointer
+	pStringM *map[string]string // receiver for string map pointer
 }
 
 // New - Returns a new option object
@@ -180,19 +180,19 @@ func (opt *Option) SetIntSlicePtr(s *[]int) *Option {
 	return opt
 }
 
-func (opt *Option) SetStringMap(m map[string]string) *Option {
-	opt.value = m
-	opt.stringM = m
+func (opt *Option) SetStringMapPtr(m *map[string]string) *Option {
+	opt.value = *m
+	opt.pStringM = m
 	return opt
 }
 
 func (opt *Option) SetKeyValueToStringMap(k, v string) {
 	if opt.MapKeysToLower {
-		opt.stringM[strings.ToLower(k)] = v
+		(*opt.pStringM)[strings.ToLower(k)] = v
 	} else {
-		opt.stringM[k] = v
+		(*opt.pStringM)[k] = v
 	}
-	opt.value = opt.stringM
+	opt.value = *opt.pStringM
 }
 
 // SetMin - Convenience function for `opt.MinArgs = min`

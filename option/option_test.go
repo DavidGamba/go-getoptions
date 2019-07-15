@@ -44,7 +44,7 @@ func TestOption(t *testing.T) {
 		{"string slice", New("help", StringRepeatType).SetStringSlicePtr(&ss), []string{"hola", "mundo"}, []string{"hola", "mundo"}, nil},
 		{"int slice", New("help", IntRepeatType).SetIntSlicePtr(&ii), []string{"123", "456"}, []int{123, 456}, nil},
 		{"int slice range", New("help", IntRepeatType).SetIntSlicePtr(&iiRange), []string{"1..5"}, []int{1, 2, 3, 4, 5}, nil},
-		{"map", New("help", StringMapType).SetStringMap(m), []string{"hola=mundo"}, map[string]string{"hola": "mundo"}, nil},
+		{"map", New("help", StringMapType).SetStringMapPtr(&m), []string{"hola=mundo"}, map[string]string{"hola": "mundo"}, nil},
 		// TODO: Currently map is only handling one argument at a time so the test below fails.
 		//	It seems like the caller is handling this properly so I don't really know if this is needed here.
 		// {"map", New("help", StringMapType).SetStringMap(m), []string{"hola=mundo", "hello=world"}, map[string]string{"hola": "mundo", "hello": "world"}, nil},

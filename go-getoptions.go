@@ -749,7 +749,7 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 	gopt.failIfDefined([]string{name})
 	opt := option.New(name, option.StringMapType)
 	opt.DefaultStr = "{}"
-	opt.SetStringMap(s)
+	opt.SetStringMapPtr(&s)
 	opt.SetHandler(gopt.handleSliceMultiOption)
 	opt.SetMin(min)
 	opt.SetMax(max)
@@ -767,6 +767,29 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 	gopt.completionAppendAliases(opt.Aliases)
 	gopt.SetOption(opt)
 	return s
+}
+
+// StringMapVar - define a `map[string]string` option and its aliases.
+//
+// StringMapVar will accept multiple calls of `key=value` type to the same option
+// and add them to the `map[string]string` result.
+// For example, when called with `--strMap k=v --strMap k2=v2`, the value is
+// `map[string]string{"k":"v", "k2": "v2"}`.
+//
+// Additionally, StringMapVar will allow to define a min and max amount of
+// arguments to be passed at once.
+// For example, when min is 1 and max is 3 and called with `--strMap k=v k2=v2 k3=v3`,
+// the value is `map[string]string{"k":"v", "k2": "v2", "k3": "v3"}`.
+// It could also be called with `--strMap k=v --strMap k2=v2 --strMap k3=v3` for the same result.
+//
+// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
+// For example: with `min = 2`, you at least require `--strMap k=v k2=v2 --strMap k3=v3`
+func (gopt *GetOpt) StringMapVar(m *map[string]string, name string, min, max int, fns ...ModifyFn) {
+	if *m == nil {
+		*m = make(map[string]string)
+	}
+	gopt.StringMap(name, min, max, fns...)
+	gopt.Option(name).SetStringMapPtr(m)
 }
 
 // NOTE: Options that can be called multiple times and thus modify the used

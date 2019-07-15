@@ -25,6 +25,8 @@ In combination with the new `getoptions.SetOption` it allows to pass options fro
 • Add `getoptions.CustomCompletion` method.
 Given a list, it will add the elements of the list to the completion alternatives.
 
+• Add `getoptions.StringMapVar` method.
+
 === Minor changes
 
 • Pad SYNOPSIS content with 4 spaces.
