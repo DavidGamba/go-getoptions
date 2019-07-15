@@ -42,7 +42,7 @@ type GetOpt struct {
 	mapKeysToLower bool   // Set Map keys lower case
 
 	// Debugging
-	Writer io.Writer // io.Writer locations to write warnings to. Defaults to os.Stderr.
+	Writer io.Writer // io.Writer to write warnings to. Defaults to os.Stderr.
 
 	// Data
 	obj        map[string]*option.Option // indexed options
@@ -148,12 +148,15 @@ func (gopt *GetOpt) Option(name string) *option.Option {
 	return nil
 }
 
-// option - Sets the *option for name.
-func (gopt *GetOpt) setOption(name string, opt *option.Option) {
-	gopt.obj[name] = opt
-	// TODO: Add aliases
+// SetOption - Sets a given *option.Option
+func (gopt *GetOpt) SetOption(opts ...*option.Option) *GetOpt {
 	node := gopt.completion.GetChildByName("options")
-	node.Entries = append(node.Entries, opt.Name)
+	for _, opt := range opts {
+		gopt.obj[opt.Name] = opt
+		// TODO: Add aliases
+		node.Entries = append(node.Entries, opt.Name)
+	}
+	return gopt
 }
 
 // SetMode - Sets the Operation Mode.
@@ -363,7 +366,7 @@ func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return &def
 }
 
@@ -405,7 +408,7 @@ func (gopt *GetOpt) NBool(name string, def bool, fns ...ModifyFn) *bool {
 	gopt.failIfDefined(aliases)
 	opt.SetAlias(aliases...)
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return &def
 }
 
@@ -467,7 +470,7 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return &def
 }
 
@@ -497,7 +500,7 @@ func (gopt *GetOpt) StringOptional(name string, def string, fns ...ModifyFn) *st
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return &def
 }
 
@@ -525,7 +528,7 @@ func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return &def
 }
 
@@ -554,7 +557,7 @@ func (gopt *GetOpt) IntOptional(name string, def int, fns ...ModifyFn) *int {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return &def
 }
 
@@ -582,7 +585,7 @@ func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return &def
 }
 
@@ -629,7 +632,7 @@ func (gopt *GetOpt) StringSlice(name string, min, max int, fns ...ModifyFn) *[]s
 	}
 	Debug.Printf("StringMulti return: %v\n", s)
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return &s
 }
 
@@ -692,7 +695,7 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int 
 	}
 	Debug.Printf("IntMulti return: %v\n", s)
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return &s
 }
 
@@ -756,7 +759,7 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 	}
 	Debug.Printf("StringMulti return: %v\n", s)
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return s
 }
 
@@ -846,7 +849,7 @@ func (gopt *GetOpt) Increment(name string, def int, fns ...ModifyFn) *int {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(name, opt)
+	gopt.SetOption(opt)
 	return &def
 }
 
