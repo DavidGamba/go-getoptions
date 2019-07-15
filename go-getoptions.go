@@ -28,6 +28,16 @@ import (
 // Enable debug logging by setting: `Debug.SetOutput(os.Stderr)`.
 var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
+// UnknownMode - Unknown option mode
+type UnknownMode int
+
+// Unknown option modes
+const (
+	Fail UnknownMode = iota
+	Warn
+	Pass
+)
+
 // GetOpt - main object.
 type GetOpt struct {
 	// Help fields
@@ -36,10 +46,10 @@ type GetOpt struct {
 
 	// Option handling
 	// TODO: Option handling should trickle down to commands.
-	mode           string // Operation mode for short options: normal, bundling, singleDash
-	unknownMode    string // Unknown option mode
-	requireOrder   bool   // Stop parsing on non option
-	mapKeysToLower bool   // Set Map keys lower case
+	mode           string      // Operation mode for short options: normal, bundling, singleDash
+	unknownMode    UnknownMode // Unknown option mode
+	requireOrder   bool        // Stop parsing on non option
+	mapKeysToLower bool        // Set Map keys lower case
 
 	// Debugging
 	Writer io.Writer // io.Writer to write warnings to. Defaults to os.Stderr.
@@ -199,7 +209,7 @@ func (gopt *GetOpt) SetMode(mode string) {
 // • 'pass' will make 'Parse' ignore any unknown options and they will be passed onto the 'remaining' slice.
 // This allows for subcommands.
 // TODO: Add aliases
-func (gopt *GetOpt) SetUnknownMode(mode string) {
+func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) {
 	gopt.unknownMode = mode
 }
 
@@ -1010,7 +1020,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 				} else {
 					Debug.Printf("opt_list not found for '%s'\n", optElement)
 					switch gopt.unknownMode {
-					case "pass":
+					case Pass:
 						if gopt.requireOrder {
 							remaining = append(remaining, gopt.args.remaining()...)
 							Debug.Printf("Stop on unknown options %s\n", arg)
@@ -1019,7 +1029,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 						}
 						remaining = append(remaining, arg)
 						break
-					case "warn":
+					case Warn:
 						fmt.Fprintf(gopt.Writer, text.MessageOnUnknown, optElement)
 						remaining = append(remaining, arg)
 						break

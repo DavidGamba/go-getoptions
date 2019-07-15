@@ -19,7 +19,7 @@ func main() {
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false)
 	opt.SetRequireOrder()
-	opt.SetUnknownMode("pass")
+	opt.SetUnknownMode(getoptions.Pass)
 	opt.Command(gitlog.Options().SetOption(opt.Option("help"), opt.Option("debug")))
 	opt.Command(gitshow.Options().SetOption(opt.Option("help"), opt.Option("debug")))
 	opt.Command(getoptions.New().Self("help", "Show help").CustomCompletion([]string{"log", "show"}))

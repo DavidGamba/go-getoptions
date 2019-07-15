@@ -138,7 +138,7 @@ func TestUnknownOptionModes(t *testing.T) {
 	}
 
 	opt = New()
-	opt.SetUnknownMode("fail")
+	opt.SetUnknownMode(Fail)
 	_, err = opt.Parse([]string{"--flags"})
 	if err == nil {
 		t.Errorf("Unknown option 'flags' didn't raise error")
@@ -150,7 +150,7 @@ func TestUnknownOptionModes(t *testing.T) {
 	buf := new(bytes.Buffer)
 	opt = New()
 	opt.Writer = buf
-	opt.SetUnknownMode("warn")
+	opt.SetUnknownMode(Warn)
 	remaining, err := opt.Parse([]string{"--flags"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -166,7 +166,7 @@ func TestUnknownOptionModes(t *testing.T) {
 	buf = new(bytes.Buffer)
 	opt = New()
 	opt.Writer = buf
-	opt.SetUnknownMode("pass")
+	opt.SetUnknownMode(Pass)
 	remaining, err = opt.Parse([]string{"--flags"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -184,7 +184,7 @@ func TestUnknownOptionModes(t *testing.T) {
 	opt.Writer = buf
 	opt.Bool("known", false)
 	opt.Bool("another", false)
-	opt.SetUnknownMode("pass")
+	opt.SetUnknownMode(Pass)
 	remaining, err = opt.Parse([]string{"--flags", "--known", "--another", "--unknown"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -227,7 +227,7 @@ func TestSetRequireOrder(t *testing.T) {
 	opt.Writer = buf
 	opt.Bool("known", false)
 	opt.Bool("another", false)
-	opt.SetUnknownMode("pass")
+	opt.SetUnknownMode(Pass)
 	opt.SetRequireOrder()
 	remaining, err = opt.Parse([]string{"--flags", "--known", "--another", "--unknown"})
 	if err != nil {
@@ -245,7 +245,7 @@ func TestSetRequireOrder(t *testing.T) {
 	opt.Writer = buf
 	opt.Bool("known", false)
 	opt.Bool("another", false)
-	opt.SetUnknownMode("pass")
+	opt.SetUnknownMode(Pass)
 	opt.SetRequireOrder()
 	remaining, err = opt.Parse([]string{"--known", "--flags", "--another", "--unknown"})
 	if err != nil {
