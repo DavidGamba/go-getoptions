@@ -353,6 +353,12 @@ func (gopt *GetOpt) Command(options *GetOpt) {
 	gopt.commands[options.name] = options
 }
 
+// CustomCompletion - Add a custom completion list.
+func (gopt *GetOpt) CustomCompletion(list []string) *GetOpt {
+	gopt.completion.AddChild(completion.NewNode("custom", completion.CustomNode, list))
+	return gopt
+}
+
 // Bool - define a `bool` option and its aliases.
 // It returns a `*bool` pointing to the variable holding the result.
 // If the option is found, the result will be the opposite of the provided default.

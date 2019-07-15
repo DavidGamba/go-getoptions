@@ -3,6 +3,9 @@
 
 == master Breaking Changes
 
+This release introduces bash completion by default and works out many kinks around subcommands.
+An example showing subcommands can be found in https://github.com/DavidGamba/go-getoptions/tree/master/examples/mygit[./examples/mygit].
+
 === Breaking changes
 
 • Remove support for Go < v1.10 (v1.5 - v1.9).
@@ -18,6 +21,9 @@ Add the following to your `.bashrc`: +
 
 • New `getoptions.Option` method that returns `*option.Option`.
 In combination with the new `getoptions.SetOption` it allows to pass options from parent to subcommand.
+
+• Add `getoptions.CustomCompletion` method.
+Given a list, it will add the elements of the list to the completion alternatives.
 
 === Minor changes
 

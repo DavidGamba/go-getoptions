@@ -22,7 +22,7 @@ func main() {
 	opt.SetUnknownMode("pass")
 	opt.Command(gitlog.Options().SetOption(opt.Option("help"), opt.Option("debug")))
 	opt.Command(gitshow.Options().SetOption(opt.Option("help"), opt.Option("debug")))
-	opt.Command(getoptions.New().Self("help", "Show help"))
+	opt.Command(getoptions.New().Self("help", "Show help").CustomCompletion([]string{"log", "show"}))
 	remaining, err := opt.Parse(os.Args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)

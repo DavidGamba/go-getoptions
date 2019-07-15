@@ -1,2 +1,2 @@
 #!/bin/bash
-complete -o nosort -C "$PWD/mygit" mygit
+complete -o default -C "$PWD/mygit" mygit

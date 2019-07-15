@@ -1,2 +1,2 @@
 #!/bin/bash
-complete -o nosort -C "$PWD/myscript" myscript
+complete -o default -C "$PWD/myscript" myscript

@@ -37,5 +37,5 @@ func Show(args []string) {
 		logger.SetOutput(os.Stderr)
 	}
 	logger.Println(remaining)
-	fmt.Printf("show output...\n")
+	fmt.Printf("show output... %v\n", remaining)
 }
