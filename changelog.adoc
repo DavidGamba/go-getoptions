@@ -10,6 +10,7 @@ An example showing subcommands can be found in https://github.com/DavidGamba/go-
 
 • Remove support for Go < v1.10 (v1.5 - v1.9).
 • Rename `getoptions.Option` to `getoptions.Value`.
++
 WARNING: A new `getoptions.Option` method is has been introduced, but the new one returns `*option.Option` instead.
 
 === New Features

@@ -16,8 +16,7 @@ var Opt *getoptions.GetOpt
 
 // Options - Populate Options definition
 func Options() *getoptions.GetOpt {
-	Opt = getoptions.New()
-	Opt.Self("show", "Show various types of objects")
+	Opt = getoptions.New().Self("show", "Show various types of objects")
 	Opt.Bool("show-option", false)
 	return Opt
 }

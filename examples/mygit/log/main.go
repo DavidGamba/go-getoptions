@@ -16,8 +16,7 @@ var Opt *getoptions.GetOpt
 
 // Options - Populate Options definition
 func Options() *getoptions.GetOpt {
-	Opt = getoptions.New()
-	Opt.Self("log", "Show commit logs")
+	Opt = getoptions.New().Self("log", "Show commit logs")
 	Opt.Bool("log-option", false, Opt.Alias("l"))
 	return Opt
 }
