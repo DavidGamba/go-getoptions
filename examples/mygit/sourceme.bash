@@ -1,2 +1,2 @@
 #!/bin/bash
-complete -C "$PWD/mygit" mygit
+complete -o nosort -C "$PWD/mygit" mygit

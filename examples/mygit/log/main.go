@@ -11,27 +11,29 @@ import (
 
 var logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
 
+// Opt - Options Definition struct
+var Opt *getoptions.GetOpt
+
+// Options - Populate Options definition
 func Options() *getoptions.GetOpt {
-	opt := getoptions.New()
-	opt.Self("log", "Show commit logs")
-	opt.Bool("help", false, opt.Alias("?"))
-	opt.Bool("debug", false)
-	opt.Bool("log-option", false, opt.Alias("l"))
-	return opt
+	Opt = getoptions.New()
+	Opt.Self("log", "Show commit logs")
+	Opt.Bool("log-option", false, Opt.Alias("l"))
+	return Opt
 }
 
+// Log - Command entry point
 func Log(args []string) {
-	opt := Options()
-	remaining, err := opt.Parse(args)
+	remaining, err := Opt.Parse(args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		os.Exit(1)
 	}
-	if opt.Called("help") {
-		fmt.Fprintf(os.Stderr, opt.Help())
+	if Opt.Called("help") {
+		fmt.Fprintf(os.Stderr, Opt.Help())
 		os.Exit(1)
 	}
-	if opt.Called("debug") {
+	if Opt.Called("debug") {
 		logger.SetOutput(os.Stderr)
 	}
 	logger.Println(remaining)

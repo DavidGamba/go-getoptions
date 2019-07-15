@@ -14,29 +14,14 @@ import (
 
 var logger = log.New(ioutil.Discard, "", log.LstdFlags)
 
-var commandList = []string{
-	"log",
-	"show",
-}
-
-func contains(s []string, x string) bool {
-	for _, e := range s {
-		if x == e {
-			return true
-		}
-	}
-	return false
-}
-
 func main() {
-	// getoptions.Debug.SetOutput(os.Stderr)
 	opt := getoptions.New()
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false)
 	opt.SetRequireOrder()
 	opt.SetUnknownMode("pass")
-	opt.Command(gitlog.Options())
-	opt.Command(gitshow.Options())
+	opt.Command(gitlog.Options().SetOption(opt.Option("help"), opt.Option("debug")))
+	opt.Command(gitshow.Options().SetOption(opt.Option("help"), opt.Option("debug")))
 	opt.Command(getoptions.New().Self("help", "Show help"))
 	remaining, err := opt.Parse(os.Args[1:])
 	if err != nil {
@@ -46,20 +31,17 @@ func main() {
 	if opt.Called("debug") {
 		logger.SetOutput(os.Stderr)
 	}
-	logger.Println(remaining)
+	logger.Printf("Remaning cli args: %v", remaining)
 
+	// No commands given, defaults to show help
 	if len(remaining) == 0 {
 		fmt.Fprintf(os.Stderr, opt.Help())
 		fmt.Fprintf(os.Stderr, "Use '%s help <command>' for extra details!\n", filepath.Base(os.Args[0]))
 		os.Exit(1)
 	}
+
 	// First remaining argument is the command
 	command, remaining := remaining[0], remaining[1:]
-
-	// executable --help <command>
-	if opt.Called("help") && contains(commandList, command) {
-		remaining = []string{"--help"}
-	}
 
 	handleCommand(opt, command, remaining)
 }
