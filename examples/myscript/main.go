@@ -9,54 +9,35 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var logger = log.New(os.Stderr, "DEBUG: ", log.LstdFlags)
+var logger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
 
 func main() {
-	// Declare the variables you want your options to update
 	var debug bool
 	var greetCount int
-
-	// Declare the GetOptions object
 	opt := getoptions.New()
-
-	// Options definition
-	opt.Bool("help", false, opt.Alias("h", "?")) // Aliases can be defined
+	opt.Bool("help", false, opt.Alias("h", "?"))
 	opt.BoolVar(&debug, "debug", false)
 	opt.IntVar(&greetCount, "greet", 0,
-		opt.Required(), // Mark option as required
-		opt.Description("Number of times to greet."), // Set the automated help description
-		opt.ArgName("number"),                        // Change the help synopsis arg from <int> to <number>
-	)
+		opt.Required(),
+		opt.Description("Number of times to greet."))
 	greetings := opt.StringMap("list", 1, 99,
-		opt.Description("Greeting list by language."),
-		opt.ArgName("lang=msg"), // Change the help synopsis arg from <key=value> to <lang=msg>
-	)
-
-	// Parse cmdline arguments or any provided []string
+		opt.Description("Greeting list by language."))
 	remaining, err := opt.Parse(os.Args[1:])
-
-	// Handle help before handling user errors
 	if opt.Called("help") {
 		fmt.Fprintf(os.Stderr, opt.Help())
 		os.Exit(1)
 	}
-
-	// Handle user errors
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
 		fmt.Fprintf(os.Stderr, opt.HelpSynopsis())
 		os.Exit(1)
 	}
 
-	// Use the passed command line options
-
-	// Use the bool variable
-	if !debug {
-		logger.SetOutput(ioutil.Discard)
+	// Use the passed command line options... Enjoy!
+	if debug {
+		logger.SetOutput(os.Stderr)
 	}
-
-	// Show non-options in the remaining array
-	logger.Printf("Remaining: %v\n", remaining)
+	logger.Printf("Unhandled CLI args: %v\n", remaining)
 
 	// Use the int variable
 	for i := 0; i < greetCount; i++ {

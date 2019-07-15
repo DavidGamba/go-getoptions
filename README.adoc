@@ -8,7 +8,7 @@ Go option parser inspired on the flexibility of Perl’s GetOpt::Long.
 
 image:https://godoc.org/github.com/DavidGamba/go-getoptions?status.svg[link="http://godoc.org/github.com/DavidGamba/go-getoptions"]
 image:https://travis-ci.org/DavidGamba/go-getoptions.svg["Build Status", link="https://travis-ci.org/DavidGamba/go-getoptions"]
-image:https://codecov.io/github/DavidGamba/go-getoptions/coverage.svg?branch=master["Coverage via Codecov", link="https://codecov.io/github/DavidGamba/go-getoptions?branch=master"]
+image:https://codecov.io/github/DavidGamba/go-getoptions/coverage.svg?branch=master["Coverage via Codecov", link="https://codecov.io/github/DavidGamba/go-getoptions?branch=release"]
 
 toc::[]
 
@@ -30,54 +30,35 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var logger = log.New(os.Stderr, "DEBUG: ", log.LstdFlags)
+var logger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
 
 func main() {
-	// Declare the variables you want your options to update
 	var debug bool
 	var greetCount int
-
-	// Declare the GetOptions object
 	opt := getoptions.New()
-
-	// Options definition
-	opt.Bool("help", false, opt.Alias("h", "?")) // Aliases can be defined
+	opt.Bool("help", false, opt.Alias("h", "?"))
 	opt.BoolVar(&debug, "debug", false)
 	opt.IntVar(&greetCount, "greet", 0,
-		opt.Required(), // Mark option as required
-		opt.Description("Number of times to greet."), // Set the automated help description
-		opt.ArgName("number"),                        // Change the help synopsis arg from <int> to <number>
-	)
+		opt.Required(),
+		opt.Description("Number of times to greet."))
 	greetings := opt.StringMap("list", 1, 99,
-		opt.Description("Greeting list by language."),
-		opt.ArgName("lang=msg"), // Change the help synopsis arg from <key=value> to <lang=msg>
-	)
-
-	// Parse cmdline arguments or any provided []string
+		opt.Description("Greeting list by language."))
 	remaining, err := opt.Parse(os.Args[1:])
-
-	// Handle help before handling user errors
 	if opt.Called("help") {
 		fmt.Fprintf(os.Stderr, opt.Help())
 		os.Exit(1)
 	}
-
-	// Handle user errors
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
 		fmt.Fprintf(os.Stderr, opt.HelpSynopsis())
 		os.Exit(1)
 	}
 
-	// Use the passed command line options
-
-	// Use the bool variable
-	if !debug {
-		logger.SetOutput(ioutil.Discard)
+	// Use the passed command line options... Enjoy!
+	if debug {
+		logger.SetOutput(os.Stderr)
 	}
-
-	// Show non-options in the remaining array
-	logger.Printf("Remaining: %v\n", remaining)
+	logger.Printf("Unhandled CLI args: %v\n", remaining)
 
 	// Use the int variable
 	for i := 0; i < greetCount; i++ {
@@ -92,7 +73,6 @@ func main() {
 		}
 	}
 }
-
 ----
 
 . Call it:
@@ -101,17 +81,17 @@ func main() {
 ----
 $ ./myscript --help
 SYNOPSIS:
-myscript --greet <number> [--debug] [--help|-h|-?] [--list <lang=msg>...]...
+    myscript --greet <int> [--debug] [--help|-h|-?] [--list <key=value>...]...
 
 REQUIRED PARAMETERS:
-    --greet <number>             Number of times to greet.
+    --greet <int>                Number of times to greet.
 
 OPTIONS:
     --debug                      (default: false)
 
     --help|-h|-?                 (default: false)
 
-    --list <lang=msg>...         Greeting list by language. (default: {})
+    --list <key=value>...        Greeting list by language. (default: {})
 
 ----
 +
@@ -121,7 +101,7 @@ $ ./myscript
 ERROR: Missing required option 'greet'!
 
 SYNOPSIS:
-myscript --greet <number> [--debug] [--help|-h|-?] [--list <lang=msg>...]...
+    myscript --greet <int> [--debug] [--help|-h|-?] [--list <key=value>...]...
 ----
 +
 .Show errors
@@ -130,7 +110,7 @@ $ ./myscript -g
 ERROR: Missing argument for option 'greet'!
 
 SYNOPSIS:
-myscript --greet <number> [--debug] [--help|-h|-?] [--list <lang=msg>...]...
+    myscript --greet <int> [--debug] [--help|-h|-?] [--list <key=value>...]...
 ----
 +
 .Use of int option
@@ -144,7 +124,7 @@ Hello World, from go-getoptions!
 .Use of bool option
 ----
 $ ./myscript --debug -g 1 other stuff
-DEBUG: 2019/03/02 10:27:48 Remaining: [other stuff]
+DEBUG: 2019/07/14 23:20:22 Unhandled CLI args: [other stuff]
 Hello World, from go-getoptions!
 ----
 +
