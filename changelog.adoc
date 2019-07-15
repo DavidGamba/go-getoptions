@@ -7,6 +7,7 @@
 
 • Remove support for Go < v1.10 (v1.5 - v1.9).
 • Rename `getoptions.Option` to `getoptions.Value`.
+WARNING: A new `getoptions.Option` method is has been introduced, but the new one returns `*option.Option` instead.
 
 === New Features
 
@@ -14,6 +15,9 @@
 +
 Add the following to your `.bashrc`: +
 `complete -o nosort -C "/binary/location/myscript" myscript`
+
+• New `getoptions.Option` method that returns `*option.Option`.
+In combination with the new `getoptions.SetOption` it allows to pass options from parent to subcommand.
 
 === Minor changes
 
