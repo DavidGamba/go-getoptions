@@ -22,7 +22,7 @@ Return the option(s) without the starting dash and an argument if the string con
 The behaviour changes depending on the mode: normal, bundling or singleDash.
 Also, handle the single dash '-' and double dash '--' especial options.
 */
-func isOption(s string, mode string) (options []string, argument string) {
+func isOption(s string, mode Mode) (options []string, argument string) {
 	// Handle especial cases
 	if s == "--" {
 		return []string{"--"}, ""
@@ -39,10 +39,10 @@ func isOption(s string, mode string) (options []string, argument string) {
 			return
 		}
 		switch mode {
-		case "bundling":
+		case Bundling:
 			options = strings.Split(match[2], "")
 			argument = isOptionRegexEquals.ReplaceAllString(match[3], "")
-		case "singleDash":
+		case SingleDash:
 			options = []string{strings.Split(match[2], "")[0]}
 			argument = strings.Join(strings.Split(match[2], "")[1:], "") + match[3]
 		default:

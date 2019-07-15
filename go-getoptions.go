@@ -28,6 +28,16 @@ import (
 // Enable debug logging by setting: `Debug.SetOutput(os.Stderr)`.
 var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
+// Mode - Operation mode for short options
+type Mode int
+
+// Operation modes
+const (
+	Normal Mode = iota
+	Bundling
+	SingleDash
+)
+
 // UnknownMode - Unknown option mode
 type UnknownMode int
 
@@ -46,7 +56,7 @@ type GetOpt struct {
 
 	// Option handling
 	// TODO: Option handling should trickle down to commands.
-	mode           string      // Operation mode for short options: normal, bundling, singleDash
+	mode           Mode        // Operation mode for short options: normal, bundling, singleDash
 	unknownMode    UnknownMode // Unknown option mode
 	requireOrder   bool        // Stop parsing on non option
 	mapKeysToLower bool        // Set Map keys lower case
@@ -195,7 +205,7 @@ func (gopt *GetOpt) SetOption(opts ...*option.Option) *GetOpt {
 //     |===
 //
 // See https://github.com/DavidGamba/go-getoptions#operation_modes for more details.
-func (gopt *GetOpt) SetMode(mode string) {
+func (gopt *GetOpt) SetMode(mode Mode) {
 	gopt.mode = mode
 }
 

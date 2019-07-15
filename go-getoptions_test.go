@@ -24,32 +24,32 @@ func TestIsOption(t *testing.T) {
 
 	cases := []struct {
 		in       string
-		mode     string
+		mode     Mode
 		options  []string
 		argument string
 	}{
-		{"opt", "bundling", []string{}, ""},
-		{"--opt", "bundling", []string{"opt"}, ""},
-		{"--opt=arg", "bundling", []string{"opt"}, "arg"},
-		{"-opt", "bundling", []string{"o", "p", "t"}, ""},
-		{"-opt=arg", "bundling", []string{"o", "p", "t"}, "arg"},
-		{"-", "bundling", []string{"-"}, ""},
-		{"--", "bundling", []string{"--"}, ""},
+		{"opt", Bundling, []string{}, ""},
+		{"--opt", Bundling, []string{"opt"}, ""},
+		{"--opt=arg", Bundling, []string{"opt"}, "arg"},
+		{"-opt", Bundling, []string{"o", "p", "t"}, ""},
+		{"-opt=arg", Bundling, []string{"o", "p", "t"}, "arg"},
+		{"-", Bundling, []string{"-"}, ""},
+		{"--", Bundling, []string{"--"}, ""},
 
-		{"opt", "singleDash", []string{}, ""},
-		{"--opt", "singleDash", []string{"opt"}, ""},
-		{"--opt=arg", "singleDash", []string{"opt"}, "arg"},
-		{"-opt", "singleDash", []string{"o"}, "pt"},
-		{"-opt=arg", "singleDash", []string{"o"}, "pt=arg"},
-		{"-", "singleDash", []string{"-"}, ""},
-		{"--", "singleDash", []string{"--"}, ""},
+		{"opt", SingleDash, []string{}, ""},
+		{"--opt", SingleDash, []string{"opt"}, ""},
+		{"--opt=arg", SingleDash, []string{"opt"}, "arg"},
+		{"-opt", SingleDash, []string{"o"}, "pt"},
+		{"-opt=arg", SingleDash, []string{"o"}, "pt=arg"},
+		{"-", SingleDash, []string{"-"}, ""},
+		{"--", SingleDash, []string{"--"}, ""},
 
-		{"opt", "normal", []string{}, ""},
-		{"--opt", "normal", []string{"opt"}, ""},
-		{"--opt=arg", "normal", []string{"opt"}, "arg"},
-		{"-opt", "normal", []string{"opt"}, ""},
-		{"-", "normal", []string{"-"}, ""},
-		{"--", "normal", []string{"--"}, ""},
+		{"opt", Normal, []string{}, ""},
+		{"--opt", Normal, []string{"opt"}, ""},
+		{"--opt=arg", Normal, []string{"opt"}, "arg"},
+		{"-opt", Normal, []string{"opt"}, ""},
+		{"-", Normal, []string{"-"}, ""},
+		{"--", Normal, []string{"--"}, ""},
 	}
 	for _, c := range cases {
 		options, argument := isOption(c.in, c.mode)
@@ -1631,7 +1631,7 @@ func TestBundling(t *testing.T) {
 	opt.BoolVar(&o, "o", false)
 	opt.BoolVar(&p, "p", false)
 	opt.StringVar(&s, "t", "")
-	opt.SetMode("bundling")
+	opt.SetMode(Bundling)
 	_, err := opt.Parse([]string{
 		"-opt=arg",
 	})
@@ -1657,7 +1657,7 @@ func TestSingleDash(t *testing.T) {
 	opt.StringVar(&o, "o", "")
 	opt.BoolVar(&p, "p", false)
 	opt.StringVar(&s, "t", "")
-	opt.SetMode("singleDash")
+	opt.SetMode(SingleDash)
 	_, err := opt.Parse([]string{
 		"-opt=arg",
 	})

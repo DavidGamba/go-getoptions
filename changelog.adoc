@@ -13,7 +13,7 @@ An example showing subcommands can be found in https://github.com/DavidGamba/go-
 +
 WARNING: A new `getoptions.Option` method is has been introduced, but the new one returns `*option.Option` instead.
 
-• Change the argument of `opt.SetUnknownMode` from a string to a `getoptions.UnknownMode` type.
+• Change the argument of `opt.SetMode` and `opt.SetUnknownMode` from a string to a `getoptions.Mode` and `getoptions.UnknownMode` type.
 Makes it easier to autodiscover valid arguments for the method.
 
 === New Features
