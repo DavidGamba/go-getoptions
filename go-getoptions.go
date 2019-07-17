@@ -385,9 +385,9 @@ func (gopt *GetOpt) CustomCompletion(list []string) *GetOpt {
 func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
 	gopt.failIfDefined([]string{name})
 	opt := option.New(name, option.BoolType)
-	opt.SetDefaultStr(fmt.Sprintf("%t", def))
+	opt.DefaultStr = fmt.Sprintf("%t", def)
 	opt.SetBoolPtr(&def)
-	opt.SetHandler(gopt.handleBool)
+	opt.Handler = gopt.handleBool
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -420,9 +420,9 @@ func (gopt *GetOpt) handleBool(name string, argument string, usedAlias string) e
 func (gopt *GetOpt) NBool(name string, def bool, fns ...ModifyFn) *bool {
 	gopt.failIfDefined([]string{name})
 	opt := option.New(name, option.BoolType)
-	opt.SetDefaultStr(fmt.Sprintf("%t", def))
+	opt.DefaultStr = fmt.Sprintf("%t", def)
 	opt.SetBoolPtr(&def)
-	opt.SetHandler(gopt.handleNBool)
+	opt.Handler = gopt.handleNBool
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -490,7 +490,7 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 	opt := option.New(name, option.StringType)
 	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
 	opt.SetStringPtr(&def)
-	opt.SetHandler(gopt.handleSingleOption)
+	opt.Handler = gopt.handleSingleOption
 	opt.HelpArgName = "string"
 	for _, fn := range fns {
 		fn(opt)
@@ -519,8 +519,8 @@ func (gopt *GetOpt) StringOptional(name string, def string, fns ...ModifyFn) *st
 	opt := option.New(name, option.StringType)
 	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
 	opt.SetStringPtr(&def)
-	opt.SetIsOptional()
-	opt.SetHandler(gopt.handleSingleOption)
+	opt.IsOptional = true
+	opt.Handler = gopt.handleSingleOption
 	opt.HelpArgName = "string"
 	for _, fn := range fns {
 		fn(opt)
@@ -548,7 +548,7 @@ func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
 	opt := option.New(name, option.IntType)
 	opt.DefaultStr = fmt.Sprintf("%d", def)
 	opt.SetIntPtr(&def)
-	opt.SetHandler(gopt.handleSingleOption)
+	opt.Handler = gopt.handleSingleOption
 	opt.HelpArgName = "int"
 	for _, fn := range fns {
 		fn(opt)
@@ -576,8 +576,8 @@ func (gopt *GetOpt) IntOptional(name string, def int, fns ...ModifyFn) *int {
 	opt := option.New(name, option.IntType)
 	opt.DefaultStr = fmt.Sprintf("%d", def)
 	opt.SetIntPtr(&def)
-	opt.SetIsOptional()
-	opt.SetHandler(gopt.handleSingleOption)
+	opt.IsOptional = true
+	opt.Handler = gopt.handleSingleOption
 	opt.HelpArgName = "int"
 	for _, fn := range fns {
 		fn(opt)
@@ -605,7 +605,7 @@ func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 
 	opt := option.New(name, option.Float64Type)
 	opt.DefaultStr = fmt.Sprintf("%f", def)
 	opt.SetFloat64Ptr(&def)
-	opt.SetHandler(gopt.handleSingleOption)
+	opt.Handler = gopt.handleSingleOption
 	opt.HelpArgName = "float64"
 	for _, fn := range fns {
 		fn(opt)
@@ -643,9 +643,9 @@ func (gopt *GetOpt) StringSlice(name string, min, max int, fns ...ModifyFn) *[]s
 	opt := option.New(name, option.StringRepeatType)
 	opt.DefaultStr = "[]"
 	opt.SetStringSlicePtr(&s)
-	opt.SetHandler(gopt.handleSliceMultiOption)
-	opt.SetMin(min)
-	opt.SetMax(max)
+	opt.Handler = gopt.handleSliceMultiOption
+	opt.MinArgs = min
+	opt.MaxArgs = max
 	opt.HelpArgName = "string"
 	if min <= 0 {
 		panic(fmt.Sprintf("%s min should be > 0", name))
@@ -706,9 +706,9 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int 
 	opt := option.New(name, option.IntRepeatType)
 	opt.DefaultStr = "[]"
 	opt.SetIntSlicePtr(&s)
-	opt.SetHandler(gopt.handleSliceMultiOption)
-	opt.SetMin(min)
-	opt.SetMax(max)
+	opt.Handler = gopt.handleSliceMultiOption
+	opt.MinArgs = min
+	opt.MaxArgs = max
 	opt.HelpArgName = "int"
 	if min <= 0 {
 		panic(fmt.Sprintf("%s min should be > 0", name))
@@ -770,9 +770,9 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 	opt := option.New(name, option.StringMapType)
 	opt.DefaultStr = "{}"
 	opt.SetStringMapPtr(&s)
-	opt.SetHandler(gopt.handleSliceMultiOption)
-	opt.SetMin(min)
-	opt.SetMax(max)
+	opt.Handler = gopt.handleSliceMultiOption
+	opt.MinArgs = min
+	opt.MaxArgs = max
 	opt.HelpArgName = "key=value"
 	if min <= 0 {
 		panic(fmt.Sprintf("%s min should be > 0", name))
@@ -893,7 +893,7 @@ func (gopt *GetOpt) Increment(name string, def int, fns ...ModifyFn) *int {
 	opt := option.New(name, option.IntType)
 	opt.DefaultStr = fmt.Sprintf("%d", def)
 	opt.SetIntPtr(&def)
-	opt.SetHandler(gopt.handleIncrement)
+	opt.Handler = gopt.handleIncrement
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -913,7 +913,7 @@ func (gopt *GetOpt) handleIncrement(name string, argument string, usedAlias stri
 	Debug.Println("handleIncrement")
 	opt := gopt.Option(name)
 	opt.SetCalled(usedAlias)
-	opt.SetInt(opt.GetInt() + 1)
+	opt.SetInt(opt.Int() + 1)
 	return nil
 }
 
@@ -1062,17 +1062,10 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	}
 	// After parsing all options, verify that all required options where called.
 	for _, option := range gopt.obj {
-		if option.IsRequired {
-			if !option.Called {
-				var err error
-				if option.IsRequiredErr != "" {
-					err = fmt.Errorf(option.IsRequiredErr)
-				} else {
-					err = fmt.Errorf(text.ErrorMissingRequiredOption, option.Name)
-				}
-				Debug.Printf("return %v, %v", nil, err)
-				return nil, err
-			}
+		err := option.CheckRequired()
+		if err != nil {
+			Debug.Printf("return %v, %v", nil, err)
+			return nil, err
 		}
 	}
 	Debug.Printf("return %v, %v", remaining, nil)

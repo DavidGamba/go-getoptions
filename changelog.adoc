@@ -21,7 +21,7 @@ Makes it easier to autodiscover valid arguments for the method.
 • Implement bash completion by default.
 +
 Add the following to your `.bashrc`: +
-`complete -o nosort -C "/binary/location/myscript" myscript`
+`complete -o default -C "/binary/location/myscript" myscript`
 
 • New `getoptions.Option` method that returns `*option.Option`.
 In combination with the new `getoptions.SetOption` it allows to pass options from parent to subcommand.

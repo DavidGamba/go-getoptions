@@ -24,15 +24,15 @@ import (
 // Enable debug logging by setting: `Debug.SetOutput(os.Stderr)`.
 var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
-// HandlerType - Signature for the function that handles saving to the option.
-type HandlerType func(optName string, argument string, usedAlias string) error
+// Handler - Signature for the function that handles saving to the option.
+type Handler func(optName string, argument string, usedAlias string) error
 
-// OptionType - Indicates the type of option.
-type OptionType int
+// Type - Indicates the type of option.
+type Type int
 
 // Option Types
 const (
-	BoolType OptionType = iota
+	BoolType Type = iota
 	StringType
 	IntType
 	Float64Type
@@ -45,14 +45,14 @@ const (
 type Option struct {
 	Name           string
 	Aliases        []string
-	Called         bool        // Indicates if the option was passed on the command line
-	UsedAlias      string      // Alias used when the option was called
-	Handler        HandlerType // method used to handle the option
-	IsOptional     bool        // Indicates if an option has an optional argument
-	MapKeysToLower bool        // Indicates if the option of map type has it keys set ToLower
-	OptType        OptionType  // Option Type
-	MinArgs        int         // minimum args when using multi
-	MaxArgs        int         // maximum args when using multi
+	Called         bool    // Indicates if the option was passed on the command line
+	UsedAlias      string  // Alias used when the option was called
+	Handler        Handler // method used to handle the option
+	IsOptional     bool    // Indicates if an option has an optional argument
+	MapKeysToLower bool    // Indicates if the option of map type has it keys set ToLower
+	OptType        Type    // Option Type
+	MinArgs        int     // minimum args when using multi
+	MaxArgs        int     // maximum args when using multi
 
 	IsRequired    bool   // Indicates if the option is required
 	IsRequiredErr string // Error message for the required option
@@ -74,12 +74,17 @@ type Option struct {
 }
 
 // New - Returns a new option object
-func New(name string, optType OptionType) *Option {
+func New(name string, optType Type) *Option {
 	return &Option{
 		Name:    name,
 		OptType: optType,
 		Aliases: []string{name},
 	}
+}
+
+// Value - Get untyped option value
+func (opt *Option) Value() interface{} {
+	return opt.value
 }
 
 // SetAlias - Adds aliases to an option.
@@ -89,120 +94,138 @@ func (opt *Option) SetAlias(alias ...string) *Option {
 }
 
 // SetRequired - Marks an option as required.
-func (opt *Option) SetRequired(msg string) {
+func (opt *Option) SetRequired(msg string) *Option {
 	opt.IsRequired = true
 	opt.IsRequiredErr = msg
+	return opt
 }
 
-func (opt *Option) SetHandler(h HandlerType) {
-	opt.Handler = h
+// CheckRequired - Returns error if the option is required.
+func (opt *Option) CheckRequired() error {
+	if opt.IsRequired {
+		if !opt.Called {
+			if opt.IsRequiredErr != "" {
+				return fmt.Errorf(opt.IsRequiredErr)
+			}
+			return fmt.Errorf(text.ErrorMissingRequiredOption, opt.Name)
+		}
+	}
+	return nil
 }
 
-// SetCalled - Convenience to avoid `opt.Called = true` verbosity.
+// SetCalled - Marks the option as called and records the alias used to call it.
 func (opt *Option) SetCalled(usedAlias string) *Option {
 	opt.Called = true
 	opt.UsedAlias = usedAlias
 	return opt
 }
 
-// SetIsOptional - Convenience to avoid `opt.IsOptional = true` verbosity.
-func (opt *Option) SetIsOptional() {
-	opt.IsOptional = true
-}
-
-// Value - Get untyped option value
-func (opt *Option) Value() interface{} {
-	return opt.value
-}
-
-func (opt *Option) SetDefaultStr(str string) *Option {
-	opt.DefaultStr = str
+// SetBool - Set the option's data.
+func (opt *Option) SetBool(b bool) *Option {
+	opt.value = b
+	*opt.pBool = b
 	return opt
 }
 
-func (opt *Option) SetBool(b bool) {
-	opt.value = b
-	*opt.pBool = b
-}
-
-func (opt *Option) GetBool() bool {
-	return *opt.pBool
-}
-
+// SetBoolPtr - Set the option's data.
 func (opt *Option) SetBoolPtr(b *bool) *Option {
 	opt.value = *b
 	opt.pBool = b
 	return opt
 }
 
+// SetString - Set the option's data.
+func (opt *Option) SetString(s string) *Option {
+	opt.value = s
+	*opt.pString = s
+	return opt
+}
+
+// SetStringPtr - Set the option's data.
 func (opt *Option) SetStringPtr(s *string) *Option {
 	opt.value = *s
 	opt.pString = s
 	return opt
 }
 
+// SetInt - Set the option's data.
 func (opt *Option) SetInt(i int) *Option {
 	opt.value = i
 	*opt.pInt = i
 	return opt
 }
 
-func (opt *Option) GetInt() int {
-	return *opt.pInt
-}
-
+// SetIntPtr - Set the option's data.
 func (opt *Option) SetIntPtr(i *int) *Option {
 	opt.value = *i
 	opt.pInt = i
 	return opt
 }
 
-func (opt *Option) SetFloat64(f float64) {
-	opt.value = f
-	*opt.pFloat64 = f
+// Int - Get the option's data.
+// Exposed due to handle increment. Maybe there is a better way.
+func (opt *Option) Int() int {
+	return *opt.pInt
 }
 
+// SetFloat64 - Set the option's data.
+func (opt *Option) SetFloat64(f float64) *Option {
+	opt.value = f
+	*opt.pFloat64 = f
+	return opt
+}
+
+// SetFloat64Ptr - Set the option's data.
 func (opt *Option) SetFloat64Ptr(f *float64) *Option {
 	opt.value = *f
 	opt.pFloat64 = f
 	return opt
 }
 
+// SetStringSlice - Set the option's data.
+func (opt *Option) SetStringSlice(s []string) *Option {
+	opt.value = s
+	*opt.pStringS = s
+	return opt
+}
+
+// SetStringSlicePtr - Set the option's data.
 func (opt *Option) SetStringSlicePtr(s *[]string) *Option {
 	opt.value = *s
 	opt.pStringS = s
 	return opt
 }
 
+// SetIntSlice - Set the option's data.
+func (opt *Option) SetIntSlice(s []int) *Option {
+	opt.value = s
+	*opt.pIntS = s
+	return opt
+}
+
+// SetIntSlicePtr - Set the option's data.
 func (opt *Option) SetIntSlicePtr(s *[]int) *Option {
 	opt.value = *s
 	opt.pIntS = s
 	return opt
 }
 
+// SetStringMapPtr - Set the option's data.
 func (opt *Option) SetStringMapPtr(m *map[string]string) *Option {
 	opt.value = *m
 	opt.pStringM = m
 	return opt
 }
 
-func (opt *Option) SetKeyValueToStringMap(k, v string) {
+// SetKeyValueToStringMap - Set the option's data.
+func (opt *Option) SetKeyValueToStringMap(k, v string) *Option {
 	if opt.MapKeysToLower {
 		(*opt.pStringM)[strings.ToLower(k)] = v
 	} else {
 		(*opt.pStringM)[k] = v
 	}
 	opt.value = *opt.pStringM
-}
-
-// SetMin - Convenience function for `opt.MinArgs = min`
-func (opt *Option) SetMin(min int) {
-	opt.MinArgs = min
-}
-
-// SetMax - Convenience function for `opt.MaxArgs = max`
-func (opt *Option) SetMax(max int) {
-	opt.MaxArgs = max
+	return opt
 }
 
 // Save - Saves the data provided into the option
@@ -210,16 +233,14 @@ func (opt *Option) Save(a ...string) error {
 	Debug.Printf("optType: %d\n", opt.OptType)
 	switch opt.OptType {
 	case StringType:
-		opt.value = a[0]
-		*opt.pString = a[0]
+		opt.SetString(a[0])
 		return nil
 	case IntType:
 		i, err := strconv.Atoi(a[0])
 		if err != nil {
 			return fmt.Errorf(text.ErrorConvertToInt, opt.UsedAlias, a[0])
 		}
-		opt.value = i
-		*opt.pInt = i
+		opt.SetInt(i)
 		return nil
 	case Float64Type:
 		// TODO: Read the different errors when parsing float
@@ -230,8 +251,7 @@ func (opt *Option) Save(a ...string) error {
 		opt.SetFloat64(i)
 		return nil
 	case StringRepeatType:
-		*opt.pStringS = append(*opt.pStringS, a...)
-		opt.value = *opt.pStringS
+		opt.SetStringSlice(append(*opt.pStringS, a...))
 		return nil
 	case IntRepeatType:
 		var is []int
@@ -267,8 +287,7 @@ func (opt *Option) Save(a ...string) error {
 				is = append(is, i)
 			}
 		}
-		*opt.pIntS = append(*opt.pIntS, is...)
-		opt.value = *opt.pIntS
+		opt.SetIntSlice(append(*opt.pIntS, is...))
 		return nil
 	case StringMapType:
 		keyValue := strings.Split(a[0], "=")
@@ -278,7 +297,7 @@ func (opt *Option) Save(a ...string) error {
 		opt.SetKeyValueToStringMap(keyValue[0], keyValue[1])
 		return nil
 	default: // BoolType
-		opt.SetBool(!opt.GetBool())
+		opt.SetBool(!*opt.pBool)
 		return nil
 	}
 }
