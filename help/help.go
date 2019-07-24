@@ -18,13 +18,26 @@ import (
 	"github.com/DavidGamba/go-getoptions/text"
 )
 
-// Padding -
-var Padding = 4
+// Indentation - Number of spaces used for indentation.
+var Indentation = 4
 
-// TODO: This refers to os.Args[0]
-// HelpName -
-func HelpName(scriptName, name, description string) string {
-	// scriptName := "    " + filepath.Base(os.Args[0])
+func indent(s string) string {
+	return fmt.Sprintf("%s%s", strings.Repeat(" ", Indentation), s)
+}
+
+func wrapFn(wrap bool, open, close string) func(s string) string {
+	if wrap {
+		return func(s string) string {
+			return fmt.Sprintf("%s%s%s", open, s, close)
+		}
+	}
+	return func(s string) string {
+		return s
+	}
+}
+
+// Name -
+func Name(scriptName, name, description string) string {
 	out := scriptName
 	if name != "" {
 		out += fmt.Sprintf(" %s", name)
@@ -32,15 +45,12 @@ func HelpName(scriptName, name, description string) string {
 	if description != "" {
 		out += fmt.Sprintf(" - %s", description)
 	}
-	return fmt.Sprintf("%s:\n%s%s\n", text.HelpNameHeader, strings.Repeat(" ", Padding), out)
+	return fmt.Sprintf("%s:\n%s\n", text.HelpNameHeader, indent(out))
 }
 
-// HelpSynopsis - Return a default synopsis.
-// option list should be sorted.
-// TODO: Sort list by Name
-func HelpSynopsis(scriptName, name string, options []*option.Option, commands []string) string {
-	// 4 spaces padding
-	scriptName = "    " + scriptName
+// Synopsis - Return a default synopsis.
+func Synopsis(scriptName, name string, options []*option.Option, commands []string) string {
+	scriptName = indent(scriptName)
 	if name != "" {
 		scriptName += " " + name
 	}
@@ -57,37 +67,15 @@ func HelpSynopsis(scriptName, name string, options []*option.Option, commands []
 	option.Sort(requiredOptions)
 	optSynopsis := func(opt *option.Option) string {
 		txt := ""
-		aliases := []string{}
-		for _, alias := range opt.Aliases {
-			if len(alias) > 1 {
-				aliases = append(aliases, fmt.Sprintf("--%s", alias))
-			} else {
-				aliases = append(aliases, fmt.Sprintf("-%s", alias))
-			}
-		}
-		aliasStr := strings.Join(aliases, "|")
-		open := ""
-		close := ""
-		if !opt.IsRequired {
-			open = "["
-			close = "]"
-		}
-		argName := opt.HelpArgName
+		wrap := wrapFn(!opt.IsRequired, "[", "]")
 		switch opt.OptType {
-		case option.BoolType:
-			txt += fmt.Sprintf("%s%s%s", open, aliasStr, close)
-		case option.StringType, option.IntType, option.Float64Type:
-			txt += fmt.Sprintf("%s%s <%s>%s", open, aliasStr, argName, close)
+		case option.BoolType, option.StringType, option.IntType, option.Float64Type:
+			txt += wrap(opt.HelpSynopsis)
 		case option.StringRepeatType, option.IntRepeatType, option.StringMapType:
 			if opt.IsRequired {
-				open = "<"
-				close = ">"
+				wrap = wrapFn(opt.IsRequired, "<", ">")
 			}
-			repeat := ""
-			if opt.MaxArgs > 1 {
-				repeat = "..."
-			}
-			txt += fmt.Sprintf("%s%s <%s>%s%s...", open, aliasStr, argName, repeat, close)
+			txt += wrap(opt.HelpSynopsis) + "..."
 		}
 		return txt
 	}
@@ -116,9 +104,9 @@ func HelpSynopsis(scriptName, name string, options []*option.Option, commands []
 	return fmt.Sprintf("%s:\n%s\n", text.HelpSynopsisHeader, out)
 }
 
-// HelpCommandList -
+// CommandList -
 // commandMap => name: description
-func HelpCommandList(commandMap map[string]string) string {
+func CommandList(commandMap map[string]string) string {
 	if len(commandMap) <= 0 {
 		return ""
 	}
@@ -130,7 +118,7 @@ func HelpCommandList(commandMap map[string]string) string {
 	factor := longestStringLen(names)
 	out := ""
 	for _, command := range names {
-		out += fmt.Sprintf("    %s    %s\n", pad(command, factor), commandMap[command])
+		out += indent(fmt.Sprintf("%s    %s\n", pad(true, command, factor), commandMap[command]))
 	}
 	return fmt.Sprintf("%s:\n%s", text.HelpCommandsHeader, out)
 }
@@ -147,64 +135,47 @@ func longestStringLen(s []string) int {
 }
 
 // pad - Given a string and a padding factor it will return the string padded with spaces.
-func pad(s string, factor int) string {
-	return fmt.Sprintf("%-"+strconv.Itoa(factor)+"s", s)
+//
+// Example:
+//     pad(true, "--flag", 8) -> '--flag  '
+func pad(do bool, s string, factor int) string {
+	if do {
+		return fmt.Sprintf("%-"+strconv.Itoa(factor)+"s", s)
+	}
+	return s
 }
 
-// HelpOptionList - Return a formatted list of options and their descriptions.
-func HelpOptionList(options []*option.Option) string {
-	aliasListLength := 0
+// OptionList - Return a formatted list of options and their descriptions.
+func OptionList(options []*option.Option) string {
+	synopsisLength := 0
 	normalOptions := []*option.Option{}
 	requiredOptions := []*option.Option{}
-	for _, option := range options {
-		l := len(option.Aliases)
-		for _, alias := range option.Aliases {
-			// --alias || -a
-			l += len(alias) + 1
-			if len(alias) > 1 {
-				l++
-			}
+	for _, opt := range options {
+		l := len(opt.HelpSynopsis)
+		if l > synopsisLength {
+			synopsisLength = l
 		}
-		if l > aliasListLength {
-			aliasListLength = l
-		}
-		if option.IsRequired {
-			requiredOptions = append(requiredOptions, option)
+		if opt.IsRequired {
+			requiredOptions = append(requiredOptions, opt)
 		} else {
-			normalOptions = append(normalOptions, option)
+			normalOptions = append(normalOptions, opt)
 		}
 	}
 	option.Sort(normalOptions)
 	option.Sort(requiredOptions)
 	helpString := func(opt *option.Option) string {
 		txt := ""
-		aliases := []string{}
-		for _, alias := range opt.Aliases {
-			if len(alias) > 1 {
-				aliases = append(aliases, fmt.Sprintf("--%s", alias))
-			} else {
-				aliases = append(aliases, fmt.Sprintf("-%s", alias))
-			}
-		}
-		aliasStr := strings.Join(aliases, "|")
-		// TODO: Calculate argName length.
-		// 16: Longest default argName is <key=value> plus space plus 4 spaces.
-		factor := aliasListLength + 16
+		factor := synopsisLength + 4
 		padding := strings.Repeat(" ", factor)
-		argName := opt.HelpArgName
-		switch opt.OptType {
-		case option.BoolType:
-			txt += fmt.Sprintf("    %s", pad(aliasStr+"", factor))
-		case option.StringType, option.IntType, option.Float64Type:
-			txt += fmt.Sprintf("    %s", pad(aliasStr+" <"+argName+">", factor))
-		case option.StringRepeatType, option.IntRepeatType, option.StringMapType:
-			txt += fmt.Sprintf("    %s", pad(aliasStr+" <"+argName+">...", factor))
-		}
+		txt += indent(pad(!opt.IsRequired || opt.Description != "", opt.HelpSynopsis, factor))
 		if opt.Description != "" {
 			description := strings.Replace(opt.Description, "\n", "\n    "+padding, -1)
-			txt += fmt.Sprintf("%s ", description)
+			txt += fmt.Sprintf("%s", description)
 		}
 		if !opt.IsRequired {
+			if opt.Description != "" {
+				txt += " "
+			}
 			txt += fmt.Sprintf("(default: %s)\n\n", opt.DefaultStr)
 		} else {
 			txt += "\n\n"

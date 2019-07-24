@@ -58,9 +58,10 @@ type Option struct {
 	IsRequiredErr string // Error message for the required option
 
 	// Help
-	DefaultStr  string // String representation of default value
-	Description string // Optional description used for help
-	HelpArgName string // Optional arg name used for help
+	DefaultStr   string // String representation of default value
+	Description  string // Optional description used for help
+	HelpArgName  string // Optional arg name used for help
+	HelpSynopsis string // Help synopsis
 
 	// Pointer receivers:
 	value    interface{}        // Value without type safety
@@ -75,10 +76,41 @@ type Option struct {
 
 // New - Returns a new option object
 func New(name string, optType Type) *Option {
-	return &Option{
+	opt := &Option{
 		Name:    name,
 		OptType: optType,
 		Aliases: []string{name},
+	}
+	switch optType {
+	case StringType, StringRepeatType:
+		opt.HelpArgName = "string"
+	case IntType, IntRepeatType:
+		opt.HelpArgName = "int"
+	case Float64Type:
+		opt.HelpArgName = "float64"
+	case StringMapType:
+		opt.HelpArgName = "key=value"
+	}
+	opt.synopsis()
+	return opt
+}
+
+func (opt *Option) synopsis() {
+	aliases := []string{}
+	for _, e := range opt.Aliases {
+		if len(e) > 1 {
+			e = "--" + e
+		} else {
+			e = "-" + e
+		}
+		aliases = append(aliases, e)
+	}
+	opt.HelpSynopsis = strings.Join(aliases, "|")
+	if opt.OptType != BoolType {
+		opt.HelpSynopsis = fmt.Sprintf("%s <%s>", opt.HelpSynopsis, opt.HelpArgName)
+	}
+	if opt.MaxArgs > 1 {
+		opt.HelpSynopsis = opt.HelpSynopsis + "..."
 	}
 }
 
@@ -90,6 +122,26 @@ func (opt *Option) Value() interface{} {
 // SetAlias - Adds aliases to an option.
 func (opt *Option) SetAlias(alias ...string) *Option {
 	opt.Aliases = append(opt.Aliases, alias...)
+	opt.synopsis()
+	return opt
+}
+
+// SetDescription - Updates the Description.
+func (opt *Option) SetDescription(s string) *Option {
+	opt.Description = s
+	return opt
+}
+
+// SetHelpArgName - Updates the HelpArgName.
+func (opt *Option) SetHelpArgName(s string) *Option {
+	opt.HelpArgName = s
+	opt.synopsis()
+	return opt
+}
+
+// SetDefaultStr - Updates the DefaultStr.
+func (opt *Option) SetDefaultStr(s string) *Option {
+	opt.DefaultStr = s
 	return opt
 }
 

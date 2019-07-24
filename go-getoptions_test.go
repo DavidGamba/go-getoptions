@@ -1793,27 +1793,27 @@ func TestSynopsis(t *testing.T) {
     show    Show stuff
 `
 	expectedOptionList := `REQUIRED PARAMETERS:
-    --int <int>                  
+    --int <int>
 
-    --req-list <item>...         
+    --req-list <item>...
 
-    --str <string>               
+    --str <string>
 
 OPTIONS:
-    --flag|-f                    (default: false)
+    --flag|-f                   (default: false)
 
-    --float|--fl <float64>       (default: 0.000000)
+    --float|--fl <float64>      (default: 0.000000)
 
-    --intSlice <int>...          This option is using an int slice
-                                 Lets see how multiline works (default: [])
+    --intSlice <int>            This option is using an int slice
+                                Lets see how multiline works (default: [])
 
-    --list <string>...           (default: [])
+    --list <string>             (default: [])
 
-    --strMap <key=value>...      Hello world (default: {})
+    --strMap <key=value>...     Hello world (default: {})
 
-    --strSlice <my_value>...     (default: [])
+    --strSlice <my_value>...    (default: [])
 
-    --string <string>            (default: "")
+    --string <string>           (default: "")
 
 `
 

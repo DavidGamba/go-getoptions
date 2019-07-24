@@ -231,7 +231,7 @@ func TestRequired(t *testing.T) {
 
 func TestOther(t *testing.T) {
 	i := 0
-	opt := New("help", IntType).SetIntPtr(&i).SetAlias("?", "h")
+	opt := New("help", IntType).SetIntPtr(&i).SetAlias("?", "h").SetDescription("int help").SetHelpArgName("myint").SetDefaultStr("5")
 	got := opt.Aliases
 	expected := []string{"help", "?", "h"}
 	if !reflect.DeepEqual(got, expected) {
@@ -244,11 +244,27 @@ func TestOther(t *testing.T) {
 	if opt.Int() != 3 {
 		t.Errorf("got = '%#v', want '%#v'", opt.Int(), 0)
 	}
+	if opt.Description != "int help" {
+		t.Errorf("got = '%#v', want '%#v'", opt.Description, "int help")
+	}
+	if opt.HelpArgName != "myint" {
+		t.Errorf("got = '%#v', want '%#v'", opt.HelpArgName, "myint")
+	}
+	if opt.DefaultStr != "5" {
+		t.Errorf("got = '%#v', want '%#v'", opt.DefaultStr, "5")
+	}
 
 	list := []*Option{New("b", BoolType), New("a", BoolType), New("c", BoolType)}
 	expectedList := []*Option{New("a", BoolType), New("b", BoolType), New("c", BoolType)}
 	Sort(list)
 	if !reflect.DeepEqual(list, expectedList) {
 		t.Errorf("got = '%#v', want '%#v'", list, expectedList)
+	}
+
+	opt = New("help", IntRepeatType)
+	opt.MaxArgs = 2
+	opt.synopsis()
+	if opt.HelpSynopsis != "--help <int>..." {
+		t.Errorf("got = '%#v', want '%#v'", opt.HelpSynopsis, "--help <int>...")
 	}
 }

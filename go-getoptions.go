@@ -302,7 +302,7 @@ func (gopt *GetOpt) Description(msg string) ModifyFn {
 //     --host <hostname>
 func (gopt *GetOpt) ArgName(name string) ModifyFn {
 	return func(opt *option.Option) {
-		opt.HelpArgName = name
+		opt.SetHelpArgName(name)
 	}
 }
 
@@ -326,7 +326,7 @@ func (gopt *GetOpt) Help() string {
 
 func (gopt *GetOpt) HelpName() string {
 	scriptName := filepath.Base(os.Args[0])
-	return help.HelpName(scriptName, gopt.name, gopt.description)
+	return help.Name(scriptName, gopt.name, gopt.description)
 }
 
 // HelpSynopsis - Return a default synopsis.
@@ -340,7 +340,7 @@ func (gopt *GetOpt) HelpSynopsis() string {
 	for _, command := range gopt.commands {
 		commands = append(commands, command.name)
 	}
-	return help.HelpSynopsis(scriptName, gopt.name, options, commands)
+	return help.Synopsis(scriptName, gopt.name, options, commands)
 }
 
 // HelpCommandList - Return a default command list.
@@ -349,7 +349,7 @@ func (gopt *GetOpt) HelpCommandList() string {
 	for _, command := range gopt.commands {
 		m[command.name] = command.description
 	}
-	return help.HelpCommandList(m)
+	return help.CommandList(m)
 }
 
 // HelpOptionList - Return a formatted list of options and their descriptions.
@@ -358,7 +358,7 @@ func (gopt *GetOpt) HelpOptionList() string {
 	for _, option := range gopt.obj {
 		options = append(options, option)
 	}
-	return help.HelpOptionList(options)
+	return help.OptionList(options)
 }
 
 func (gopt *GetOpt) Command(options *GetOpt) {
@@ -491,7 +491,7 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
 	opt.SetStringPtr(&def)
 	opt.Handler = gopt.handleSingleOption
-	opt.HelpArgName = "string"
+	opt.SetHelpArgName("string")
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -521,7 +521,7 @@ func (gopt *GetOpt) StringOptional(name string, def string, fns ...ModifyFn) *st
 	opt.SetStringPtr(&def)
 	opt.IsOptional = true
 	opt.Handler = gopt.handleSingleOption
-	opt.HelpArgName = "string"
+	opt.SetHelpArgName("string")
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -549,7 +549,7 @@ func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
 	opt.DefaultStr = fmt.Sprintf("%d", def)
 	opt.SetIntPtr(&def)
 	opt.Handler = gopt.handleSingleOption
-	opt.HelpArgName = "int"
+	opt.SetHelpArgName("int")
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -578,7 +578,7 @@ func (gopt *GetOpt) IntOptional(name string, def int, fns ...ModifyFn) *int {
 	opt.SetIntPtr(&def)
 	opt.IsOptional = true
 	opt.Handler = gopt.handleSingleOption
-	opt.HelpArgName = "int"
+	opt.SetHelpArgName("int")
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -606,7 +606,7 @@ func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 
 	opt.DefaultStr = fmt.Sprintf("%f", def)
 	opt.SetFloat64Ptr(&def)
 	opt.Handler = gopt.handleSingleOption
-	opt.HelpArgName = "float64"
+	opt.SetHelpArgName("float64")
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -646,7 +646,7 @@ func (gopt *GetOpt) StringSlice(name string, min, max int, fns ...ModifyFn) *[]s
 	opt.Handler = gopt.handleSliceMultiOption
 	opt.MinArgs = min
 	opt.MaxArgs = max
-	opt.HelpArgName = "string"
+	opt.SetHelpArgName("string")
 	if min <= 0 {
 		panic(fmt.Sprintf("%s min should be > 0", name))
 	}
@@ -709,7 +709,7 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int 
 	opt.Handler = gopt.handleSliceMultiOption
 	opt.MinArgs = min
 	opt.MaxArgs = max
-	opt.HelpArgName = "int"
+	opt.SetHelpArgName("int")
 	if min <= 0 {
 		panic(fmt.Sprintf("%s min should be > 0", name))
 	}
@@ -773,7 +773,7 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 	opt.Handler = gopt.handleSliceMultiOption
 	opt.MinArgs = min
 	opt.MaxArgs = max
-	opt.HelpArgName = "key=value"
+	opt.SetHelpArgName("key=value")
 	if min <= 0 {
 		panic(fmt.Sprintf("%s min should be > 0", name))
 	}
