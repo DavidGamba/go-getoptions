@@ -86,7 +86,6 @@ func (n *Node) AddChild(node *Node) {
 // SelfCompletions -
 func (n *Node) SelfCompletions(prefix string) []string {
 	switch n.Kind {
-	case Root:
 	case StringNode:
 		if strings.HasPrefix(n.Name, prefix) {
 			Debug.Printf("SelfCompletions - node: %s > %v\n", n.Name, []string{n.Name})
