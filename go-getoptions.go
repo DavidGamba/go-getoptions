@@ -48,6 +48,13 @@ const (
 	Pass
 )
 
+// exitFn - This variable allows to test os.Exit calls
+var exitFn = os.Exit
+
+// completionWriter - Writer where the completion results will be written to.
+// Set as a variable to allow for easy testing.
+var completionWriter io.Writer = os.Stdout
+
 // GetOpt - main object.
 type GetOpt struct {
 	// Help fields
@@ -361,11 +368,14 @@ func (gopt *GetOpt) HelpOptionList() string {
 	return help.OptionList(options)
 }
 
+// Command - Allows defining a child command.
 func (gopt *GetOpt) Command(options *GetOpt) {
 	if options == nil {
-		options = New()
+		panic("Argument to Command can't be nil!")
 	}
-	// TODO: Add check to see if options.name is != "", panic otherwise.
+	if options.name == "" {
+		panic("Argument to Command must have a name.\nUse `.Self(...)` to define it!")
+	}
 	node := options.completion
 	node.Kind = completion.StringNode
 	node.Name = options.name
@@ -991,8 +1001,8 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	compLine := os.Getenv("COMP_LINE")
 	// https://stackoverflow.com/a/33396628
 	if compLine != "" {
-		fmt.Println(strings.Join(gopt.completion.CompLineComplete(compLine), "\n"))
-		os.Exit(1)
+		fmt.Fprintln(completionWriter, strings.Join(gopt.completion.CompLineComplete(compLine), "\n"))
+		exitFn(1)
 	}
 	al := newArgList(args)
 	gopt.args = al

@@ -3,6 +3,8 @@
 
 == master Breaking Changes
 
+As the releases before, this release has 100% test coverage.
+
 This release introduces bash completion by default and works out many kinks around subcommands.
 An example showing subcommands can be found in https://github.com/DavidGamba/go-getoptions/tree/master/examples/mygit[./examples/mygit].
 
@@ -43,6 +45,8 @@ Given a list, it will add the elements of the list to the completion alternative
 
 == v0.13.0 Feature release
 
+As the releases before, this release has 100% test coverage.
+
 === New Features
 
 • Experimental implementation of help messages.
@@ -56,6 +60,8 @@ Given a list, it will add the elements of the list to the completion alternative
 
 
 == v0.12.0 Breaking Changes
+
+As the releases before, this release has 100% test coverage.
 
 === Breaking change: Update function signatures
 
@@ -91,6 +97,8 @@ For example:
 
 
 == v0.11.0 Breaking Changes
+
+As the releases before, this release has 100% test coverage.
 
 === Fix `go tip` case sensitive import path
 

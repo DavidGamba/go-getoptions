@@ -1079,6 +1079,19 @@ func TestGetOptStringMap(t *testing.T) {
 	if sm["hello"] != "world" || sm["key"] != "value" || sm["key2"] != "value2" {
 		t.Errorf("Wrong value: %v", sm)
 	}
+	var m map[string]string
+	opt = New()
+	opt.StringMapVar(&m, "string", 1, 3)
+	_, err = opt.Parse([]string{"--string", "hello=world", "key=value", "key2=value2"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !reflect.DeepEqual(map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm) {
+		t.Errorf("Wrong value: %v != %v", map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm)
+	}
+	if sm["hello"] != "world" || sm["key"] != "value" || sm["key2"] != "value2" {
+		t.Errorf("Wrong value: %v", sm)
+	}
 
 	opt = New()
 	opt.StringMap("string", 2, 3)
@@ -1901,6 +1914,73 @@ OPTIONS:
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
 		t.Fatalf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
 	}
+}
+
+func TestCompletion(t *testing.T) {
+	called := false
+	exitFn = func(code int) { called = true }
+	opt := New()
+	opt.Bool("flag", false, opt.Alias("f"))
+	opt.Command(New().Self("help", "Show help").CustomCompletion([]string{"log", "show"}))
+
+	cleanup := func() {
+		os.Setenv("COMP_LINE", "")
+		completionWriter = os.Stdout
+		called = false
+	}
+
+	tests := []struct {
+		name     string
+		setup    func()
+		expected string
+	}{
+		{"option", func() { os.Setenv("COMP_LINE", "test --f") }, "--flag\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "test h") }, "help\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "test help ") }, "log\nshow\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+			s := ""
+			buf := bytes.NewBufferString(s)
+			completionWriter = buf
+			_, err := opt.Parse([]string{})
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+			if !called {
+				t.Errorf("COMP_LINE set and exit wasn't called")
+			}
+			if buf.String() != tt.expected {
+				t.Errorf("Error\ngot: '%s', expected: '%s'\n", buf.String(), tt.expected)
+			}
+			cleanup()
+		})
+	}
+}
+
+// Verifies that a panic is reached when Command is called with nil input
+func TestCommandPanicWithNilInput(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("nil command didn't panic")
+		}
+	}()
+	opt := New()
+	opt.Command(nil)
+	opt.Parse([]string{})
+}
+
+// Verifies that a panic is reached when Command is called with a getoptions without a name.
+func TestCommandPanicWithNoNameInput(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("nil command didn't panic")
+		}
+	}()
+	opt := New()
+	opt.Command(New())
+	opt.Parse([]string{})
 }
 
 func TestAll(t *testing.T) {
