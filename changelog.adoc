@@ -1,6 +1,11 @@
 = Changelog
 :toc:
 
+== v0.14.1 Golang Bug fix: module install error
+
+Bypass double dot golang modules error:
+https://github.com/golang/go/issues/27299
+
 == v0.14.0 Breaking Changes
 
 As the releases before, this release has 100% test coverage.
