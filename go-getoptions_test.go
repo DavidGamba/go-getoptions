@@ -1787,12 +1787,13 @@ func TestSynopsis(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	name := opt.HelpName()
-	synopsis := opt.HelpSynopsis()
-	commandList := opt.HelpCommandList()
-	optionList := opt.HelpOptionList()
+	name := opt.Help(HelpName)
+	synopsis := opt.Help(HelpSynopsis)
+	commandList := opt.Help(HelpCommandList)
+	optionList := opt.Help(HelpOptionList)
 	expectedName := `NAME:
     go-getoptions.test
+
 `
 	expectedSynopsis := `SYNOPSIS:
     go-getoptions.test --int <int> <--req-list <item>...>... --str <string>
@@ -1800,10 +1801,12 @@ func TestSynopsis(t *testing.T) {
                        [--list <string>]... [--strMap <key=value>...]...
                        [--strSlice <my_value>...]... [--string <string>]
                        <command> [<args>]
+
 `
 	expectedCommandList := `COMMANDS:
     log     Log stuff
     show    Show stuff
+
 `
 	expectedOptionList := `REQUIRED PARAMETERS:
     --int <int>
@@ -1849,22 +1852,22 @@ OPTIONS:
 	}
 	if name != expectedName {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
-		t.Fatalf("Unexpected name:\n%s", firstDiff(name, expectedName))
+		t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
 	}
 	if synopsis != expectedSynopsis {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
-		t.Fatalf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+		t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
 	}
 	if commandList != expectedCommandList {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
-		t.Fatalf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
+		t.Errorf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
 	}
 	if optionList != expectedOptionList {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", optionList, expectedOptionList)
-		t.Fatalf("Unexpected option list:\n%s", firstDiff(optionList, expectedOptionList))
+		t.Errorf("Unexpected option list:\n%s", firstDiff(optionList, expectedOptionList))
 	}
-	if opt.Help() != expectedSynopsis+"\n"+expectedCommandList+"\n"+expectedOptionList {
-		t.Fatalf("Unexpected help:\n---\n%s\n---\n", opt.Help())
+	if opt.Help() != expectedSynopsis+expectedCommandList+expectedOptionList {
+		t.Errorf("Unexpected help:\n---\n%s\n---\n", opt.Help())
 	}
 
 	opt = New()
@@ -1875,24 +1878,26 @@ OPTIONS:
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	name = opt.HelpName()
-	synopsis = opt.HelpSynopsis()
+	name = opt.Help(HelpName)
+	synopsis = opt.Help(HelpSynopsis)
 	expectedName = `NAME:
     go-getoptions.test name - description...
+
 `
 	expectedSynopsis = `SYNOPSIS:
     go-getoptions.test name <command> [<args>]
+
 `
 	if name != expectedName {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
-		t.Fatalf("Unexpected name:\n%s", firstDiff(name, expectedName))
+		t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
 	}
 	if synopsis != expectedSynopsis {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
-		t.Fatalf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+		t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
 	}
-	if opt.Help() != expectedName+"\n"+expectedSynopsis+"\n"+opt.HelpCommandList()+"\n"+opt.HelpOptionList() {
-		t.Fatalf("Unexpected help:\n---\n%s\n---\n", opt.Help())
+	if opt.Help() != expectedName+expectedSynopsis+opt.Help(HelpCommandList)+opt.Help(HelpOptionList) {
+		t.Errorf("Unexpected help:\n---\n%s\n---\n", opt.Help())
 	}
 
 	opt = New()
@@ -1900,19 +1905,20 @@ OPTIONS:
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	synopsis = opt.HelpSynopsis()
-	commandList = opt.HelpCommandList()
+	synopsis = opt.Help(HelpSynopsis)
+	commandList = opt.Help(HelpCommandList)
 	expectedSynopsis = `SYNOPSIS:
     go-getoptions.test
+
 `
 	expectedCommandList = ""
 	if synopsis != expectedSynopsis {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
-		t.Fatalf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+		t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
 	}
 	if commandList != expectedCommandList {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
-		t.Fatalf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
+		t.Errorf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
 	}
 }
 

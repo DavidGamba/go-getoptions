@@ -48,6 +48,18 @@ const (
 	Pass
 )
 
+// HelpType - Indicates what portion of the help to return.
+type HelpType int
+
+// Help Output Types
+const (
+	helpDefaultName HelpType = iota
+	HelpName
+	HelpSynopsis
+	HelpCommandList
+	HelpOptionList
+)
+
 // exitFn - This variable allows to test os.Exit calls
 var exitFn = os.Exit
 
@@ -314,58 +326,55 @@ func (gopt *GetOpt) ArgName(name string) ModifyFn {
 }
 
 // Help - Default help string that is composed of the HelpSynopsis and HelpOptionList.
-func (gopt *GetOpt) Help() string {
-	help := ""
-	if gopt.name != "" || gopt.description != "" {
-		help += gopt.HelpName()
-		help += "\n"
+func (gopt *GetOpt) Help(parts ...HelpType) string {
+	if len(parts) == 0 {
+		// Print all in the following order
+		parts = []HelpType{helpDefaultName, HelpSynopsis, HelpCommandList, HelpOptionList}
 	}
-	help += gopt.HelpSynopsis()
-	help += "\n"
-	commands := gopt.HelpCommandList()
-	if commands != "" {
-		help += commands
-		help += "\n"
-	}
-	help += gopt.HelpOptionList()
-	return help
-}
-
-func (gopt *GetOpt) HelpName() string {
+	helpTxt := ""
 	scriptName := filepath.Base(os.Args[0])
-	return help.Name(scriptName, gopt.name, gopt.description)
-}
-
-// HelpSynopsis - Return a default synopsis.
-func (gopt *GetOpt) HelpSynopsis() string {
-	scriptName := filepath.Base(os.Args[0])
-	options := []*option.Option{}
-	commands := []string{}
-	for _, option := range gopt.obj {
-		options = append(options, option)
+	for _, part := range parts {
+		switch part {
+		// Default name only prints name if the name or description is set.
+		// The explicit type always prints it.
+		case helpDefaultName:
+			if gopt.name != "" || gopt.description != "" {
+				helpTxt += help.Name(scriptName, gopt.name, gopt.description)
+				helpTxt += "\n"
+			}
+		case HelpName:
+			helpTxt += help.Name(scriptName, gopt.name, gopt.description)
+			helpTxt += "\n"
+		case HelpSynopsis:
+			options := []*option.Option{}
+			commands := []string{}
+			for _, option := range gopt.obj {
+				options = append(options, option)
+			}
+			for _, command := range gopt.commands {
+				commands = append(commands, command.name)
+			}
+			helpTxt += help.Synopsis(scriptName, gopt.name, options, commands)
+			helpTxt += "\n"
+		case HelpCommandList:
+			m := make(map[string]string)
+			for _, command := range gopt.commands {
+				m[command.name] = command.description
+			}
+			commands := help.CommandList(m)
+			if commands != "" {
+				helpTxt += commands
+				helpTxt += "\n"
+			}
+		case HelpOptionList:
+			options := []*option.Option{}
+			for _, option := range gopt.obj {
+				options = append(options, option)
+			}
+			helpTxt += help.OptionList(options)
+		}
 	}
-	for _, command := range gopt.commands {
-		commands = append(commands, command.name)
-	}
-	return help.Synopsis(scriptName, gopt.name, options, commands)
-}
-
-// HelpCommandList - Return a default command list.
-func (gopt *GetOpt) HelpCommandList() string {
-	m := make(map[string]string)
-	for _, command := range gopt.commands {
-		m[command.name] = command.description
-	}
-	return help.CommandList(m)
-}
-
-// HelpOptionList - Return a formatted list of options and their descriptions.
-func (gopt *GetOpt) HelpOptionList() string {
-	options := []*option.Option{}
-	for _, option := range gopt.obj {
-		options = append(options, option)
-	}
-	return help.OptionList(options)
+	return helpTxt
 }
 
 // Command - Allows defining a child command.

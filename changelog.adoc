@@ -18,6 +18,25 @@ WARNING: A new `getoptions.Option` method is has been introduced, but the new on
 • Change the argument of `opt.SetMode` and `opt.SetUnknownMode` from a string to a `getoptions.Mode` and `getoptions.UnknownMode` type.
 Makes it easier to autodiscover valid arguments for the method.
 
+• Refactor section help methods into the main `opt.Help` one.
++
+[source, diff]
+----
+- opt.HelpName()
++ opt.Help(getoptions.HelpName)
+
+- opt.HelpSynopsis()
++ opt.Help(getoptions.HelpSynopsis)
+
+- opt.HelpCommandList()
++ opt.Help(getoptions.HelpCommandList)
+
+- opt.HelpOptionList()
++ opt.Help(getoptions.HelpOptionList)
+----
++
+To print all the sections of the automated help, continue to use `opt.Help()`.
+
 === New Features
 
 • Implement bash completion by default.
