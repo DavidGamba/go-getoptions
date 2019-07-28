@@ -25,7 +25,7 @@ func TestGetChildNames(t *testing.T) {
 	rootNode.AddChild(logNode)
 
 	loggerNode := NewNode("logger", StringNode, nil)
-	loggerNode.AddChild(NewNode("test_tree/bDir1", FileListNode, nil))
+	loggerNode.AddChild(NewNode("test/test_tree/bDir1", FileListNode, nil))
 	rootNode.AddChild(loggerNode)
 
 	showNode := NewNode("show", StringNode, nil)
@@ -36,7 +36,7 @@ func TestGetChildNames(t *testing.T) {
 	logNode.AddChild(sublogNode)
 
 	logNode.AddChild(NewNode("options", OptionsNode, []string{"--help"}))
-	logNode.AddChild(NewNode("test_tree", FileListNode, nil))
+	logNode.AddChild(NewNode("test/test_tree", FileListNode, nil))
 
 	// Test Raw Completions
 	tests := []struct {
