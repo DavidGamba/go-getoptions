@@ -30,7 +30,7 @@ func main() {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
-		fmt.Fprintf(os.Stderr, opt.HelpSynopsis())
+		fmt.Fprintf(os.Stderr, opt.Help(getoptions.HelpSynopsis))
 		os.Exit(1)
 	}
 
