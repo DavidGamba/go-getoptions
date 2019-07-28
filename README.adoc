@@ -35,13 +35,14 @@ var logger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
 func main() {
 	var debug bool
 	var greetCount int
+	var list map[string]string
 	opt := getoptions.New()
 	opt.Bool("help", false, opt.Alias("h", "?"))
 	opt.BoolVar(&debug, "debug", false)
 	opt.IntVar(&greetCount, "greet", 0,
 		opt.Required(),
 		opt.Description("Number of times to greet."))
-	greetings := opt.StringMap("list", 1, 99,
+	opt.StringMapVar(&list, "list", 1, 99,
 		opt.Description("Greeting list by language."))
 	remaining, err := opt.Parse(os.Args[1:])
 	if opt.Called("help") {
@@ -50,7 +51,7 @@ func main() {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
-		fmt.Fprintf(os.Stderr, opt.HelpSynopsis())
+		fmt.Fprintf(os.Stderr, opt.Help(getoptions.HelpSynopsis))
 		os.Exit(1)
 	}
 
@@ -66,9 +67,9 @@ func main() {
 	}
 
 	// Use the map[string]string variable
-	if len(greetings) > 0 {
+	if len(list) > 0 {
 		fmt.Printf("Greeting List:\n")
-		for k, v := range greetings {
+		for k, v := range list {
 			fmt.Printf("\t%s=%s\n", k, v)
 		}
 	}
