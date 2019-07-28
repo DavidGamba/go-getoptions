@@ -48,12 +48,12 @@ const (
 	Pass
 )
 
-// HelpType - Indicates what portion of the help to return.
-type HelpType int
+// HelpSection - Indicates what portion of the help to return.
+type HelpSection int
 
 // Help Output Types
 const (
-	helpDefaultName HelpType = iota
+	helpDefaultName HelpSection = iota
 	HelpName
 	HelpSynopsis
 	HelpCommandList
@@ -326,15 +326,15 @@ func (gopt *GetOpt) ArgName(name string) ModifyFn {
 }
 
 // Help - Default help string that is composed of the HelpSynopsis and HelpOptionList.
-func (gopt *GetOpt) Help(parts ...HelpType) string {
-	if len(parts) == 0 {
+func (gopt *GetOpt) Help(sections ...HelpSection) string {
+	if len(sections) == 0 {
 		// Print all in the following order
-		parts = []HelpType{helpDefaultName, HelpSynopsis, HelpCommandList, HelpOptionList}
+		sections = []HelpSection{helpDefaultName, HelpSynopsis, HelpCommandList, HelpOptionList}
 	}
 	helpTxt := ""
 	scriptName := filepath.Base(os.Args[0])
-	for _, part := range parts {
-		switch part {
+	for _, section := range sections {
+		switch section {
 		// Default name only prints name if the name or description is set.
 		// The explicit type always prints it.
 		case helpDefaultName:
