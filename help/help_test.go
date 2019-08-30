@@ -44,20 +44,20 @@ func TestHelp(t *testing.T) {
     help.test log - logs output...
 `},
 		{"Synopsis", Synopsis(scriptName, "", nil, []string{}), `SYNOPSIS:
-    help.test
+    help.test [<args>]
 `},
 		{"Synopsis", Synopsis(scriptName, "log", nil, []string{}), `SYNOPSIS:
-    help.test log
+    help.test log [<args>]
 `},
 		{"Synopsis", Synopsis(scriptName, "log",
 			[]*option.Option{option.New("bool", option.BoolType)}, []string{}),
 			`SYNOPSIS:
-    help.test log [--bool]
+    help.test log [--bool] [<args>]
 `},
 		{"Synopsis", Synopsis(scriptName, "log",
 			[]*option.Option{option.New("bool", option.BoolType).SetAlias("b")}, []string{}),
 			`SYNOPSIS:
-    help.test log [--bool|-b]
+    help.test log [--bool|-b] [<args>]
 `},
 		{"Synopsis", Synopsis(scriptName, "log",
 			[]*option.Option{
@@ -70,7 +70,7 @@ func TestHelp(t *testing.T) {
 			}, []string{}),
 			`SYNOPSIS:
     help.test log [--bool|-b] [--float <float64>] [--ii <int>]... [--int <int>]
-                  [-m <key=value>]... [--ss <string>]...
+                  [-m <key=value>]... [--ss <string>]... [<args>]
 `},
 		{"Synopsis", Synopsis(scriptName, "log",
 			[]*option.Option{
@@ -83,7 +83,7 @@ func TestHelp(t *testing.T) {
 			}, []string{}),
 			`SYNOPSIS:
     help.test log --bool|-b --float <float64> <--ii <int>>... --int <int>
-                  <-m <key=value>>... <--ss <string>>...
+                  <-m <key=value>>... <--ss <string>>... [<args>]
 `},
 		{"Synopsis", Synopsis(scriptName, "log",
 			[]*option.Option{

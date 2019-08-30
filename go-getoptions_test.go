@@ -1917,7 +1917,7 @@ OPTIONS:
 	synopsis = opt.Help(HelpSynopsis)
 	commandList = opt.Help(HelpCommandList)
 	expectedSynopsis = `SYNOPSIS:
-    go-getoptions.test
+    go-getoptions.test [<args>]
 
 `
 	expectedCommandList = ""
@@ -2340,7 +2340,7 @@ Use 'go-getoptions.test help <command>' for extra details.
     go-getoptions.test command
 
 SYNOPSIS:
-    go-getoptions.test command [--help]
+    go-getoptions.test command [--help] [<args>]
 
 OPTIONS:
     --help    (default: false)

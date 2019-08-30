@@ -91,14 +91,15 @@ func Synopsis(scriptName, name string, options []*option.Option, commands []stri
 			line += fmt.Sprintf(" %s", syn)
 		}
 	}
+	syn := "[<args>]"
 	if len(commands) > 0 {
-		syn := "<command> [<args>]"
-		if len(line)+len(syn) > 80 {
-			out += line + "\n"
-			line = fmt.Sprintf("%s %s", strings.Repeat(" ", len(scriptName)), syn)
-		} else {
-			line += fmt.Sprintf(" %s", syn)
-		}
+		syn = "<command> [<args>]"
+	}
+	if len(line)+len(syn) > 80 {
+		out += line + "\n"
+		line = fmt.Sprintf("%s %s", strings.Repeat(" ", len(scriptName)), syn)
+	} else {
+		line += fmt.Sprintf(" %s", syn)
 	}
 	out += line
 	return fmt.Sprintf("%s:\n%s\n", text.HelpSynopsisHeader, out)

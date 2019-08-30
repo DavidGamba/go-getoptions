@@ -26,6 +26,8 @@ Each warning has its own line and it is preceded by `WARNING: `.
 
 • Minor README updates... New features need proper documentation.
 
+• Minor automated help changes.
+
 == v0.14.1 Golang Bug fix: module install error
 
 Bypass double dot golang modules error:
