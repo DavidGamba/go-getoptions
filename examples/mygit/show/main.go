@@ -11,30 +11,27 @@ import (
 
 var logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
 
-// Opt - Options Definition
-var Opt *getoptions.GetOpt
-
 // Options - Populate Options definition
 func Options() *getoptions.GetOpt {
-	Opt = getoptions.New().Self("show", "Show various types of objects")
-	Opt.Bool("show-option", false)
-	return Opt
+	opt := getoptions.NewCommand().Self("show", "Show various types of objects")
+	opt.Bool("show-option", false)
+	return opt
 }
 
 // Show - Command entry point
-func Show(args []string) {
-	remaining, err := Opt.Parse(args)
+func Show(opt *getoptions.GetOpt, args []string) error {
+	remaining, err := opt.Parse(args)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		return err
+	}
+	if opt.Called("help") {
+		fmt.Fprintf(os.Stderr, opt.Help())
 		os.Exit(1)
 	}
-	if Opt.Called("help") {
-		fmt.Fprintf(os.Stderr, Opt.Help())
-		os.Exit(1)
-	}
-	if Opt.Called("debug") {
+	if opt.Called("debug") {
 		logger.SetOutput(os.Stderr)
 	}
 	logger.Println(remaining)
 	fmt.Printf("show output... %v\n", remaining)
+	return nil
 }
