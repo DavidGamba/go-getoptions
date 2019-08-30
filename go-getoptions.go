@@ -15,6 +15,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -73,6 +74,11 @@ type GetOpt struct {
 	name        string
 	description string
 
+	// isCommand
+	isCommand bool
+	// CommandFn
+	CommandFn CommandFn
+
 	// Option handling
 	// TODO: Option handling should trickle down to commands.
 	mode           Mode        // Operation mode for short options: normal, bundling, singleDash
@@ -93,6 +99,9 @@ type GetOpt struct {
 // ModifyFn - Function signature for functions that modify an option.
 type ModifyFn func(*option.Option)
 
+// CommandFn - Function signature for commands
+type CommandFn func(*GetOpt, []string) error
+
 // New returns an empty object of type GetOpt.
 // This is the starting point when using go-getoptions.
 // For example:
@@ -107,6 +116,17 @@ func New() *GetOpt {
 		Writer:     os.Stderr,
 		completion: root,
 	}
+	return gopt
+}
+
+func NewCommand() *GetOpt {
+	gopt := New()
+	gopt.isCommand = true
+	return gopt
+}
+
+func (gopt *GetOpt) SetCommandFn(fn CommandFn) *GetOpt {
+	gopt.CommandFn = fn
 	return gopt
 }
 
@@ -129,6 +149,77 @@ func (gopt *GetOpt) Self(name string, description string) *GetOpt {
 	return gopt
 }
 
+func (gopt *GetOpt) extraDetails() string {
+	scriptName := filepath.Base(os.Args[0])
+	description := ""
+	// TODO: Expose string as var?
+	if gopt.isCommand {
+		description = fmt.Sprintf("Use '%s %s help <command>' for extra details.", scriptName, gopt.name)
+	} else {
+		description = fmt.Sprintf("Use '%s help <command>' for extra details.", scriptName)
+	}
+	return description
+}
+
+// Dispatch -
+func (gopt *GetOpt) Dispatch(helpOptionName string, args []string) error {
+	if len(args) == 0 {
+		fmt.Fprintf(gopt.Writer, gopt.Help())
+		fmt.Fprintf(gopt.Writer, gopt.extraDetails()+"\n")
+		exitFn(1)
+		return nil
+	}
+	switch args[0] {
+	case "help":
+		if len(args) > 1 {
+			commandName := args[1]
+			for name, v := range gopt.commands {
+				if commandName == name {
+					fmt.Fprintf(gopt.Writer, v.Help())
+					exitFn(1)
+					return nil
+				}
+			}
+			// TODO: Expose string as var?
+			return fmt.Errorf("Unkown help entry '%s'", commandName)
+		}
+		fmt.Fprintf(gopt.Writer, gopt.Help())
+		fmt.Fprintf(gopt.Writer, gopt.extraDetails()+"\n")
+		exitFn(1)
+		return nil
+	default:
+		commandName := args[0]
+		if gopt.Called(helpOptionName) {
+			for name, v := range gopt.commands {
+				if commandName == name {
+					fmt.Fprintf(gopt.Writer, v.Help())
+					exitFn(1)
+					return nil
+				}
+			}
+
+		}
+		for name, v := range gopt.commands {
+			if commandName == name {
+				if v.CommandFn != nil {
+					err := v.CommandFn(v, args[1:])
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			}
+		}
+		if strings.HasPrefix(args[0], "-") {
+			// TODO: Expose string as var?
+			return fmt.Errorf(`Not a command or a valid option: '%s'
+       Did you mean to pass it after the command?`, args[0])
+		}
+		// TODO: Expose string as var?
+		return fmt.Errorf("Not a command: '%s'", args[0])
+	}
+}
+
 // TODO: Consider extracting, gopt.obj can be passed as an arg.
 
 // failIfDefined will *panic* if an option is defined twice.
@@ -136,6 +227,9 @@ func (gopt *GetOpt) Self(name string, description string) *GetOpt {
 func (gopt *GetOpt) failIfDefined(aliases []string) {
 	for _, a := range aliases {
 		for _, option := range gopt.obj {
+			if option.IsPassedToCommand {
+				continue
+			}
 			for _, v := range option.Aliases {
 				if v == a {
 					panic(fmt.Sprintf("Option/Alias '%s' is already defined", a))
@@ -189,6 +283,20 @@ func (gopt *GetOpt) Option(name string) *option.Option {
 
 // SetOption - Sets a given *option.Option
 func (gopt *GetOpt) SetOption(opts ...*option.Option) *GetOpt {
+	node := gopt.completion.GetChildByName("options")
+	for _, opt := range opts {
+		if gopt.isCommand {
+			opt.IsPassedToCommand = true
+		}
+		gopt.obj[opt.Name] = opt
+		// TODO: Add aliases
+		node.Entries = append(node.Entries, opt.Name)
+	}
+	return gopt
+}
+
+// Internal only
+func (gopt *GetOpt) setOption(opts ...*option.Option) *GetOpt {
 	node := gopt.completion.GetChildByName("options")
 	for _, opt := range opts {
 		gopt.obj[opt.Name] = opt
@@ -372,9 +480,28 @@ func (gopt *GetOpt) Help(sections ...HelpSection) string {
 				options = append(options, option)
 			}
 			helpTxt += help.OptionList(options)
+			if gopt.isCommand {
+				helpTxt += fmt.Sprintf("See '%s help' for information about global parameters.\n", scriptName)
+			}
 		}
 	}
 	return helpTxt
+}
+
+// HelpCommand - Adds a help command with completion for all other commands.
+// NOTE: Define after all other commands have been defined.
+func (gopt *GetOpt) HelpCommand(description string) *GetOpt {
+	if description == "" {
+		description = gopt.extraDetails()
+	}
+	opt := NewCommand()
+	opt.Self("help", description)
+	commands := []string{}
+	for name, _ := range gopt.commands {
+		commands = append(commands, name)
+	}
+	opt.CustomCompletion(commands)
+	return opt
 }
 
 // Command - Allows defining a child command.
@@ -385,6 +512,15 @@ func (gopt *GetOpt) Command(options *GetOpt) {
 	if options.name == "" {
 		panic("Argument to Command must have a name.\nUse `.Self(...)` to define it!")
 	}
+	if !options.isCommand {
+		panic("Argument to Command must be a command.\nUse `NewCommand()` to define it!")
+	}
+	// Validate aliases
+	for _, option := range options.obj {
+		gopt.failIfDefined(option.Aliases)
+	}
+
+	// Add completion
 	node := options.completion
 	node.Kind = completion.StringNode
 	node.Name = options.name
@@ -411,7 +547,7 @@ func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return &def
 }
 
@@ -453,7 +589,7 @@ func (gopt *GetOpt) NBool(name string, def bool, fns ...ModifyFn) *bool {
 	gopt.failIfDefined(aliases)
 	opt.SetAlias(aliases...)
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return &def
 }
 
@@ -515,7 +651,7 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return &def
 }
 
@@ -545,7 +681,7 @@ func (gopt *GetOpt) StringOptional(name string, def string, fns ...ModifyFn) *st
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return &def
 }
 
@@ -573,7 +709,7 @@ func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return &def
 }
 
@@ -602,7 +738,7 @@ func (gopt *GetOpt) IntOptional(name string, def int, fns ...ModifyFn) *int {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return &def
 }
 
@@ -630,7 +766,7 @@ func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return &def
 }
 
@@ -677,7 +813,7 @@ func (gopt *GetOpt) StringSlice(name string, min, max int, fns ...ModifyFn) *[]s
 	}
 	Debug.Printf("StringMulti return: %v\n", s)
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return &s
 }
 
@@ -740,7 +876,7 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int 
 	}
 	Debug.Printf("IntMulti return: %v\n", s)
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return &s
 }
 
@@ -804,7 +940,7 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 	}
 	Debug.Printf("StringMulti return: %v\n", s)
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return s
 }
 
@@ -917,7 +1053,7 @@ func (gopt *GetOpt) Increment(name string, def int, fns ...ModifyFn) *int {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
-	gopt.SetOption(opt)
+	gopt.setOption(opt)
 	return &def
 }
 
@@ -958,12 +1094,14 @@ func (gopt *GetOpt) Stringer() string {
 }
 
 // TODO: Add case insensitive matching.
-func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias string, found bool) {
+func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias string, found bool, err error) {
+	// Attempt to fully match node option
 	found = false
 	for name, option := range gopt.obj {
 		for _, v := range option.Aliases {
 			Debug.Printf("Trying to match '%s' against '%s' alias for '%s'\n", alias, v, name)
 			if v == alias {
+				Debug.Printf("found: %s, %s\n", v, alias)
 				found = true
 				optName = name
 				usedAlias = v
@@ -971,7 +1109,30 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias strin
 			}
 		}
 	}
-	// Attempt to match initial chars of option
+
+	// Attempt to fully match command option
+	matches := []string{}
+	for _, command := range gopt.commands {
+		for name, option := range command.obj {
+			for _, v := range option.Aliases {
+				Debug.Printf("Trying to match '%s' against '%s' alias for command option '%s'\n", alias, v, name)
+				if v == alias {
+					Debug.Printf("found: %s, %s\n", v, alias)
+					matches = append(matches, v)
+					continue
+				}
+			}
+		}
+	}
+
+	// If there are full matches of the command return with an empty match at the parent.
+	// There is no case in which a match could be found at the parent because aliases are checked.
+	if len(matches) >= 1 {
+		Debug.Printf("getOptionFromAliases return: %s, %s, %v\n", optName, usedAlias, found)
+		return optName, usedAlias, found, nil
+	}
+
+	// Attempt to match initial chars of node option
 	if !found {
 		matches := []string{}
 		for name, option := range gopt.obj {
@@ -986,13 +1147,41 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias strin
 			}
 		}
 		Debug.Printf("matches: %v(%d), %s\n", matches, len(matches), alias)
+
+		// Attempt to match initial chars of command option
+		commandMatches := []string{}
+		for _, command := range gopt.commands {
+			for name, option := range command.obj {
+				for _, v := range option.Aliases {
+					Debug.Printf("Trying to lazy match '%s' against '%s' alias for command option '%s'\n", alias, v, name)
+					if strings.HasPrefix(v, alias) {
+						Debug.Printf("found: %s, %s\n", v, alias)
+						if !option.IsPassedToCommand {
+							commandMatches = append(commandMatches, v)
+						}
+						continue
+					}
+				}
+			}
+		}
+		Debug.Printf("commandMatches: %v(%d), %s\n", commandMatches, len(commandMatches), alias)
+
+		if len(matches) >= 1 && len(commandMatches) >= 1 {
+			sort.Strings(matches)
+			sort.Strings(commandMatches)
+			return optName, usedAlias, found, fmt.Errorf(text.ErrorAmbiguousArgument, alias, append(matches, commandMatches...))
+		}
 		if len(matches) == 1 {
 			found = true
 			optName = matches[0]
+		} else if len(matches) > 1 {
+			sort.Strings(matches)
+			sort.Strings(commandMatches)
+			return optName, usedAlias, found, fmt.Errorf(text.ErrorAmbiguousArgument, alias, append(matches, commandMatches...))
 		}
 	}
 	Debug.Printf("getOptionFromAliases return: %s, %s, %v\n", optName, usedAlias, found)
-	return optName, usedAlias, found
+	return optName, usedAlias, found, nil
 }
 
 // Parse - Call the parse method when done describing.
@@ -1036,7 +1225,11 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 			Debug.Printf("Parse continue\n")
 			for _, optElement := range optList {
 				Debug.Printf("Parse optElement: %s\n", optElement)
-				if optName, usedAlias, ok := gopt.getOptionFromAliases(optElement); ok {
+				optName, usedAlias, ok, err := gopt.getOptionFromAliases(optElement)
+				if err != nil {
+					return nil, err
+				}
+				if ok {
 					Debug.Printf("Parse found opt_list\n")
 					opt := gopt.Option(optName)
 					handler := opt.Handler
@@ -1059,7 +1252,8 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 						remaining = append(remaining, arg)
 						break
 					case Warn:
-						fmt.Fprintf(gopt.Writer, text.MessageOnUnknown, optElement)
+						// TODO: This WARNING can't be changed into another language. Hardcoded.
+						fmt.Fprintf(gopt.Writer, "WARNING: "+text.MessageOnUnknown+"\n", optElement)
 						remaining = append(remaining, arg)
 						break
 					default:

@@ -13,6 +13,10 @@ package text
 // It has a string placeholder '%s' for the name of the option missing the argument.
 var ErrorMissingArgument = "Missing argument for option '%s'!"
 
+// ErrorAmbiguousArgument holds the text for ambiguous argument error.
+// It has a string placeholder '%s' for the passed option and a []string list of matches.
+var ErrorAmbiguousArgument = "Ambiguous option '%s', matches %v!"
+
 // ErrorMissingRequiredOption holds the text for missing required option error.
 // It has a string placeholder '%s' for the name of the missing option.
 var ErrorMissingRequiredOption = "Missing required option '%s'!"
