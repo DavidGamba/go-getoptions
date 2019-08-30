@@ -1,6 +1,31 @@
 = Changelog
 :toc:
 
+== master
+
+=== New Features
+
+• Introduce `getoptions.NewCommand()` to declare commands and clearly separate their role from the main `getoptions.New()`.
+
+• Introduce `command.SetCommandFn(fn CommandFn)` to declare a commands function callback.
+
+• Introduce `opt.Dispatch(helpOptionName string, args []string)` to automatically handle dispatching to the `CommandFn` based on the cli input.
+
+• Make options unambiguous with commands.
+For example, the root may have option `--profile` and the command the option `--password` with alias `-p`. If `-p` is passed, the parent would uncorrectly be matched.
+
+• Introduce new error indicating which options are getting matched with ambiguous options.
+
+• Add `getoptions.HelpCommand()` to have an automated help command.
+It adds completions for all other commands automatically.
+
+=== Minor changes
+
+• Fix unknown option warning formatting.
+Each warning has its own line and it is preceded by `WARNING: `.
+
+• Minor README updates... New features need proper documentation.
+
 == v0.14.1 Golang Bug fix: module install error
 
 Bypass double dot golang modules error:

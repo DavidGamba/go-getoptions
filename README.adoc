@@ -157,7 +157,7 @@ Greeting List:
 
 • Simple synopsis and option list automated help.
 
-• Boolean, String, Int and Float64 type options.
+• Boolean, String, Int, Float64, Slice and Map type options.
 
 • Negatable Boolean options.
 +
@@ -165,7 +165,7 @@ For example: `--verbose`, `--no-verbose` or `--noverbose`.
 
 • Options with Array arguments.
 The same option can be used multiple times with different arguments.
-The list of arguments will be saved into an Array like structure inside the program.
+The list of arguments will be saved into an Slice.
 
 • Options with array arguments and multiple entries.
 +
@@ -185,19 +185,17 @@ or
 The input could be:
 `csv --columns 1..3`
 
+• Options with Key Value arguments.
+This allows the same option to be used multiple times with arguments of key value type.
++
+For example: `rpmbuild --define name=myrpm --define version=123`
+
 • Options with key value arguments and multiple entries.
 +
 For example, instead of writing:
 `connection --server hostname=serverIP --server port=123 --client hostname=localhost --client port=456`
 the input could be:
 `connection --server hostname=serverIP port=123 --client hostname=localhost port=456`
-
-• Options with Key Value arguments.
-This allows the same option to be used multiple times with arguments of key value type.
-+
-For example: `rpmbuild --define name=myrpm --define version=123`
-
-• Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
 
 • Supports command line options with '='.
 +
@@ -206,6 +204,8 @@ For example: You can use `--string=mystring` and `--string mystring`.
 • Allows passing arguments to options that start with dash `-` when passed after equal.
 +
 For example: `--string=--hello` and `--int=-123`.
+
+• Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
 
 • Options with optional arguments.
 If the default argument is not passed the default is set.
@@ -659,12 +659,75 @@ a|option: `"o"`, argument: `"pt=arg"` footnote:[Argument gets type casted depend
 == Biggest option parser misfeature - Automatically generate help
 
 The biggest misfeature an option parser can have is to automatically generate the help message for the programmer.
-This seemingly helpful feature has caused most tools not to have proper man pages anymore and to have all options descriptions mixed in the help synopsis.
+This seemingly helpful feature has caused most tools not to have proper man pages anymore and to have all verbose descriptions mixed in the help synopsis.
 
-If you are writing a mid to large tool, don't be lazy, write a man page for your program and create the program's synopsis yourself.
+If you are writing a mid to large tool, don't be lazy, write a man page for your program!
 If you are looking for options, link:http://asciidoctor.org/[asciidoctor] has a manpage backend that can generate manpages written in the Asciidoc markup.
 
-For simple stuff, however, use the automated help.
+For the help synopsis, however, use the automated help.
+
+== Command behaviour
+
+This section describes how the parser resolves ambiguities between the program and the command.
+
+Given a definition like:
+
+		func main() {
+			var profile, password string
+			opt := New()
+			opt.SetUnknownMode(Pass)
+			opt.StringVar(&profile, "profile", "")
+			command := NewCommand()
+			command.StringVar(&password, "password", "")
+			opt.Command(command.Self("command", "").SetCommandFn(commandFn))
+			remaining, err := opt.Parse(os.Args[1:])
+			...
+			err = opt.Dispatch("help", remaining)
+			...
+		}
+
+		func commandFn(opt *getoptions.GetOpt, args []string) error {
+			args, err := opt.Parse(remaining)
+			...
+		}
+
+There is an option at the parent, `profile` and one at the command, `password`.
+Passing `--p <arg>` is ambiguous and results in an error.
+At minimum, `--pr <arg>` and `--pa <arg>` are required.
+
+Given a definition like:
+
+		func main() {
+			var profile, password string
+			opt := New()
+			opt.SetUnknownMode(Pass)
+			opt.StringVar(&profile, "profile", "")
+			command := NewCommand()
+			command.StringVar(&password, "password", "", opt.Alias("p"))
+			opt.Command(command.Self("command", "").SetCommandFn(commandFn))
+			remaining, err := opt.Parse(os.Args[1:])
+			...
+			err = opt.Dispatch("help", remaining)
+			...
+		}
+
+		func commandFn(opt *getoptions.GetOpt, args []string) error {
+			args, err := opt.Parse(remaining)
+			...
+		}
+
+There is an option at the parent, `profile` and one at the command, `password` with alias `p`.
+Passing `--p <arg>` at the parent results in the parent `opt.Parse` call to leave the `--p <arg>` option unhandled and leave it in the remaining slice.
+The `opt.Dispatch` call gets the `-p <arg>` option and throws an error.
+At minimum, `--pr <arg>` is required to call `profile` at the parent and command options must be passed after the command declaration.
+
+For example, the call below is correct:
+
+	./program -pr <profile> command -p <password>
+
+But the following one is incorrect:
+
+	./program -pr <profile> -p <password> command
 
 == License
 
