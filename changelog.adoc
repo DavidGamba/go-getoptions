@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== master
+== v0.15.0 Feature release
 
 === New Features
 
