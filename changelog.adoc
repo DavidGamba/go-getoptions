@@ -3,6 +3,16 @@
 
 == v0.15.0 Feature release
 
+As the releases before, this release has 100% test coverage.
+
+Change workflow to deal with ambiguities between parent and child.
+
+For example, the root may have option `--profile` and the command the option `--password` with alias `-p`. If `-p` is passed, the parent would uncorrectly be matched.
+
+For the parent to properly handle ambiguities with its children, it needs to have knowledge of them. A new `getoptions.NewCommand` has been introduced.
+
+To help with the verbosity of handling all the commands, a new `Dispatch` method is introduced, it will call a command's function defined with the new `SetCommandFn` method.
+
 === New Features
 
 • Introduce `getoptions.NewCommand()` to declare commands and clearly separate their role from the main `getoptions.New()`.
