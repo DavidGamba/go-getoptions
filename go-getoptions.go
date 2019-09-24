@@ -71,8 +71,9 @@ var completionWriter io.Writer = os.Stdout
 // GetOpt - main object.
 type GetOpt struct {
 	// Help fields
-	name        string
-	description string
+	name         string
+	description  string
+	synopsisArgs string
 
 	// isCommand
 	isCommand bool
@@ -423,6 +424,13 @@ func (gopt *GetOpt) ArgName(name string) ModifyFn {
 	}
 }
 
+// HelpSynopsisArgs - Defines the help synopsis args description.
+// Defaults to: [<args>]
+func (gopt *GetOpt) HelpSynopsisArgs(args string) *GetOpt {
+	gopt.synopsisArgs = args
+	return gopt
+}
+
 // Help - Default help string that is composed of the HelpSynopsis and HelpOptionList.
 func (gopt *GetOpt) Help(sections ...HelpSection) string {
 	if len(sections) == 0 {
@@ -452,7 +460,7 @@ func (gopt *GetOpt) Help(sections ...HelpSection) string {
 			for _, command := range gopt.commands {
 				commands = append(commands, command.name)
 			}
-			helpTxt += help.Synopsis(scriptName, gopt.name, options, commands)
+			helpTxt += help.Synopsis(scriptName, gopt.name, gopt.synopsisArgs, options, commands)
 			helpTxt += "\n"
 		case HelpCommandList:
 			m := make(map[string]string)

@@ -6,6 +6,9 @@
 * Bug Fix: Update `opt.Dispatch` not to handle `--help` option.
 It was preventing the help option to reach the commands.
 
+* Introduce `opt.HelpSynopsisArgs(string)` method to allow overriding the default args description.
+The current default description is `[<args>]`.
+
 == v0.15.0 Feature release
 
 As the releases before, this release has 100% test coverage.

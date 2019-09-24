@@ -1910,6 +1910,7 @@ OPTIONS:
 	}
 
 	opt = New()
+	opt.HelpSynopsisArgs("[<filename>]")
 	_, err = opt.Parse([]string{})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -1917,7 +1918,7 @@ OPTIONS:
 	synopsis = opt.Help(HelpSynopsis)
 	commandList = opt.Help(HelpCommandList)
 	expectedSynopsis = `SYNOPSIS:
-    go-getoptions.test [<args>]
+    go-getoptions.test [<filename>]
 
 `
 	expectedCommandList = ""

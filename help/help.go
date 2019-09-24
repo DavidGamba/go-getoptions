@@ -49,7 +49,7 @@ func Name(scriptName, name, description string) string {
 }
 
 // Synopsis - Return a default synopsis.
-func Synopsis(scriptName, name string, options []*option.Option, commands []string) string {
+func Synopsis(scriptName, name, args string, options []*option.Option, commands []string) string {
 	scriptName = indent(scriptName)
 	if name != "" {
 		scriptName += " " + name
@@ -91,9 +91,14 @@ func Synopsis(scriptName, name string, options []*option.Option, commands []stri
 			line += fmt.Sprintf(" %s", syn)
 		}
 	}
-	syn := "[<args>]"
+	syn := ""
 	if len(commands) > 0 {
-		syn = "<command> [<args>]"
+		syn += "<command> "
+	}
+	if args == "" {
+		syn += "[<args>]"
+	} else {
+		syn += args
 	}
 	if len(line)+len(syn) > 80 {
 		out += line + "\n"

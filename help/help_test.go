@@ -43,23 +43,26 @@ func TestHelp(t *testing.T) {
 		{"Name", Name(scriptName, "log", "logs output..."), `NAME:
     help.test log - logs output...
 `},
-		{"Synopsis", Synopsis(scriptName, "", nil, []string{}), `SYNOPSIS:
+		{"Synopsis", Synopsis(scriptName, "", "", nil, []string{}), `SYNOPSIS:
     help.test [<args>]
 `},
-		{"Synopsis", Synopsis(scriptName, "log", nil, []string{}), `SYNOPSIS:
+		{"Synopsis", Synopsis(scriptName, "log", "", nil, []string{}), `SYNOPSIS:
     help.test log [<args>]
 `},
-		{"Synopsis", Synopsis(scriptName, "log",
+		{"Synopsis", Synopsis(scriptName, "log", "<filename>", nil, []string{}), `SYNOPSIS:
+    help.test log <filename>
+`},
+		{"Synopsis", Synopsis(scriptName, "log", "",
 			[]*option.Option{option.New("bool", option.BoolType)}, []string{}),
 			`SYNOPSIS:
     help.test log [--bool] [<args>]
 `},
-		{"Synopsis", Synopsis(scriptName, "log",
+		{"Synopsis", Synopsis(scriptName, "log", "",
 			[]*option.Option{option.New("bool", option.BoolType).SetAlias("b")}, []string{}),
 			`SYNOPSIS:
     help.test log [--bool|-b] [<args>]
 `},
-		{"Synopsis", Synopsis(scriptName, "log",
+		{"Synopsis", Synopsis(scriptName, "log", "",
 			[]*option.Option{
 				option.New("bool", option.BoolType).SetAlias("b"),
 				option.New("int", option.IntType),
@@ -72,7 +75,7 @@ func TestHelp(t *testing.T) {
     help.test log [--bool|-b] [--float <float64>] [--ii <int>]... [--int <int>]
                   [-m <key=value>]... [--ss <string>]... [<args>]
 `},
-		{"Synopsis", Synopsis(scriptName, "log",
+		{"Synopsis", Synopsis(scriptName, "log", "",
 			[]*option.Option{
 				option.New("bool", option.BoolType).SetAlias("b").SetRequired(""),
 				option.New("int", option.IntType).SetRequired(""),
@@ -85,7 +88,7 @@ func TestHelp(t *testing.T) {
     help.test log --bool|-b --float <float64> <--ii <int>>... --int <int>
                   <-m <key=value>>... <--ss <string>>... [<args>]
 `},
-		{"Synopsis", Synopsis(scriptName, "log",
+		{"Synopsis", Synopsis(scriptName, "log", "",
 			[]*option.Option{
 				option.New("bool", option.BoolType).SetAlias("b").SetRequired(""),
 				option.New("int", option.IntType).SetRequired(""),
@@ -98,7 +101,7 @@ func TestHelp(t *testing.T) {
     help.test log --bool|-b --float <float64> <--ii <int>>... --int <int>
                   <-m <key=value>>... <--ss <string>>... <command> [<args>]
 `},
-		{"Synopsis", Synopsis(scriptName, "log",
+		{"Synopsis", Synopsis(scriptName, "log", "",
 			[]*option.Option{
 				option.New("bool", option.BoolType).SetAlias("b").SetRequired(""),
 				option.New("int", option.IntType).SetRequired(""),
