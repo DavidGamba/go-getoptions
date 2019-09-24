@@ -2356,10 +2356,14 @@ See 'go-getoptions.test help' for information about global parameters.
 	t.Run("help case command", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		called := false
+		exitFn = func(code int) { called = true }
 		fn := func(opt *GetOpt, args []string) error {
+			if opt.Called("help") {
+				fmt.Fprintf(helpBuf, opt.Help())
+				exitFn(1)
+			}
 			return nil
 		}
-		exitFn = func(code int) { called = true }
 		buf := setupLogging()
 		opt := New()
 		opt.Writer = helpBuf

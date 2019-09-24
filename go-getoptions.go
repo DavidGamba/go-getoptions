@@ -189,16 +189,6 @@ func (gopt *GetOpt) Dispatch(helpOptionName string, args []string) error {
 		return nil
 	default:
 		commandName := args[0]
-		if gopt.Called(helpOptionName) {
-			for name, v := range gopt.commands {
-				if commandName == name {
-					fmt.Fprintf(gopt.Writer, v.Help())
-					exitFn(1)
-					return nil
-				}
-			}
-
-		}
 		for name, v := range gopt.commands {
 			if commandName == name {
 				if v.CommandFn != nil {
