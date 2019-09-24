@@ -1,13 +1,19 @@
 = Changelog
 :toc:
 
-== master
+== v0.16.0 Feature release
+
+=== Fixes
 
 * Bug Fix: Update `opt.Dispatch` not to handle `--help` option.
 It was preventing the help option to reach the commands.
 
+=== New Features
+
 * Introduce `opt.HelpSynopsisArgs(string)` method to allow overriding the default args description.
 The current default description is `[<args>]`.
+
+=== Minor changes
 
 * Make `SetMode`, `SetUnknownMode`, `SetRequireOrder` and `SetMapKeysToLower` chainable.
 
