@@ -323,8 +323,9 @@ func (gopt *GetOpt) setOption(opts ...*option.Option) *GetOpt {
 //     |===
 //
 // See https://github.com/DavidGamba/go-getoptions#operation_modes for more details.
-func (gopt *GetOpt) SetMode(mode Mode) {
+func (gopt *GetOpt) SetMode(mode Mode) *GetOpt {
 	gopt.mode = mode
+	return gopt
 }
 
 // SetUnknownMode - Determines how to behave when encountering an unknown option.
@@ -337,8 +338,9 @@ func (gopt *GetOpt) SetMode(mode Mode) {
 // • 'pass' will make 'Parse' ignore any unknown options and they will be passed onto the 'remaining' slice.
 // This allows for subcommands.
 // TODO: Add aliases
-func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) {
+func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) *GetOpt {
 	gopt.unknownMode = mode
+	return gopt
 }
 
 // SetRequireOrder - Stop parsing options when a subcommand is passed.
@@ -364,8 +366,9 @@ func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) {
 //
 // `--help` is not handled by `command` since there was a subcommand that caused the parsing to stop.
 // In this case, the `remaining` slice will contain `['subcommand', '--help']` and that can be passed directly to a subcommand's option parser.
-func (gopt *GetOpt) SetRequireOrder() {
+func (gopt *GetOpt) SetRequireOrder() *GetOpt {
 	gopt.requireOrder = true
+	return gopt
 }
 
 // SetMapKeysToLower - StringMap keys captured from StringMap are lower case.
@@ -378,8 +381,9 @@ func (gopt *GetOpt) SetRequireOrder() {
 //     command --opt KEY=value
 //
 // Would both return `map[string]string{"key":"value"}`.
-func (gopt *GetOpt) SetMapKeysToLower() {
+func (gopt *GetOpt) SetMapKeysToLower() *GetOpt {
 	gopt.mapKeysToLower = true
+	return gopt
 }
 
 // Alias - Adds aliases to an option.
