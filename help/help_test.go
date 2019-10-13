@@ -34,7 +34,7 @@ func TestHelp(t *testing.T) {
 		got      string
 		expected string
 	}{
-		{"Name", Name(scriptName, "", ""), `NAME:
+		{"Name", Name("", scriptName, ""), `NAME:
     help.test
 `},
 		{"Name", Name(scriptName, "log", ""), `NAME:
@@ -43,7 +43,7 @@ func TestHelp(t *testing.T) {
 		{"Name", Name(scriptName, "log", "logs output..."), `NAME:
     help.test log - logs output...
 `},
-		{"Synopsis", Synopsis(scriptName, "", "", nil, []string{}), `SYNOPSIS:
+		{"Synopsis", Synopsis("", scriptName, "", nil, []string{}), `SYNOPSIS:
     help.test [<args>]
 `},
 		{"Synopsis", Synopsis(scriptName, "log", "", nil, []string{}), `SYNOPSIS:

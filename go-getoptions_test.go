@@ -1890,11 +1890,11 @@ OPTIONS:
 	name = opt.Help(HelpName)
 	synopsis = opt.Help(HelpSynopsis)
 	expectedName = `NAME:
-    go-getoptions.test name - description...
+    name - description...
 
 `
 	expectedSynopsis = `SYNOPSIS:
-    go-getoptions.test name <command> [<args>]
+    name <command> [<args>]
 
 `
 	if name != expectedName {
@@ -1929,6 +1929,35 @@ OPTIONS:
 	if commandList != expectedCommandList {
 		fmt.Printf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
 		t.Errorf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
+	}
+
+	opt = New()
+	logCmd := opt.NewCommand("log", "Log stuff")
+	subLogCmd := logCmd.NewCommand("sublog", "Sub Log stuff")
+	_, err = opt.Parse([]string{})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	name = subLogCmd.Help(HelpName)
+	synopsis = subLogCmd.Help(HelpSynopsis)
+	expectedName = `NAME:
+    go-getoptions.test log sublog - Sub Log stuff
+
+`
+	expectedSynopsis = `SYNOPSIS:
+    go-getoptions.test log sublog [<args>]
+
+`
+	if name != expectedName {
+		fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
+		t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
+	}
+	if synopsis != expectedSynopsis {
+		fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+		t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+	}
+	if subLogCmd.Help() != expectedName+expectedSynopsis+subLogCmd.Help(HelpCommandList)+subLogCmd.Help(HelpOptionList) {
+		t.Errorf("Unexpected help:\n---\n%s\n---\n", opt.Help())
 	}
 }
 

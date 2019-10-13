@@ -74,6 +74,7 @@ type GetOpt struct {
 	name         string
 	description  string
 	synopsisArgs string
+	selfCalled   bool
 
 	// isCommand
 	isCommand bool
@@ -114,6 +115,7 @@ func New() *GetOpt {
 	root := completion.NewNode("root", completion.Root, nil)
 	root.AddChild(completion.NewNode("options", completion.OptionsNode, nil))
 	gopt := &GetOpt{
+		name:       filepath.Base(os.Args[0]),
 		obj:        make(map[string]*option.Option),
 		commands:   make(map[string]*GetOpt),
 		Writer:     os.Stderr,
@@ -164,8 +166,11 @@ func (gopt *GetOpt) completionAppendAliases(aliases []string) {
 // Self - Set a custom name and description that will show in the automated help.
 // If name is an empty string, it will only use the description and use the name as the executable name.
 func (gopt *GetOpt) Self(name string, description string) *GetOpt {
-	gopt.name = name
+	if name != "" {
+		gopt.name = name
+	}
 	gopt.description = description
+	gopt.selfCalled = true
 	return gopt
 }
 
@@ -460,6 +465,14 @@ func (gopt *GetOpt) HelpSynopsisArgs(args string) *GetOpt {
 	return gopt
 }
 
+func getCommandName(opt *GetOpt) string {
+	if opt.isCommand {
+		name := getCommandName(opt.parent)
+		return fmt.Sprintf("%s %s", name, opt.name)
+	}
+	return opt.name
+}
+
 // Help - Default help string that is composed of the HelpSynopsis and HelpOptionList.
 func (gopt *GetOpt) Help(sections ...HelpSection) string {
 	if len(sections) == 0 {
@@ -467,13 +480,16 @@ func (gopt *GetOpt) Help(sections ...HelpSection) string {
 		sections = []HelpSection{helpDefaultName, HelpSynopsis, HelpCommandList, HelpOptionList}
 	}
 	helpTxt := ""
-	scriptName := filepath.Base(os.Args[0])
+	var scriptName string
+	if gopt.isCommand {
+		scriptName = getCommandName(gopt.parent)
+	}
 	for _, section := range sections {
 		switch section {
 		// Default name only prints name if the name or description is set.
 		// The explicit type always prints it.
 		case helpDefaultName:
-			if gopt.name != "" || gopt.description != "" {
+			if gopt.selfCalled || gopt.isCommand {
 				helpTxt += help.Name(scriptName, gopt.name, gopt.description)
 				helpTxt += "\n"
 			}

@@ -39,8 +39,10 @@ func wrapFn(wrap bool, open, close string) func(s string) string {
 // Name -
 func Name(scriptName, name, description string) string {
 	out := scriptName
-	if name != "" {
+	if scriptName != "" {
 		out += fmt.Sprintf(" %s", name)
+	} else {
+		out += name
 	}
 	if description != "" {
 		out += fmt.Sprintf(" - %s", description)
@@ -50,7 +52,13 @@ func Name(scriptName, name, description string) string {
 
 // Synopsis - Return a default synopsis.
 func Synopsis(scriptName, name, args string, options []*option.Option, commands []string) string {
-	scriptName = indent(scriptName)
+	synopsisName := scriptName
+	if scriptName != "" {
+		synopsisName += fmt.Sprintf(" %s", name)
+	} else {
+		synopsisName += name
+	}
+	synopsisName = indent(synopsisName)
 	if name != "" {
 		scriptName += " " + name
 	}
@@ -80,13 +88,13 @@ func Synopsis(scriptName, name, args string, options []*option.Option, commands 
 		return txt
 	}
 	var out string
-	line := scriptName
+	line := synopsisName
 	for _, option := range append(requiredOptions, normalOptions...) {
 		syn := optSynopsis(option)
 		// fmt.Printf("%d - %d - %d | %s | %s\n", len(line), len(syn), len(line)+len(syn), syn, line)
 		if len(line)+len(syn) > 80 {
 			out += line + "\n"
-			line = fmt.Sprintf("%s %s", strings.Repeat(" ", len(scriptName)), syn)
+			line = fmt.Sprintf("%s %s", strings.Repeat(" ", len(synopsisName)), syn)
 		} else {
 			line += fmt.Sprintf(" %s", syn)
 		}
@@ -102,7 +110,7 @@ func Synopsis(scriptName, name, args string, options []*option.Option, commands 
 	}
 	if len(line)+len(syn) > 80 {
 		out += line + "\n"
-		line = fmt.Sprintf("%s %s", strings.Repeat(" ", len(scriptName)), syn)
+		line = fmt.Sprintf("%s %s", strings.Repeat(" ", len(synopsisName)), syn)
 	} else {
 		line += fmt.Sprintf(" %s", syn)
 	}
