@@ -79,6 +79,8 @@ type GetOpt struct {
 	isCommand bool
 	// CommandFn
 	CommandFn CommandFn
+	// Parent object
+	parent *GetOpt
 
 	// Option handling
 	// TODO: Option handling should trickle down to commands.
@@ -122,10 +124,24 @@ func New() *GetOpt {
 
 // NewCommand - Returns a new GetOpt object representing a new command.
 func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
+	if name == "" {
+		panic("NewCommand name must not be empty!")
+	}
 	cmd := New()
 	cmd.isCommand = true
 	cmd.name = name
 	cmd.description = description
+	cmd.parent = gopt
+
+	// TODO: Ensure aliases are gettint validated
+
+	// Completion
+	node := cmd.completion
+	node.Kind = completion.StringNode
+	node.Name = cmd.name
+	gopt.completion.AddChild(node)
+	gopt.commands[cmd.name] = cmd
+
 	return cmd
 }
 
@@ -221,12 +237,18 @@ func (gopt *GetOpt) Dispatch(helpOptionName string, args []string) error {
 func (gopt *GetOpt) failIfDefined(aliases []string) {
 	for _, a := range aliases {
 		for _, option := range gopt.obj {
-			if option.IsPassedToCommand {
-				continue
-			}
 			for _, v := range option.Aliases {
 				if v == a {
 					panic(fmt.Sprintf("Option/Alias '%s' is already defined", a))
+				}
+			}
+		}
+		if gopt.parent != nil {
+			for _, option := range gopt.parent.obj {
+				for _, v := range option.Aliases {
+					if v == a {
+						panic(fmt.Sprintf("Option/Alias '%s' is already defined", a))
+					}
 				}
 			}
 		}
@@ -506,30 +528,6 @@ func (gopt *GetOpt) HelpCommand(description string) *GetOpt {
 	}
 	opt.CustomCompletion(commands)
 	return opt
-}
-
-// Command - Allows defining a child command.
-func (gopt *GetOpt) Command(options *GetOpt) {
-	if options == nil {
-		panic("Argument to Command can't be nil!")
-	}
-	if options.name == "" {
-		panic("Argument to Command must have a name.\nUse `.Self(...)` to define it!")
-	}
-	if !options.isCommand {
-		panic("Argument to Command must be a command.\nUse `NewCommand()` to define it!")
-	}
-	// Validate aliases
-	for _, option := range options.obj {
-		gopt.failIfDefined(option.Aliases)
-	}
-
-	// Add completion
-	node := options.completion
-	node.Kind = completion.StringNode
-	node.Name = options.name
-	gopt.completion.AddChild(node)
-	gopt.commands[options.name] = options
 }
 
 // CustomCompletion - Add a custom completion list.
