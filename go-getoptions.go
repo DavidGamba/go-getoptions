@@ -120,10 +120,11 @@ func New() *GetOpt {
 	return gopt
 }
 
-func NewCommand() *GetOpt {
-	gopt := New()
-	gopt.isCommand = true
-	return gopt
+// NewCommand - Returns a new GetOpt object representing a new command.
+func (gopt *GetOpt) NewCommand() *GetOpt {
+	cmd := New()
+	cmd.isCommand = true
+	return cmd
 }
 
 func (gopt *GetOpt) SetCommandFn(fn CommandFn) *GetOpt {
@@ -496,7 +497,7 @@ func (gopt *GetOpt) HelpCommand(description string) *GetOpt {
 	if description == "" {
 		description = gopt.extraDetails()
 	}
-	opt := NewCommand()
+	opt := gopt.NewCommand()
 	opt.Self("help", description)
 	commands := []string{}
 	for name, _ := range gopt.commands {

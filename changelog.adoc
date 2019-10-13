@@ -1,6 +1,12 @@
 = Changelog
 :toc:
 
+== master: Breaking Changes
+
+* Refactor `NewCommmand()` as a method.
+This will allow the built-in help to have information about the parent.
+It might also help with autocompletion.
+
 == v0.16.0 Feature release
 
 As the releases before, this release has 100% test coverage.

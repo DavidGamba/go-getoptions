@@ -1807,8 +1807,8 @@ func TestSynopsis(t *testing.T) {
 	opt.StringSlice("req-list", 1, 2, opt.Required(), opt.ArgName("item"))
 	opt.IntSlice("intSlice", 1, 1, opt.Description("This option is using an int slice\nLets see how multiline works"))
 	opt.StringMap("strMap", 1, 2, opt.Description("Hello world"))
-	opt.Command(NewCommand().Self("log", "Log stuff"))
-	opt.Command(NewCommand().Self("show", "Show stuff"))
+	opt.Command(opt.NewCommand().Self("log", "Log stuff"))
+	opt.Command(opt.NewCommand().Self("show", "Show stuff"))
 	_, err := opt.Parse([]string{"--str", "a", "--int", "0", "--req-list", "a"})
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -1880,8 +1880,8 @@ OPTIONS:
 	}
 
 	opt = New()
-	opt.Command(NewCommand().Self("log", "Log stuff"))
-	opt.Command(NewCommand().Self("show", "Show stuff"))
+	opt.Command(opt.NewCommand().Self("log", "Log stuff"))
+	opt.Command(opt.NewCommand().Self("show", "Show stuff"))
 	opt.Self("name", "description...")
 	_, err = opt.Parse([]string{})
 	if err != nil {
@@ -1937,7 +1937,7 @@ func TestCompletion(t *testing.T) {
 	exitFn = func(code int) { called = true }
 	opt := New()
 	opt.Bool("flag", false, opt.Alias("f"))
-	opt.Command(NewCommand().Self("help", "Show help").CustomCompletion([]string{"log", "show"}))
+	opt.Command(opt.NewCommand().Self("help", "Show help").CustomCompletion([]string{"log", "show"}))
 
 	cleanup := func() {
 		os.Setenv("COMP_LINE", "")
@@ -2009,7 +2009,7 @@ func TestCommandPanicWithNoNameInput(t *testing.T) {
 		}
 	}()
 	opt := New()
-	opt.Command(NewCommand())
+	opt.Command(opt.NewCommand())
 	opt.Parse([]string{})
 }
 
@@ -2025,7 +2025,7 @@ func TestCommandDuplicateDefinition(t *testing.T) {
 	}()
 	opt := New()
 	opt.String("profile", "", opt.Alias("p"))
-	command := NewCommand()
+	command := opt.NewCommand()
 	command.String("password", "", command.Alias("p"))
 	opt.Command(command.Self("command", ""))
 	_, err := opt.Parse([]string{})
@@ -2046,7 +2046,7 @@ func TestCommandDuplicateDefinition2(t *testing.T) {
 	}()
 	opt := New()
 	opt.String("profile", "", opt.Alias("p"))
-	command := NewCommand()
+	command := opt.NewCommand()
 	command.String("p", "")
 	opt.Command(command.Self("command", ""))
 	_, err := opt.Parse([]string{})
@@ -2065,10 +2065,10 @@ func TestCommandAmbiguosOption(t *testing.T) {
 		opt := New()
 		opt.SetUnknownMode(Pass)
 		opt.StringVar(&profile, "profile", "")
-		command := NewCommand()
+		command := opt.NewCommand()
 		command.StringVar(&password, "password", "")
 		opt.Command(command.Self("command", ""))
-		command2 := NewCommand()
+		command2 := opt.NewCommand()
 		command2.StringVar(&password2, "password", "")
 		opt.Command(command2.Self("command2", ""))
 		remaining, err := opt.Parse([]string{"-pr", "hello"})
@@ -2097,10 +2097,10 @@ func TestCommandAmbiguosOption(t *testing.T) {
 		opt := New()
 		opt.SetUnknownMode(Pass)
 		opt.StringVar(&profile, "profile", "")
-		command := NewCommand()
+		command := opt.NewCommand()
 		command.StringVar(&password, "password", "")
 		opt.Command(command.Self("command", ""))
-		command2 := NewCommand()
+		command2 := opt.NewCommand()
 		command2.StringVar(&password2, "password", "")
 		opt.Command(command2.Self("command2", ""))
 		remaining, err := opt.Parse([]string{"-pa", "hello"})
@@ -2129,7 +2129,7 @@ func TestCommandAmbiguosOption(t *testing.T) {
 		opt := New()
 		opt.SetUnknownMode(Pass)
 		opt.StringVar(&profile, "profile", "")
-		command := NewCommand()
+		command := opt.NewCommand()
 		command.StringVar(&password, "password", "")
 		opt.Command(command.Self("command", ""))
 		_, err := opt.Parse([]string{"-p", "hello"})
@@ -2148,10 +2148,10 @@ func TestCommandAmbiguosOption(t *testing.T) {
 		opt := New()
 		opt.SetUnknownMode(Pass)
 		opt.StringVar(&profile, "profile", "", opt.Alias("p"))
-		command := NewCommand()
+		command := opt.NewCommand()
 		command.StringVar(&password, "password", "")
 		opt.Command(command.Self("command", ""))
-		command2 := NewCommand()
+		command2 := opt.NewCommand()
 		command2.StringVar(&password2, "password", "")
 		opt.Command(command2.Self("command2", ""))
 		remaining, err := opt.Parse([]string{"-p", "hello"})
@@ -2180,10 +2180,10 @@ func TestCommandAmbiguosOption(t *testing.T) {
 		opt := New()
 		opt.SetUnknownMode(Pass)
 		opt.StringVar(&profile, "profile", "")
-		command := NewCommand()
+		command := opt.NewCommand()
 		command.StringVar(&password, "password", "", opt.Alias("p"))
 		opt.Command(command.Self("command", ""))
-		command2 := NewCommand()
+		command2 := opt.NewCommand()
 		command2.StringVar(&password2, "password", "")
 		opt.Command(command2.Self("command2", ""))
 		remaining, err := opt.Parse([]string{"-p", "hello"})
@@ -2215,7 +2215,7 @@ func TestSetCommandFn(t *testing.T) {
 	}
 	buf := setupLogging()
 	opt := New()
-	command := NewCommand()
+	command := opt.NewCommand()
 	opt.Command(command.Self("command", "").SetCommandFn(fn))
 	remaining, err := opt.Parse([]string{"command"})
 	if err != nil {
@@ -2240,7 +2240,7 @@ func TestDispatch(t *testing.T) {
 		opt := New()
 		opt.Writer = helpBuf
 		opt.Bool("help", false)
-		opt.Command(NewCommand().Self("command", "").SetCommandFn(fn))
+		opt.Command(opt.NewCommand().Self("command", "").SetCommandFn(fn))
 		opt.Command(opt.HelpCommand(""))
 		remaining, err := opt.Parse([]string{})
 		if err != nil {
@@ -2282,7 +2282,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 		opt := New()
 		opt.Writer = helpBuf
 		opt.Bool("help", false)
-		opt.Command(NewCommand().Self("command", "").SetCommandFn(fn))
+		opt.Command(opt.NewCommand().Self("command", "").SetCommandFn(fn))
 		opt.Command(opt.HelpCommand(""))
 		remaining, err := opt.Parse([]string{"help"})
 		if err != nil {
@@ -2324,7 +2324,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 		opt := New()
 		opt.Writer = helpBuf
 		opt.Bool("help", false)
-		opt.Command(NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
+		opt.Command(opt.NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
 		opt.Command(opt.HelpCommand(""))
 		remaining, err := opt.Parse([]string{"help", "command"})
 		if err != nil {
@@ -2369,8 +2369,8 @@ See 'go-getoptions.test help' for information about global parameters.
 		opt := New()
 		opt.Writer = helpBuf
 		opt.Bool("help", false)
-		command := NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help"))
-		subcommand := NewCommand().Self("sub-command", "").SetCommandFn(fn).SetOption(command.Option("help"))
+		command := opt.NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help"))
+		subcommand := opt.NewCommand().Self("sub-command", "").SetCommandFn(fn).SetOption(command.Option("help"))
 		command.Command(subcommand)
 		command.Command(command.HelpCommand(""))
 		opt.Command(command)
@@ -2416,7 +2416,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		buf := setupLogging()
 		opt := New()
 		opt.Bool("help", false)
-		opt.Command(NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
+		opt.Command(opt.NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
 		opt.Command(opt.HelpCommand(""))
 		remaining, err := opt.Parse([]string{"command"})
 		if err != nil {
@@ -2441,7 +2441,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		buf := setupLogging()
 		opt := New()
 		opt.Bool("help", false)
-		opt.Command(NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
+		opt.Command(opt.NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
 		opt.Command(opt.HelpCommand(""))
 		remaining, err := opt.Parse([]string{"command"})
 		if err != nil {
@@ -2466,7 +2466,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		buf := setupLogging()
 		opt := New()
 		opt.Bool("help", false)
-		opt.Command(NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
+		opt.Command(opt.NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
 		opt.Command(opt.HelpCommand(""))
 		remaining, err := opt.Parse([]string{"x"})
 		if err != nil {
@@ -2492,7 +2492,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		opt := New()
 		opt.Bool("help", false)
 		opt.SetUnknownMode(Pass)
-		opt.Command(NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
+		opt.Command(opt.NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
 		opt.Command(opt.HelpCommand(""))
 		remaining, err := opt.Parse([]string{"-x"})
 		if err != nil {
@@ -2515,7 +2515,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		buf := setupLogging()
 		opt := New()
 		opt.Bool("help", false)
-		opt.Command(NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
+		opt.Command(opt.NewCommand().Self("command", "").SetCommandFn(fn).SetOption(opt.Option("help")))
 		opt.Command(opt.HelpCommand(""))
 		remaining, err := opt.Parse([]string{"help", "x"})
 		if err != nil {
