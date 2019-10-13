@@ -121,9 +121,11 @@ func New() *GetOpt {
 }
 
 // NewCommand - Returns a new GetOpt object representing a new command.
-func (gopt *GetOpt) NewCommand() *GetOpt {
+func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	cmd := New()
 	cmd.isCommand = true
+	cmd.name = name
+	cmd.description = description
 	return cmd
 }
 
@@ -497,8 +499,7 @@ func (gopt *GetOpt) HelpCommand(description string) *GetOpt {
 	if description == "" {
 		description = gopt.extraDetails()
 	}
-	opt := gopt.NewCommand()
-	opt.Self("help", description)
+	opt := gopt.NewCommand("help", description)
 	commands := []string{}
 	for name, _ := range gopt.commands {
 		commands = append(commands, name)

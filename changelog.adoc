@@ -3,9 +3,12 @@
 
 == master: Breaking Changes
 
-* Refactor `NewCommmand()` as a method.
+* Refactor `NewCommmand` as a method.
 This will allow the built-in help to have information about the parent.
 It might also help with autocompletion.
+
+* Change sigature to `opt.NewCommand(name, description string)`.
+It takes a name and description now.
 
 == v0.16.0 Feature release
 
