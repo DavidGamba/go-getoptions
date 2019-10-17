@@ -9,6 +9,7 @@
 package getoptions
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -104,7 +105,7 @@ type GetOpt struct {
 type ModifyFn func(*option.Option)
 
 // CommandFn - Function signature for commands
-type CommandFn func(*GetOpt, []string) error
+type CommandFn func(context.Context, *GetOpt, []string) error
 
 // New returns an empty object of type GetOpt.
 // This is the starting point when using go-getoptions.
@@ -187,7 +188,7 @@ func (gopt *GetOpt) extraDetails() string {
 }
 
 // Dispatch -
-func (gopt *GetOpt) Dispatch(helpOptionName string, args []string) error {
+func (gopt *GetOpt) Dispatch(ctx context.Context, helpOptionName string, args []string) error {
 	if len(args) == 0 {
 		fmt.Fprintf(gopt.Writer, gopt.Help())
 		fmt.Fprintf(gopt.Writer, gopt.extraDetails()+"\n")
@@ -217,7 +218,7 @@ func (gopt *GetOpt) Dispatch(helpOptionName string, args []string) error {
 		for name, v := range gopt.commands {
 			if commandName == name {
 				if v.CommandFn != nil {
-					err := v.CommandFn(v, args[1:])
+					err := v.CommandFn(ctx, v, args[1:])
 					if err != nil {
 						return err
 					}

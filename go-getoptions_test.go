@@ -9,6 +9,7 @@ package getoptions
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -2201,7 +2202,7 @@ func TestCommandAmbiguosOption(t *testing.T) {
 
 func TestSetCommandFn(t *testing.T) {
 	called := false
-	fn := func(opt *GetOpt, args []string) error {
+	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
 		called = true
 		return nil
 	}
@@ -2212,7 +2213,7 @@ func TestSetCommandFn(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	command.CommandFn(command, remaining)
+	command.CommandFn(context.Background(), command, remaining)
 	if !called {
 		t.Errorf("Function not called")
 	}
@@ -2223,7 +2224,7 @@ func TestDispatch(t *testing.T) {
 	t.Run("no args", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		called := false
-		fn := func(opt *GetOpt, args []string) error {
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
 			return nil
 		}
 		exitFn = func(code int) { called = true }
@@ -2237,7 +2238,7 @@ func TestDispatch(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		err = opt.Dispatch("help", remaining)
+		err = opt.Dispatch(context.Background(), "help", remaining)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
@@ -2265,7 +2266,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 	t.Run("help case", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		called := false
-		fn := func(opt *GetOpt, args []string) error {
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
 			return nil
 		}
 		exitFn = func(code int) { called = true }
@@ -2279,7 +2280,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		err = opt.Dispatch("help", remaining)
+		err = opt.Dispatch(context.Background(), "help", remaining)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
@@ -2307,7 +2308,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 	t.Run("help case command", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		called := false
-		fn := func(opt *GetOpt, args []string) error {
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
 			return nil
 		}
 		exitFn = func(code int) { called = true }
@@ -2321,7 +2322,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		err = opt.Dispatch("help", remaining)
+		err = opt.Dispatch(context.Background(), "help", remaining)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
@@ -2349,7 +2350,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		helpBuf := new(bytes.Buffer)
 		called := false
 		exitFn = func(code int) { called = true }
-		fn := func(opt *GetOpt, args []string) error {
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
 			if opt.Called("help") {
 				fmt.Fprintf(helpBuf, opt.Help())
 				exitFn(1)
@@ -2368,7 +2369,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		err = opt.Dispatch("help", remaining)
+		err = opt.Dispatch(context.Background(), "help", remaining)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
@@ -2398,7 +2399,7 @@ See 'go-getoptions.test help' for information about global parameters.
 
 	t.Run("command", func(t *testing.T) {
 		called := false
-		fn := func(opt *GetOpt, args []string) error {
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
 			called = true
 			return nil
 		}
@@ -2411,7 +2412,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		err = opt.Dispatch("help", remaining)
+		err = opt.Dispatch(context.Background(), "help", remaining)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
@@ -2423,7 +2424,7 @@ See 'go-getoptions.test help' for information about global parameters.
 
 	t.Run("command error", func(t *testing.T) {
 		called := false
-		fn := func(opt *GetOpt, args []string) error {
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
 			called = true
 			return fmt.Errorf("err")
 		}
@@ -2436,7 +2437,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		err = opt.Dispatch("help", remaining)
+		err = opt.Dispatch(context.Background(), "help", remaining)
 		if err == nil {
 			t.Errorf("Error not called")
 		}
@@ -2448,7 +2449,7 @@ See 'go-getoptions.test help' for information about global parameters.
 
 	t.Run("command error", func(t *testing.T) {
 		called := false
-		fn := func(opt *GetOpt, args []string) error {
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
 			called = true
 			return fmt.Errorf("err")
 		}
@@ -2461,7 +2462,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		err = opt.Dispatch("help", remaining)
+		err = opt.Dispatch(context.Background(), "help", remaining)
 		if err == nil {
 			t.Errorf("Error not called")
 		}
@@ -2473,7 +2474,7 @@ See 'go-getoptions.test help' for information about global parameters.
 
 	t.Run("command error", func(t *testing.T) {
 		called := false
-		fn := func(opt *GetOpt, args []string) error {
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
 			called = true
 			return fmt.Errorf("err")
 		}
@@ -2487,7 +2488,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		err = opt.Dispatch("help", remaining)
+		err = opt.Dispatch(context.Background(), "help", remaining)
 		if err == nil {
 			t.Errorf("Error not called")
 		}
@@ -2498,7 +2499,7 @@ See 'go-getoptions.test help' for information about global parameters.
 	})
 
 	t.Run("help error", func(t *testing.T) {
-		fn := func(opt *GetOpt, args []string) error {
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
 			return nil
 		}
 		buf := setupLogging()
@@ -2510,7 +2511,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		err = opt.Dispatch("help", remaining)
+		err = opt.Dispatch(context.Background(), "help", remaining)
 		if err == nil {
 			t.Errorf("Error not called")
 		}

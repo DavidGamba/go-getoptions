@@ -10,6 +10,10 @@ It might also help with autocompletion.
 * Change sigature to `opt.NewCommand(name, description string)`.
 It takes a name and description now.
 
+* Change signature of `CommandFn` to have a `context` as the first argument.
+It will allow the parent to propagate cancelation signals, etc. to the child commands.
+This change goes along a change to the helper `opt.Dispatch` to also have a `context` as the first argument.
+
 == v0.16.0 Feature release
 
 As the releases before, this release has 100% test coverage.
