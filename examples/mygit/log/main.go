@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,15 +12,15 @@ import (
 
 var logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
 
-// Options - Populate Options definition
-func Options() *getoptions.GetOpt {
-	opt := getoptions.NewCommand().Self("log", "Show commit logs")
+// New - Populate Options definition
+func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
+	opt := parent.NewCommand("log", "Show commit logs")
 	opt.Bool("log-option", false, opt.Alias("l"))
 	return opt
 }
 
 // Log - Command entry point
-func Log(opt *getoptions.GetOpt, args []string) error {
+func Log(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 	remaining, err := opt.Parse(args)
 	if err != nil {
 		return err

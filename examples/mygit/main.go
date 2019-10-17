@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -19,9 +20,9 @@ func main() {
 	opt.Bool("debug", false)
 	opt.SetRequireOrder()
 	opt.SetUnknownMode(getoptions.Pass)
-	opt.Command(gitlog.Options().SetOption(opt.Option("help"), opt.Option("debug")).SetCommandFn(gitlog.Log))
-	opt.Command(gitshow.Options().SetOption(opt.Option("help"), opt.Option("debug")).SetCommandFn(gitshow.Show))
-	opt.Command(opt.HelpCommand(""))
+	gitlog.New(opt).SetOption(opt.Option("help"), opt.Option("debug")).SetCommandFn(gitlog.Log)
+	gitshow.New(opt).SetOption(opt.Option("help"), opt.Option("debug")).SetCommandFn(gitshow.Show)
+	opt.HelpCommand("")
 	remaining, err := opt.Parse(os.Args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
@@ -32,7 +33,7 @@ func main() {
 	}
 	logger.Printf("Remaning cli args: %v", remaining)
 
-	err = opt.Dispatch("help", remaining)
+	err = opt.Dispatch(context.Background(), "help", remaining)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		os.Exit(1)

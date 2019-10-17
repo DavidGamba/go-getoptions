@@ -1,6 +1,7 @@
 package show
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,15 +12,15 @@ import (
 
 var logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
 
-// Options - Populate Options definition
-func Options() *getoptions.GetOpt {
-	opt := getoptions.NewCommand().Self("show", "Show various types of objects")
+// New - Populate Options definition
+func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
+	opt := parent.NewCommand("show", "Show various types of objects")
 	opt.Bool("show-option", false)
 	return opt
 }
 
 // Show - Command entry point
-func Show(opt *getoptions.GetOpt, args []string) error {
+func Show(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 	remaining, err := opt.Parse(args)
 	if err != nil {
 		return err
