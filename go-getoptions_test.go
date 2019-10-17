@@ -15,6 +15,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/DavidGamba/go-getoptions/text"
 )
@@ -2617,4 +2618,57 @@ func TestAll(t *testing.T) {
 	if opt.Value("int") != 123 {
 		t.Errorf("int didn't have expected value: %v != %v", opt.Value("int"), 123)
 	}
+}
+
+func TestInterruptContext(t *testing.T) {
+	iterations := 1000
+	sum := 0
+	called := false
+	cleanupFn := func() { called = true }
+	helpBuf := new(bytes.Buffer)
+	buf := setupLogging()
+	opt := New()
+	opt.Writer = helpBuf
+	ctx, cancel, done := opt.InterruptContext()
+	defer func() {
+		cancel()
+		<-done
+		if sum >= iterations {
+			t.Errorf("Interrupt not captured: %d\n", sum)
+		}
+	}()
+
+	for i := 0; i <= iterations; i++ {
+		sum++
+		select {
+		case <-ctx.Done():
+			cleanupFn()
+			return
+		default:
+		}
+		if i == 0 {
+			id := os.Getpid()
+			fmt.Printf("process id %d\n", id)
+			p, err := os.FindProcess(id)
+			if err != nil {
+				t.Errorf("Unexpected error: %s\n", err)
+				continue
+			}
+			fmt.Printf("process %v\n", p)
+			err = p.Signal(os.Interrupt)
+			if err != nil {
+				t.Errorf("Unexpected error: %s\n", err)
+				continue
+			}
+		}
+		// Give the kernel time to process the signal
+		time.Sleep(1 * time.Millisecond)
+	}
+	if !called {
+		t.Errorf("Cleanup function not called")
+	}
+	if helpBuf.String() != text.MessageOnInterrupt+"\n" {
+		t.Errorf("Wrong output: %s", helpBuf.String())
+	}
+	t.Log(buf.String())
 }

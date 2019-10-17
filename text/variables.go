@@ -42,6 +42,9 @@ var ErrorConvertToFloat64 = "Argument error for option '%s': Can't convert strin
 // It has a string placeholder '%s' for the name of the option missing the argument.
 var MessageOnUnknown = "Unknown option '%s'"
 
+// MessageOnInterrupt holds the text for the message to be printed when an interrupt is received.
+var MessageOnInterrupt = "Interrupt signal received"
+
 // HelpNameHeader holds the header text for the command name
 var HelpNameHeader = "NAME"
 
