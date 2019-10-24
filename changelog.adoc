@@ -3,6 +3,17 @@
 
 == master: Breaking Changes
 
+As the releases before, this release has 100% test coverage.
+
+This release keeps on the work of removing the kinks around subcommands.
+An example showing subcommands can be found in https://github.com/DavidGamba/go-getoptions/tree/master/examples/mygit[./examples/mygit].
+
+It also introduces the use of context to propagate cancelation signals, etc. to the child commands.
+
+Finally, it introduces a new helper that captures interrupts (for example Ctrl-C) and returns a top level context.
+
+=== Breaking changes
+
 * Refactor `NewCommmand` as a method.
 This will allow the built-in help to have information about the parent.
 It might also help with autocompletion.
@@ -13,6 +24,34 @@ It takes a name and description now.
 * Change signature of `CommandFn` to have a `context` as the first argument.
 It will allow the parent to propagate cancelation signals, etc. to the child commands.
 This change goes along a change to the helper `opt.Dispatch` to also have a `context` as the first argument.
+
+Updating:
+
+[source, diff]
+----
+-   list := getoptions.NewCommand().Self("list", "list instances").
++   list := opt.NewCommand("list", "list instances").
+        SetOption(parent.Option("help"), parent.Option("debug")).
+        SetCommandFn(runInstanceList)
+    list.StringSlice("tag", 1, 99, opt.Alias("t"),
+        opt.Description("Any AWS tags you want to list"))
+-   opt.Command(list)
+
+ ...
+
+-   err = opt.Dispatch("help", remaining)
++   err = opt.Dispatch(context.Background(), "help", remaining)
+
+ ...
+
+-func runInstanceList(opt *getoptions.GetOpt, args []string) error {
++func runInstanceList(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+----
+
+=== New Features
+
+* Introduce `opt.InterruptContext()`, a helper that returns a top level context that captures interrupt signals (`os.Interrupt`, `syscall.SIGHUP`, `syscall.SIGTERM`).
+An example can be found in https://github.com/DavidGamba/go-getoptions/tree/master/examples/mygit[./examples/mygit].
 
 == v0.16.0 Feature release
 
