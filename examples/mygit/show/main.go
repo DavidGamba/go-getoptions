@@ -19,8 +19,8 @@ func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
 	return opt
 }
 
-// Show - Command entry point
-func Show(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+// Run - Command entry point
+func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 	remaining, err := opt.Parse(args)
 	if err != nil {
 		return err

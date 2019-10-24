@@ -1,4 +1,4 @@
-package log
+package slow
 
 import (
 	"context"
@@ -6,16 +6,19 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
+var logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
+
+var iterations int
 
 // New - Populate Options definition
 func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
-	opt := parent.NewCommand("log", "Show commit logs")
-	opt.Bool("log-option", false, opt.Alias("l"))
+	opt := parent.NewCommand("slow", "Run something in a very slow way (please cancel me with Ctrl-C)")
+	opt.IntVar(&iterations, "iterations", 5)
 	return opt
 }
 
@@ -33,6 +36,15 @@ func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 		logger.SetOutput(os.Stderr)
 	}
 	logger.Println(remaining)
-	fmt.Printf("log output...\n")
+	for i := 0; i < iterations; i++ {
+		select {
+		case <-ctx.Done():
+			fmt.Println("Cleaning up...")
+			return nil
+		default:
+		}
+		fmt.Printf("Sleeping: %d\n", i)
+		time.Sleep(1 * time.Second)
+	}
 	return nil
 }
