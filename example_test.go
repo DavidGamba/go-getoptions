@@ -1,85 +1,77 @@
-// This file is part of go-getoptions.
-//
-// Copyright (C) 2015-2020  David Gamba Rios
-//
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-// These examples demonstrate more intricate uses of the go-getoptions package.
 package getoptions_test
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 
-	"github.com/DavidGamba/go-getoptions" // As getoptions
+	"github.com/DavidGamba/go-getoptions"
 )
+
+var logger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
 
 func Example() {
 	// Declare the variables you want your options to update
-	var flag bool
-	var str string
-	var i int
-	var f float64
+	var debug bool
+	var greetCount int
+	var list map[string]string
 
 	// Declare the GetOptions object
 	opt := getoptions.New()
 
 	// Options definition
-	opt.Bool("help", false, opt.Alias("?"))
-	opt.BoolVar(&flag, "flag", false, opt.Alias("f", "alias2")) // Aliases can be defined
-	opt.StringVar(&str, "string", "", opt.Required())           // Mark option as required
-	opt.IntVar(&i, "i", 456)
-	opt.Float64Var(&f, "float", 0)
+	opt.Bool("help", false, opt.Alias("h", "?")) // Aliases can be defined
+	opt.BoolVar(&debug, "debug", false)
+	opt.IntVar(&greetCount, "greet", 0,
+		opt.Required(),
+		opt.Description("Number of times to greet."), // Set the automated help description
+		opt.ArgName("number"),                        // Change the help synopsis arg from the default <int> to <number>
+	)
+	opt.StringMapVar(&list, "list", 1, 99,
+		opt.Description("Greeting list by language."),
+		opt.ArgName("lang=msg"), // Change the help synopsis arg from <key=value> to <lang=msg>
+	)
 
-	// Parse cmdline arguments or any provided []string
-	// Normally you would run Parse on `os.Args[1:]`:
-	// remaining, err := opt.Parse(os.Args[1:])
-	remaining, err := opt.Parse([]string{
-		"non-option", // Non options can be mixed with options at any place
-		"-f",
-		"--string=mystring", // Arguments can be passed with equals
-		"--float", "3.14",   // Or with space
-		"non-option2",
-		"--", "--not-parsed", // -- indicates end of parsing
-	})
+	// // Parse cmdline arguments os.Args[1:]
+	remaining, err := opt.Parse([]string{"-g", "2", "-l", "en='Hello World'", "es='Hola Mundo'"})
 
 	// Handle help before handling user errors
 	if opt.Called("help") {
-		// ...
+		fmt.Fprintf(os.Stderr, opt.Help())
+		os.Exit(1)
 	}
 
 	// Handle user errors
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
+		fmt.Fprintf(os.Stderr, opt.Help(getoptions.HelpSynopsis))
 		os.Exit(1)
 	}
 
-	// The remaining slice holds non-options and anything after --
-	fmt.Printf("remaining: %v\n", remaining)
+	// Use the passed command line options... Enjoy!
+	if debug {
+		logger.SetOutput(os.Stderr)
+	}
+	logger.Printf("Unhandled CLI args: %v\n", remaining)
 
-	if flag {
-		fmt.Println("flag is true")
+	// Use the int variable
+	for i := 0; i < greetCount; i++ {
+		fmt.Println("Hello World, from go-getoptions!")
 	}
 
-	// Called method tells you if an option was actually called or not
-	if opt.Called("string") {
-		fmt.Printf("srt is %s\n", str)
+	// Use the map[string]string variable
+	if len(list) > 0 {
+		fmt.Printf("Greeting List:\n")
+		for k, v := range list {
+			fmt.Printf("\t%s=%s\n", k, v)
+		}
 	}
 
-	// When the option is not called, it will have the provided default
-	if !opt.Called("i") {
-		fmt.Printf("i is %d\n", i)
-	}
-
-	fmt.Printf("f is %.2f", f)
-
-	// Output:
-	// remaining: [non-option non-option2 --not-parsed]
-	// flag is true
-	// srt is mystring
-	// i is 456
-	// f is 3.14
-
+	// Unordered output:
+	// Hello World, from go-getoptions!
+	// Hello World, from go-getoptions!
+	// Greeting List:
+	//	en='Hello World'
+	//	es='Hola Mundo'
 }

@@ -6,7 +6,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package text - User facing strings
+// Package text - User facing strings.
 package text
 
 // ErrorMissingArgument holds the text for missing argument error.
