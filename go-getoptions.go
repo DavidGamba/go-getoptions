@@ -190,7 +190,7 @@ func (gopt *GetOpt) extraDetails() string {
 }
 
 // Dispatch -
-func (gopt *GetOpt) Dispatch(ctx context.Context, helpOptionName string, args []string) error {
+func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args []string) error {
 	if len(args) == 0 {
 		fmt.Fprintf(gopt.Writer, gopt.Help())
 		fmt.Fprintf(gopt.Writer, gopt.extraDetails()+"\n")
@@ -198,7 +198,7 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpOptionName string, args []
 		return nil
 	}
 	switch args[0] {
-	case "help":
+	case helpCommandName:
 		if len(args) > 1 {
 			commandName := args[1]
 			for name, v := range gopt.commands {
