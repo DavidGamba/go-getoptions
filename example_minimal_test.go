@@ -11,6 +11,7 @@ package getoptions_test
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/DavidGamba/go-getoptions" // As getoptions
 )
@@ -150,4 +151,19 @@ func ExampleGetOpt_Description() {
 	//     --help|-?               Show help. (default: false)
 	//
 	//     --hostname <host|IP>    Hostname to use. (default: "golang.org")
+}
+
+func ExampleGetOpt_GetEnv() {
+	os.Setenv("_AWS_PROFILE", "production")
+
+	var profile string
+	opt := getoptions.New()
+	opt.StringVar(&profile, "profile", "default", opt.GetEnv("_AWS_PROFILE"))
+	_, _ = opt.Parse([]string{})
+
+	fmt.Println(profile)
+	os.Unsetenv("_AWS_PROFILE")
+
+	// Output:
+	// production
 }

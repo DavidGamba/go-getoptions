@@ -241,6 +241,8 @@ For example, you can use `v` to define `verbose` and `V` to define `Version`.
 • Require order: Allows for subcommands. Stop parsing arguments when the first non-option is found.
 When mixed with Pass through, it also stops parsing arguments when the first unmatched option is found.
 
+• Set options by reading Environment Variables.
+
 == How to install it
 
 . Get it from github:
@@ -756,6 +758,55 @@ For example, the call below is correct:
 But the following one is incorrect:
 
 	./program -pr <profile> -p <password> command
+
+== Environment Variables Support
+
+Initial support for environment variables has been added.
+
+Currently, only `opt.String` and `opt.StringVar` are supported.
+
+To use it, set the option modify function to opt.GetEnv.
+For example:
+
+[source, go]
+----
+var profile string
+opt.StringVar(&profile, "profile", "default", opt.GetEnv("AWS_PROFILE"))
+----
+
+Or:
+
+[source, go]
+----
+profile := opt.String("profile", "default", opt.GetEnv("AWS_PROFILE"))
+----
+
+NOTE: Non supported option types behave with a No-Op when `opt.GetEnv` is defined.
+
+=== Possible Roadmap
+
+The Roadmap isn't clear given that there might not be enough value in implementing all option types.
+
+Bool and BoolVar:: Support "true" and "false" case insensitive.
+Any other string should be ignored.
+Defining a non empty string to be true would be ambiguous.
+
+String and StringVar:: Any string is supported.
+
+Int and IntVar:: Any string is supported.
+Normal error when given string can't be converted.
+
+Float64 and Float64Var:: Any string is supported.
+Normal error when given string can't be converted.
+
+StringSlice and StringSliceVar:: Comma separated? <- Most likely
++
+Comma space separated?
+Proper CSV parsing to allow comma escaping?
+
+IntSlice and IntSliceVar:: Comma separated?
+
+StringMap and StringMapVar:: Comma separated key=value?
 
 == License
 

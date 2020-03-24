@@ -1,15 +1,45 @@
 = Changelog
 :toc:
 
-== v0.18.0: WIP
+== WIP v0.18.0: Feature release
+
+As the releases before, this release has 100% test coverage.
+
+This release adds initial support for Environment Variables and adds lots of GoDoc examples.
+
+=== New Features
+
+* Initial support for environment variables has been added.
++
+Currently, only `opt.String` and `opt.StringVar` are supported.
++
+To use it, set the option modify function to opt.GetEnv.
+For example:
++
+[source, go]
+----
+var profile string
+opt.StringVar(&profile, "profile", "default", opt.GetEnv("AWS_PROFILE"))
+----
++
+Or:
++
+[source, go]
+----
+profile := opt.String("profile", "default", opt.GetEnv("AWS_PROFILE"))
+----
++
+NOTE: Non supported option types behave with a No-Op when `opt.GetEnv` is defined.
+
+=== Minor changes
 
 * Change opt.Dispatch signature to clarify the actual use of the variable.
 Additionally, actually use the variable, before it was hardcoded to "help".
 +
 [source, diff]
 ----
--func (gopt *GetOpt) Dispatch(ctx context.Context, helpOptionName string, args []string) error {
-+func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args []string) error {
+-func (gopt *GetOpt) Dispatch(ctx context.Context, helpOptionName string, args []string) error
++func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args []string) error
 ----
 
 == v0.17.0: Breaking Changes

@@ -442,6 +442,22 @@ func (gopt *GetOpt) Required(msg ...string) ModifyFn {
 	}
 }
 
+// GetEnv - Will read an environment variable if set.
+// Precedence higher to lower: CLI option, environment variable, option default.
+//
+// Currently, only `opt.String` and `opt.StringVar` are supported.
+//
+// NOTE: Non supported option types behave with a No-Op when `opt.GetEnv` is defined.
+func (gopt *GetOpt) GetEnv(name string) ModifyFn {
+	return func(opt *option.Option) {
+		if os.Getenv(name) != "" {
+			if opt.OptType == option.StringType {
+				opt.Save(os.Getenv(name))
+			}
+		}
+	}
+}
+
 // Description - Add a description to an option for use in automated help.
 func (gopt *GetOpt) Description(msg string) ModifyFn {
 	return func(opt *option.Option) {
@@ -669,9 +685,11 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 	gopt.failIfDefined([]string{name})
 	opt := option.New(name, option.StringType)
 	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
-	opt.SetStringPtr(&def)
 	opt.Handler = gopt.handleSingleOption
 	opt.SetHelpArgName("string")
+
+	opt.SetStringPtr(&def)
+
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -684,9 +702,21 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 // The result will be available through the variable marked by the given pointer.
 // If not called, the return value will be that of the given default `def`.
 func (gopt *GetOpt) StringVar(p *string, name, def string, fns ...ModifyFn) {
-	gopt.String(name, def, fns...)
+	gopt.failIfDefined([]string{name})
+	opt := option.New(name, option.StringType)
+	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
+	opt.Handler = gopt.handleSingleOption
+	opt.SetHelpArgName("string")
+
+	// Initialization code differs from non-Var version in the pointer assignment.
 	*p = def
-	gopt.Option(name).SetStringPtr(p)
+	opt.SetStringPtr(p)
+
+	for _, fn := range fns {
+		fn(opt)
+	}
+	gopt.completionAppendAliases(opt.Aliases)
+	gopt.setOption(opt)
 }
 
 // StringOptional - define a `string` option and its aliases.
