@@ -2319,11 +2319,11 @@ Use 'go-getoptions.test help <command>' for extra details.
 		opt.Bool("help", false)
 		opt.NewCommand("command", "").SetCommandFn(fn).SetOption(opt.Option("help"))
 		opt.HelpCommand("")
-		remaining, err := opt.Parse([]string{"help", "command"})
+		remaining, err := opt.Parse([]string{"xhelp", "command"})
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		err = opt.Dispatch(context.Background(), "help", remaining)
+		err = opt.Dispatch(context.Background(), "xhelp", remaining)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}

@@ -189,8 +189,10 @@ func (gopt *GetOpt) extraDetails() string {
 	return description
 }
 
-// Dispatch -
-func (gopt *GetOpt) Dispatch(ctx context.Context, helpOptionName string, args []string) error {
+// Dispatch - Call CommandFn for the program commands based on the contents of the args slice.
+// By default, if given the helpCommandName (normally just "help") as the first argument, it will print the help for the parent.
+// If given helpCommandName plus the name of the command, it will print the help for the command.
+func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args []string) error {
 	if len(args) == 0 {
 		fmt.Fprintf(gopt.Writer, gopt.Help())
 		fmt.Fprintf(gopt.Writer, gopt.extraDetails()+"\n")
@@ -198,7 +200,7 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpOptionName string, args []
 		return nil
 	}
 	switch args[0] {
-	case "help":
+	case helpCommandName:
 		if len(args) > 1 {
 			commandName := args[1]
 			for name, v := range gopt.commands {
@@ -536,6 +538,7 @@ func (gopt *GetOpt) Help(sections ...HelpSection) string {
 
 // HelpCommand - Adds a help command with completion for all other commands.
 // NOTE: Define after all other commands have been defined.
+// TODO: "help" is hardcoded
 func (gopt *GetOpt) HelpCommand(description string) *GetOpt {
 	if description == "" {
 		description = gopt.extraDetails()
