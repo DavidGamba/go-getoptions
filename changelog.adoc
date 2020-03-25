@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== WIP v0.18.0: Feature release
+== v0.18.0: Feature release
 
 As the releases before, this release has 100% test coverage.
 
