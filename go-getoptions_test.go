@@ -2696,6 +2696,32 @@ func TestGetEnv(t *testing.T) {
 		t.Log(buf.String())
 		cleanup()
 	})
+	t.Run("string env required", func(t *testing.T) {
+		setup("set-env")
+		buf := setupLogging()
+		var v1 string
+		opt := New()
+		opt.StringVar(&v1, "opt1", "default1", opt.GetEnv("_get_opt_env_test1"), opt.Required())
+		v2 := opt.String("opt2", "default2", opt.GetEnv("_get_opt_env_test2"), opt.Required())
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != "set-env" {
+			t.Errorf("Unexpected value: %s, %#v", v1, opt.Option("opt1"))
+		}
+		if *v2 != "set-env" {
+			t.Errorf("Unexpected value: %s, %#v", *v2, opt.Option("opt2"))
+		}
+		if !opt.Called("opt1") {
+			t.Errorf("Not called: %s, %#v", v1, opt.Option("opt1"))
+		}
+		if opt.CalledAs("opt1") != "_get_opt_env_test1" {
+			t.Errorf("Not called as %s: %s, %#v", "_get_opt_env_test1", v1, opt.Option("opt1"))
+		}
+		t.Log(buf.String())
+		cleanup()
+	})
 	/////////////////////////////////////////////////////////////////////////////
 	// Int
 	/////////////////////////////////////////////////////////////////////////////

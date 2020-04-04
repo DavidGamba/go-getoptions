@@ -447,12 +447,19 @@ func (gopt *GetOpt) Required(msg ...string) ModifyFn {
 //
 // Currently, only `opt.String` and `opt.StringVar` are supported.
 //
+// When an environment variable that matches the variable from opt.GetEnv is
+// set, opt.GetEnv will set opt.Called(name) to true and will set
+// opt.CalledAs(name) to the name of the environment variable used.
+// In other words, when an option is required (opt.Required is set) opt.GetEnv
+// satisfies that requirement.
+//
 // NOTE: Non supported option types behave with a No-Op when `opt.GetEnv` is defined.
 func (gopt *GetOpt) GetEnv(name string) ModifyFn {
 	return func(opt *option.Option) {
 		if os.Getenv(name) != "" {
 			if opt.OptType == option.StringType {
 				opt.Save(os.Getenv(name))
+				opt.SetCalled(name)
 			}
 		}
 	}
