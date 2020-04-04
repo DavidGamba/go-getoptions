@@ -205,6 +205,29 @@ OPTIONS:
     --string-repeat <my_value>    string repeat (default: [])
 
 `},
+		{"OptionList", OptionList([]*option.Option{
+			option.New("bool", option.BoolType).SetAlias("b").SetDefaultStr("false").SetDescription("bool").SetRequired("").SetEnvVar("BOOL"),
+			option.New("int", option.IntType).SetDefaultStr("0").SetDescription("int\nmultiline description").SetEnvVar("INT"),
+			option.New("float", option.Float64Type).SetDefaultStr("0.0").SetDescription("float").SetRequired("").SetEnvVar("FLOAT"),
+			option.New("string-repeat", option.StringRepeatType).SetDefaultStr("[]").SetDescription("string repeat").SetHelpArgName("my_value").SetEnvVar("STRING_REPEAT"),
+			option.New("ii", option.IntRepeatType).SetDefaultStr("[]").SetDescription("int repeat").SetRequired("").SetEnvVar("II"),
+			option.New("m", option.StringMapType).SetDefaultStr("{}").SetDescription("map").SetEnvVar("M"),
+		}), `REQUIRED PARAMETERS:
+    --bool|-b                     bool (env: BOOL)
+
+    --float <float64>             float (env: FLOAT)
+
+    --ii <int>                    int repeat (env: II)
+
+OPTIONS:
+    --int <int>                   int
+                                  multiline description (default: 0, env: INT)
+
+    -m <key=value>                map (default: {}, env: M)
+
+    --string-repeat <my_value>    string repeat (default: [], env: STRING_REPEAT)
+
+`},
 		{"CommandList", CommandList(nil), ""},
 		{"CommandList", CommandList(map[string]string{}), ""},
 		{"CommandList", CommandList(

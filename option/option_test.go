@@ -231,7 +231,7 @@ func TestRequired(t *testing.T) {
 
 func TestOther(t *testing.T) {
 	i := 0
-	opt := New("help", IntType).SetIntPtr(&i).SetAlias("?", "h").SetDescription("int help").SetHelpArgName("myint").SetDefaultStr("5")
+	opt := New("help", IntType).SetIntPtr(&i).SetAlias("?", "h").SetDescription("int help").SetHelpArgName("myint").SetDefaultStr("5").SetEnvVar("ENV_VAR")
 	got := opt.Aliases
 	expected := []string{"help", "?", "h"}
 	if !reflect.DeepEqual(got, expected) {
@@ -252,6 +252,9 @@ func TestOther(t *testing.T) {
 	}
 	if opt.DefaultStr != "5" {
 		t.Errorf("got = '%#v', want '%#v'", opt.DefaultStr, "5")
+	}
+	if opt.EnvVar != "ENV_VAR" {
+		t.Errorf("got = '%#v', want '%#v'", opt.EnvVar, "ENV_VAR")
 	}
 
 	list := []*Option{New("b", BoolType), New("a", BoolType), New("c", BoolType)}

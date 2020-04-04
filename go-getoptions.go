@@ -456,6 +456,7 @@ func (gopt *GetOpt) Required(msg ...string) ModifyFn {
 // NOTE: Non supported option types behave with a No-Op when `opt.GetEnv` is defined.
 func (gopt *GetOpt) GetEnv(name string) ModifyFn {
 	return func(opt *option.Option) {
+		opt.SetEnvVar(name)
 		if os.Getenv(name) != "" {
 			if opt.OptType == option.StringType {
 				opt.Save(os.Getenv(name))

@@ -184,7 +184,7 @@ func OptionList(options []*option.Option) string {
 		txt := ""
 		factor := synopsisLength + 4
 		padding := strings.Repeat(" ", factor)
-		txt += indent(pad(!opt.IsRequired || opt.Description != "", opt.HelpSynopsis, factor))
+		txt += indent(pad(!opt.IsRequired || opt.Description != "" || opt.EnvVar != "", opt.HelpSynopsis, factor))
 		if opt.Description != "" {
 			description := strings.Replace(opt.Description, "\n", "\n    "+padding, -1)
 			txt += fmt.Sprintf("%s", description)
@@ -193,8 +193,18 @@ func OptionList(options []*option.Option) string {
 			if opt.Description != "" {
 				txt += " "
 			}
-			txt += fmt.Sprintf("(default: %s)\n\n", opt.DefaultStr)
+			txt += fmt.Sprintf("(default: %s", opt.DefaultStr)
+			if opt.EnvVar != "" {
+				txt += fmt.Sprintf(", env: %s", opt.EnvVar)
+			}
+			txt += ")\n\n"
 		} else {
+			if opt.EnvVar != "" {
+				if opt.Description != "" {
+					txt += " "
+				}
+				txt += fmt.Sprintf("(env: %s)", opt.EnvVar)
+			}
 			txt += "\n\n"
 		}
 		return txt

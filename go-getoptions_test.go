@@ -1803,10 +1803,10 @@ func TestSynopsis(t *testing.T) {
 	opt := New()
 	opt.Bool("flag", false, opt.Alias("f"))
 	opt.String("string", "")
-	opt.String("str", "str", opt.Required())
+	opt.String("str", "str", opt.Required(), opt.GetEnv("_STR"))
 	opt.Int("int", 0, opt.Required())
 	opt.Float64("float", 0, opt.Alias("fl"))
-	opt.StringSlice("strSlice", 1, 2, opt.ArgName("my_value"))
+	opt.StringSlice("strSlice", 1, 2, opt.ArgName("my_value"), opt.GetEnv("_STR_SLICE"))
 	opt.StringSlice("list", 1, 1)
 	opt.StringSlice("req-list", 1, 2, opt.Required(), opt.ArgName("item"))
 	opt.IntSlice("intSlice", 1, 1, opt.Description("This option is using an int slice\nLets see how multiline works"))
@@ -1843,7 +1843,7 @@ func TestSynopsis(t *testing.T) {
 
     --req-list <item>...
 
-    --str <string>
+    --str <string>              (env: _STR)
 
 OPTIONS:
     --flag|-f                   (default: false)
@@ -1857,7 +1857,7 @@ OPTIONS:
 
     --strMap <key=value>...     Hello world (default: {})
 
-    --strSlice <my_value>...    (default: [])
+    --strSlice <my_value>...    (default: [], env: _STR_SLICE)
 
     --string <string>           (default: "")
 

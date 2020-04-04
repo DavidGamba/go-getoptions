@@ -45,8 +45,9 @@ const (
 type Option struct {
 	Name           string
 	Aliases        []string
+	EnvVar         string  // Env Var that sets the option value
 	Called         bool    // Indicates if the option was passed on the command line
-	UsedAlias      string  // Alias used when the option was called
+	UsedAlias      string  // Alias/Env var used when the option was called
 	Handler        Handler // method used to handle the option
 	IsOptional     bool    // Indicates if an option has an optional argument
 	MapKeysToLower bool    // Indicates if the option of map type has it keys set ToLower
@@ -109,10 +110,10 @@ func (opt *Option) synopsis() {
 	}
 	opt.HelpSynopsis = strings.Join(aliases, "|")
 	if opt.OptType != BoolType {
-		opt.HelpSynopsis = fmt.Sprintf("%s <%s>", opt.HelpSynopsis, opt.HelpArgName)
+		opt.HelpSynopsis += fmt.Sprintf(" <%s>", opt.HelpArgName)
 	}
 	if opt.MaxArgs > 1 {
-		opt.HelpSynopsis = opt.HelpSynopsis + "..."
+		opt.HelpSynopsis += "..."
 	}
 }
 
@@ -151,6 +152,12 @@ func (opt *Option) SetDefaultStr(s string) *Option {
 func (opt *Option) SetRequired(msg string) *Option {
 	opt.IsRequired = true
 	opt.IsRequiredErr = msg
+	return opt
+}
+
+// SetEnvVar - Sets the name of the Env var that sets the option's value.
+func (opt *Option) SetEnvVar(name string) *Option {
+	opt.EnvVar = name
 	return opt
 }
 
