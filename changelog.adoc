@@ -1,6 +1,33 @@
 = Changelog
 :toc:
 
+== v0.19.0: Feature update
+
+As the releases before, this release has 100% test coverage.
+
+=== Update
+
+* `opt.GetEnv` now satisfies `opt.Required`:
++
+When an environment variable that matches the variable from `opt.GetEnv` is set, `opt.GetEnv` will set `opt.Called` to true and will set `opt.CalledAs` to the name of the environment variable used.
+In other words, when an option is required, `opt.Required` is set, `opt.GetEnv` satisfies that requirement.
+
+* `opt.GetEnv` environment variable now shows in help output.
++
+Example:
++
+----
+REQUIRED PARAMETERS:
+    --access-key-id <string>        AWS Access Key ID. (env: AWS_ACCESS_KEY_ID)
+
+    --role-arn <string>             Role ARN. (env: AWS_ROLE_ARN)
+
+    --secret-access-key <string>    AWS Secret Access Key. (env: AWS_SECRET_ACCESS_KEY)
+
+OPTIONS:
+    --region <string>               Default Region. (default: "us-west-2", env: AWS_DEFAULT_REGION)
+----
+
 == v0.18.0: Feature release
 
 As the releases before, this release has 100% test coverage.
