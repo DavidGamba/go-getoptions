@@ -15,6 +15,10 @@ import (
 var logger = log.New(ioutil.Discard, "", log.LstdFlags)
 
 func main() {
+	os.Exit(program())
+}
+
+func program() int {
 	opt := getoptions.New()
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false)
@@ -34,14 +38,13 @@ func main() {
 	}
 	logger.Printf("Remaning cli args: %v", remaining)
 
-	exitCode := 0
 	ctx, cancel, done := opt.InterruptContext()
-	defer func() { cancel(); <-done; os.Exit(exitCode) }()
+	defer func() { cancel(); <-done }()
 
 	err = opt.Dispatch(ctx, "help", remaining)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
-		exitCode = 1
-		return
+		return 1
 	}
+	return 0
 }
