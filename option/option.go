@@ -58,8 +58,6 @@ type Option struct {
 	IsRequired    bool   // Indicates if the option is required
 	IsRequiredErr string // Error message for the required option
 
-	IsPassedToCommand bool // Indicates if the option was passed from root to child
-
 	// Help
 	DefaultStr   string // String representation of default value
 	Description  string // Optional description used for help

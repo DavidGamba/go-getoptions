@@ -1,6 +1,19 @@
 = Changelog
 :toc:
 
+== WIP v0.20.0: Feature update
+
+As the releases before, this release has 100% test coverage.
+
+=== Method Deprecation
+
+* Deprecate `opt.SetOption`
++
+Since the introduction of `opt.NewCommand(name, description string)` there is a proper parent child relationship between commands.
+There is no need to hack passing desired options to the child command, instead, now all options are automatically propagated to the child.
++
+This has the side benefit to make the automated help clearer by listing all options that previously where only listed in one of parent levels.
+
 == v0.19.0: Feature update
 
 As the releases before, this release has 100% test coverage.

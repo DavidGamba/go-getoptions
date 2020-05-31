@@ -23,7 +23,7 @@ func ExampleGetOpt_Dispatch_cCommandHelp() {
 	opt.SetRequireOrder()
 	opt.SetUnknownMode(getoptions.Pass)
 	list := opt.NewCommand("list", "list stuff")
-	list.SetOption(opt.Option("help"), opt.Option("debug")).SetCommandFn(dispatchCommandHelpListRun)
+	list.SetCommandFn(dispatchCommandHelpListRun)
 	list.Bool("list-opt", false)
 	opt.HelpCommand("")
 	remaining, err := opt.Parse([]string{"help", "list"}) // <- argv set to call command help
@@ -54,5 +54,4 @@ func ExampleGetOpt_Dispatch_cCommandHelp() {
 	//
 	//     --list-opt    (default: false)
 	//
-	// See 'go-getoptions.test help' for information about global parameters.
 }

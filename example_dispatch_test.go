@@ -24,7 +24,7 @@ func ExampleGetOpt_Dispatch() {
 	opt.SetRequireOrder()
 	opt.SetUnknownMode(getoptions.Pass)
 	list := opt.NewCommand("list", "list stuff")
-	list.SetOption(opt.Option("help"), opt.Option("debug")).SetCommandFn(listRun)
+	list.SetCommandFn(listRun)
 	list.Bool("list-opt", false)
 	opt.HelpCommand("")
 	remaining, err := opt.Parse([]string{"list"}) // <- argv set to call command

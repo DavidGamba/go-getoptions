@@ -307,20 +307,6 @@ func (gopt *GetOpt) Option(name string) *option.Option {
 	return nil
 }
 
-// SetOption - Sets a given *option.Option
-func (gopt *GetOpt) SetOption(opts ...*option.Option) *GetOpt {
-	node := gopt.completion.GetChildByName("options")
-	for _, opt := range opts {
-		if gopt.isCommand {
-			opt.IsPassedToCommand = true
-		}
-		gopt.obj[opt.Name] = opt
-		// TODO: Add aliases
-		node.Entries = append(node.Entries, opt.Name)
-	}
-	return gopt
-}
-
 // Internal only
 func (gopt *GetOpt) setOption(opts ...*option.Option) *GetOpt {
 	node := gopt.completion.GetChildByName("options")
@@ -552,9 +538,6 @@ func (gopt *GetOpt) Help(sections ...HelpSection) string {
 				options = append(options, option)
 			}
 			helpTxt += help.OptionList(options)
-			if gopt.isCommand {
-				helpTxt += fmt.Sprintf("See '%s help' for information about global parameters.\n", scriptName)
-			}
 		}
 	}
 	return helpTxt
@@ -1219,9 +1202,7 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias strin
 					Debug.Printf("Trying to lazy match '%s' against '%s' alias for command option '%s'\n", alias, v, name)
 					if strings.HasPrefix(v, alias) {
 						Debug.Printf("found: %s, %s\n", v, alias)
-						if !option.IsPassedToCommand {
-							commandMatches = append(commandMatches, v)
-						}
+						commandMatches = append(commandMatches, v)
 						continue
 					}
 				}
@@ -1259,6 +1240,26 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias strin
 //     // Parse cmdline arguments or any provided []string
 //     remaining, err := opt.Parse(os.Args[1:])
 func (gopt *GetOpt) Parse(args []string) ([]string, error) {
+	remaining, err := gopt.parse(args)
+	if err != nil {
+		return remaining, err
+	}
+	gopt.passOptionsToChildren()
+	return remaining, nil
+}
+
+func (gopt *GetOpt) passOptionsToChildren() error {
+	for _, commandOpt := range gopt.commands {
+		for optName, opt := range gopt.obj {
+			commandOpt.obj[optName] = opt
+		}
+		// Once we are done passing the options to the command, pass them along to its children.
+		commandOpt.passOptionsToChildren()
+	}
+	return nil
+}
+
+func (gopt *GetOpt) parse(args []string) ([]string, error) {
 	compLine := os.Getenv("COMP_LINE")
 	// https://stackoverflow.com/a/33396628
 	if compLine != "" {

@@ -2319,7 +2319,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 		opt := New()
 		opt.Writer = helpBuf
 		opt.Bool("help", false)
-		opt.NewCommand("command", "").SetCommandFn(fn).SetOption(opt.Option("help"))
+		opt.NewCommand("command", "").SetCommandFn(fn)
 		opt.HelpCommand("")
 		remaining, err := opt.Parse([]string{"xhelp", "command"})
 		if err != nil {
@@ -2341,7 +2341,6 @@ SYNOPSIS:
 OPTIONS:
     --help    (default: false)
 
-See 'go-getoptions.test help' for information about global parameters.
 `
 		if helpBuf.String() != expected {
 			t.Errorf("Wrong output:\n%s\n", helpBuf.String())
@@ -2364,8 +2363,8 @@ See 'go-getoptions.test help' for information about global parameters.
 		opt := New()
 		opt.Writer = helpBuf
 		opt.Bool("help", false)
-		command := opt.NewCommand("command", "").SetCommandFn(fn).SetOption(opt.Option("help"))
-		command.NewCommand("sub-command", "").SetCommandFn(fn).SetOption(command.Option("help"))
+		command := opt.NewCommand("command", "").SetCommandFn(fn)
+		command.NewCommand("sub-command", "").SetCommandFn(fn)
 		command.HelpCommand("")
 		opt.HelpCommand("")
 		remaining, err := opt.Parse([]string{"command", "--help"})
@@ -2392,7 +2391,63 @@ COMMANDS:
 OPTIONS:
     --help    (default: false)
 
-See 'go-getoptions.test help' for information about global parameters.
+`
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", helpBuf.String())
+		}
+		t.Log(buf.String())
+	})
+
+	t.Run("help case sub-command", func(t *testing.T) {
+		helpBuf := new(bytes.Buffer)
+		called := false
+		exitFn = func(code int) { called = true }
+		commandFn := func(ctx context.Context, opt *GetOpt, args []string) error {
+			remaining, err := opt.Parse(args)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+			err = opt.Dispatch(context.Background(), "help", remaining)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+			return nil
+		}
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
+			if opt.Called("help") {
+				fmt.Fprintf(helpBuf, opt.Help())
+				exitFn(1)
+			}
+			return nil
+		}
+		buf := setupLogging()
+		opt := New()
+		opt.Writer = helpBuf
+		opt.Bool("help", false)
+		command := opt.NewCommand("command", "").SetCommandFn(commandFn)
+		command.NewCommand("sub-command", "").SetCommandFn(fn)
+		command.HelpCommand("")
+		opt.HelpCommand("")
+		remaining, err := opt.Parse([]string{"command", "sub-command", "--help"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), "help", remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !called {
+			t.Errorf("Exit not called")
+		}
+		expected := `NAME:
+    go-getoptions.test command sub-command
+
+SYNOPSIS:
+    go-getoptions.test command sub-command [--help] [<args>]
+
+OPTIONS:
+    --help    (default: false)
+
 `
 		if helpBuf.String() != expected {
 			t.Errorf("Wrong output:\n%s\n", helpBuf.String())
@@ -2409,7 +2464,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		buf := setupLogging()
 		opt := New()
 		opt.Bool("help", false)
-		opt.NewCommand("command", "").SetCommandFn(fn).SetOption(opt.Option("help"))
+		opt.NewCommand("command", "").SetCommandFn(fn)
 		opt.HelpCommand("")
 		remaining, err := opt.Parse([]string{"command"})
 		if err != nil {
@@ -2434,7 +2489,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		buf := setupLogging()
 		opt := New()
 		opt.Bool("help", false)
-		opt.NewCommand("command", "").SetCommandFn(fn).SetOption(opt.Option("help"))
+		opt.NewCommand("command", "").SetCommandFn(fn)
 		opt.HelpCommand("")
 		remaining, err := opt.Parse([]string{"command"})
 		if err != nil {
@@ -2459,7 +2514,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		buf := setupLogging()
 		opt := New()
 		opt.Bool("help", false)
-		opt.NewCommand("command", "").SetCommandFn(fn).SetOption(opt.Option("help"))
+		opt.NewCommand("command", "").SetCommandFn(fn)
 		opt.HelpCommand("")
 		remaining, err := opt.Parse([]string{"x"})
 		if err != nil {
@@ -2485,7 +2540,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		opt := New()
 		opt.Bool("help", false)
 		opt.SetUnknownMode(Pass)
-		opt.NewCommand("command", "").SetCommandFn(fn).SetOption(opt.Option("help"))
+		opt.NewCommand("command", "").SetCommandFn(fn)
 		opt.HelpCommand("")
 		remaining, err := opt.Parse([]string{"-x"})
 		if err != nil {
@@ -2508,7 +2563,7 @@ See 'go-getoptions.test help' for information about global parameters.
 		buf := setupLogging()
 		opt := New()
 		opt.Bool("help", false)
-		opt.NewCommand("command", "").SetCommandFn(fn).SetOption(opt.Option("help"))
+		opt.NewCommand("command", "").SetCommandFn(fn)
 		opt.HelpCommand("")
 		remaining, err := opt.Parse([]string{"help", "x"})
 		if err != nil {
