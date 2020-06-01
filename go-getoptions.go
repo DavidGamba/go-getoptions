@@ -222,7 +222,11 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args [
 		for name, v := range gopt.commands {
 			if commandName == name {
 				if v.CommandFn != nil {
-					err := v.CommandFn(ctx, v, args[1:])
+					remaining, err := v.Parse(args[1:])
+					if err != nil {
+						return err
+					}
+					err = v.CommandFn(ctx, v, remaining)
 					if err != nil {
 						return err
 					}
