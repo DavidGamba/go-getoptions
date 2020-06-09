@@ -570,6 +570,7 @@ func TestCalled(t *testing.T) {
 		t.Errorf("unknown didn't have expected value %v", false)
 	}
 }
+
 func TestCalledAs(t *testing.T) {
 	opt := New()
 	opt.Bool("flag", false, opt.Alias("f", "hello"))
@@ -2543,6 +2544,32 @@ OPTIONS:
 		opt.NewCommand("command", "").SetCommandFn(fn)
 		opt.HelpCommand("")
 		remaining, err := opt.Parse([]string{"-x"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), "help", remaining)
+		if err == nil {
+			t.Errorf("Error not called")
+		}
+		if called {
+			t.Errorf("Fn was called")
+		}
+		t.Log(buf.String())
+	})
+
+	t.Run("command parse error", func(t *testing.T) {
+		called := false
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
+			called = true
+			return nil
+		}
+		buf := setupLogging()
+		opt := New()
+		opt.Bool("help", false)
+		opt.SetUnknownMode(Pass)
+		opt.NewCommand("command", "").SetCommandFn(fn)
+		opt.HelpCommand("")
+		remaining, err := opt.Parse([]string{"command", "-x"})
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
