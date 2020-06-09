@@ -2481,6 +2481,41 @@ OPTIONS:
 		t.Log(buf.String())
 	})
 
+	t.Run("command multiple parse calls", func(t *testing.T) {
+		called := false
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
+			remaining, err := opt.Parse(args)
+			if err != nil {
+				return err
+			}
+			remaining, err = opt.Parse(remaining)
+			if err != nil {
+				return err
+			}
+			called = opt.Called("command-option")
+			return nil
+		}
+		buf := setupLogging()
+		opt := New()
+		opt.SetUnknownMode(Pass)
+		opt.Bool("help", false)
+		cmd := opt.NewCommand("command", "").SetCommandFn(fn)
+		cmd.Bool("command-option", false)
+		opt.HelpCommand("")
+		remaining, err := opt.Parse([]string{"command", "--command-option"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), "help", remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !called {
+			t.Errorf("Option not called")
+		}
+		t.Log(buf.String())
+	})
+
 	t.Run("command error", func(t *testing.T) {
 		called := false
 		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
@@ -2908,6 +2943,12 @@ func TestAll(t *testing.T) {
 		"--string-map", "hello=world", "--string-map", "server=name",
 		"world",
 	})
+
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	remaining, err = opt.Parse(remaining)
 
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
