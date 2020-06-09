@@ -231,14 +231,16 @@ For example, you can use `v` to define `verbose` and `V` to define `Version`.
 
 • Errors exposed as public variables to allow overriding them for internationalization.
 
-• Supports subcommands (stop parsing arguments when non option is passed).
+• Supports program commands (when a command is passed a command function is triggered to handle the command logic).
+
+• Built in `opt.Dispatch` function calls commands and propagates context, options, arguments and cancellation signals.
 
 • Multiple ways of managing unknown options:
   - Fail on unknown (default).
   - Warn on unknown.
-  - Pass through, allows for subcommands and can be combined with Require Order.
+  - Pass through, allows for commands and can be combined with Require Order.
 
-• Require order: Allows for subcommands. Stop parsing arguments when the first non-option is found.
+• Require order: Allows for commands. Stop parsing arguments when the first non-option is found.
 When mixed with Pass through, it also stops parsing arguments when the first unmatched option is found.
 
 • Set options by reading Environment Variables.
@@ -258,26 +260,6 @@ When mixed with Pass through, it also stops parsing arguments when the first unm
 == Dependencies
 
 Go 1.10+
-
-[[roadmap]]
-== ROADMAP
-
-* Create new error description for errors when parsing integer ranges (`1..3`).
-
-* Option that runs a function?
-
-* Case insensitive matching.
-
-* Option values in the bundle: `-h1024w800` -> `-h 1024 -w 800`
-
-* prefix and prefix_pattern.
-The string that starts options.
-Defaults to "--" and "-" but could include "/" to support Win32 style argument handling.
-
-* Supports argument dividers other than '='.
-For example: You could define ':' and use `--string=mystring`, `--string:mystring` and `--string mystring`.
-
-* All other Perl's Getopt::Long goodies that seem reasonable to add!
 
 == Introduction
 
@@ -299,6 +281,7 @@ In `go-getoptions` this is accomplished with:
 - `ptr := opt.Bool(name, default_value)`.
 - `opt.BoolVar(&ptr, name, default_value)`.
 - Additionally, if all you want to know is if the option was passed you can use: `opt.Bool(name, default_value)` (without capturing its return value) and then check `opt.Called(name)`.
+- Also, you can get the value with `v, ok := opt.Value(name).(bool)`.
 
 === Options with String arguments
 
@@ -341,12 +324,12 @@ In `go-getoptions` this is accomplished with:
 Parse an option string argument into a Floating point value and provide an user error if the string provided is not a valid floating point.
 For example:
 
-`command --approximation 3.5`
+`program --approximation 3.5`
 
 and:
 
 ----
-$ command --approximation string
+$ program --approximation string
 
 Error: 'string' is not a valid floating point value.
 ----
@@ -365,11 +348,11 @@ Another feature a better option parser should have is the ability to set a flag 
 `True` when passed on the command line without any modifier and `False` when the `--no-` modifier is prefixed.
 For example:
 
-`command --verbose`
+`program --verbose`
 
 and:
 
-`command --no-verbose`, or `command --noverbose`
+`program --no-verbose`, or `program --noverbose`
 
 In `go-getoptions` this is accomplished with:
 
@@ -390,6 +373,11 @@ For example:
 In `go-getoptions` this is accomplished with:
 
 - `ptr := opt.StringSlice(name, 1, 1)`.
+- `opt.StringSliceVar(&ptr, name, 1, 1)`.
+- `ptr := opt.IntSlice(name, 1, 1)`.
+- `opt.IntSliceVar(&ptr, name, 1, 1)`.
+
+`go-getoptions` has only implemented this feature for string and int.
 
 === Options with Key Value arguments
 
@@ -401,10 +389,9 @@ For example:
 In `go-getoptions` this is accomplished with:
 
 - `strMap := opt.StringMap(name, 1, 1)`.
+- `opt.StringMapVar(&ptr, name, 1, 1)`.
 
-Both features above should support the basic types listed before: string, integer and floating point.
-
-`go-getoptions` has only implemented these two features for string.
+`go-getoptions` has only implemented this feature for string.
 
 The features above are useful when you have a variable amount of arguments, but it becomes cumbersome for the user when the number of entries is always the same.
 The features described below are meant to handle the cases when each option has a known number of multiple entries.
@@ -431,7 +418,9 @@ The option parser will leave any non option argument after the maximum in the `r
 In `go-getoptions` this is accomplished with:
 
 - `strSlice := opt.StringSlice(name, minArgs, maxArgs)`.
+- `opt.StringSliceVar(&ptr, name, minArgs, maxArgs)`.
 - `intSlice := opt.IntSlice(name, minArgs, maxArgs)`.
+- `opt.IntSliceVar(&ptr, name, minArgs, maxArgs)`.
 
 Additionally, in the case of integers, positive integer ranges are allowed.
 For example:
@@ -442,7 +431,8 @@ The input could be: `csv --columns 1..3`.
 
 In `go-getoptions` this is currently enabled by default when using:
 
-`intSlice := opt.IntSlice(name, minArgs, maxArgs)`
+- `intSlice := opt.IntSlice(name, minArgs, maxArgs)`
+- `opt.IntSliceVar(&ptr, name, minArgs, maxArgs)`.
 
 === Options with key value arguments and multiple entries
 
@@ -456,6 +446,7 @@ The input could be: `connection --server hostname=serverIP port=123 --client hos
 In `go-getoptions` this is accomplished with:
 
 - `strMap := opt.StringMap(name, minArgs, maxArgs)`.
+- `opt.StringMapVar(&ptr, name, minArgs, maxArgs)`.
 
 That covers a complete user interface that is flexible enough to accommodate most programs.
 The following are advanced features:
@@ -466,37 +457,25 @@ Useful when arguments start with dash `-` and you don't want them interpreted as
 
 In `go-getoptions` this is the default behaviour.
 
-=== Stop parsing options when a subcommand is passed
+=== Stop parsing options when a command is passed
 
-A subcommand is assumed to be the first argument that is not an option or an argument to an option.
-When a subcommand is found, stop parsing arguments and let a subcommand handler handle the remaining arguments.
+A command is assumed to be the first argument that is not an option or an argument to an option.
+When a command is found, stop parsing arguments and let a command handler handle the remaining arguments.
 For example:
 
-`command --opt arg subcommand --subopt subarg`
+`program --opt arg command --subopt subarg`
 
-In the example above, `--opt` is an option and `arg` is an argument to an option, making `subcommand` the first non option argument.
-
-This method is useful when both the command and the subcommand have option handlers for the same option.
-
-For example, with:
-
-`command --help`
-
-`--help` is handled by `command`, and with:
-
-`command subcommand --help`
-
-`--help` is not handled by `command` since there was a subcommand that caused the parsing to stop.
+In the example above, `--opt` is an option and `arg` is an argument to an option, making `command` the first non option argument.
 
 Additionally, when mixed with _pass through_, it will also stop parsing arguments when it finds the first unmatched option.
 
 In `go-getoptions` this is accomplished with:
 
-- `opt.SetRequireOrder()`.
+- `opt.SetUnknownMode(getoptions.Pass)`.
 
 And can be combined with:
 
-- `opt.SetUnknownMode(getoptions.Pass)`.
+- `opt.SetRequireOrder()`.
 
 === Allow passing options and non-options in any order
 
@@ -540,12 +519,12 @@ In `go-getoptions` this is accomplished with:
 
 Options should be allowed to have different aliases.
 For example, the same option could be invoked with `--address` or `--hostname`.
-+
+
 In `go-getoptions`, pass `opt.Alias("my-alias")` to any option.
 For example:
-+
+
 `opt.BoolVar(&flag, "flag", false, opt.Alias("alias", "alias-2"))`
-+
+
 Finally, to know with what alias an option was called with used `opt.CalledAs(<name>)`.
 
 === Required options
@@ -642,7 +621,7 @@ a|option: `"opt"`, argument: `"arg"` footnote:[Argument gets type casted dependi
 
 === Bundling Mode
 
-Set by defining `opt.SetMode("bundling")`.
+Set by defining `opt.SetMode(getoptions.Bundling)`.
 
 |===
 |Given option |Interpretation
@@ -667,7 +646,7 @@ option: `"t"`, argument: `"arg"` footnote:[Argument gets type casted depending o
 
 === Enforce Single Dash Mode
 
-Set by defining `opt.SetMode("singleDash")`.
+Set by defining `opt.SetMode(getoptions.SingleDash)`.
 
 |===
 |Given option |Interpretation
@@ -695,6 +674,75 @@ If you are writing a mid to large tool, don't be lazy, write a man page for your
 If you are looking for options, link:http://asciidoctor.org/[asciidoctor] has a manpage backend that can generate manpages written in the Asciidoc markup.
 
 For the help synopsis, however, use the automated help.
+It even shows when an option can be set with environment variables.
+
+For example, the following is a script using the built in help:
+
+----
+$ ./aws-configure -h
+NAME:
+    aws-configure - Generate default ~/.aws/config and ~/.aws/credentials configuration.
+
+        When a role is passed, it allows the use of the role in the default profile.
+
+        NOTE: Remember to unset AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY after use.
+
+SYNOPSIS:
+    aws-configure --access-key-id <string> --region <string>
+                  --secret-access-key <string> [--debug] [--help|-?]
+                  [--output-dir <string>] [--role-arn <string>] [--version|-V]
+                  [<args>]
+
+REQUIRED PARAMETERS:
+    --access-key-id <string>        AWS Access Key ID. (env: AWS_ACCESS_KEY_ID)
+
+    --region <string>               Default Region. (env: AWS_DEFAULT_REGION)
+
+    --secret-access-key <string>    AWS Secret Access Key. (env: AWS_SECRET_ACCESS_KEY)
+
+OPTIONS:
+    --debug                         (default: false)
+
+    --help|-?                       (default: false)
+
+    --output-dir <string>           Where to place the config and credentials file. (default: "/home/david/.aws")
+
+    --role-arn <string>             Role ARN. (default: "", env: AWS_ROLE_ARN)
+
+    --version|-V                    (default: false)
+----
+
+And below is the output of the automated help of a program with multiple commands:
+
+----
+$ menu
+SYNOPSIS:
+    menu [--config <string>] [--debug] [--help|-?] [--profile <string>]
+         [--region <string>] [--role <string>] [--version|-V] <command> [<args>]
+
+COMMANDS:
+    docker       docker tasks
+    help         Use 'menu help <command>' for extra details.
+    instance     Actions on your deployed instances
+    terraform    Run terraform commands from inside the container
+
+OPTIONS:
+    --config <string>     (default: "config.yml")
+
+    --debug               (default: false)
+
+    --help|-?             (default: false)
+
+    --profile <string>    (default: "default")
+
+    --region <string>     (default: "us-west-2")
+
+    --role <string>       (default: "")
+
+    --version|-V          (default: false)
+
+Use 'menu help <command>' for extra details.
+----
 
 == Command behaviour
 
@@ -751,9 +799,11 @@ Passing `--p <arg>` at the parent results in the parent `opt.Parse` call to leav
 The `opt.Dispatch` call gets the `-p <arg>` option and throws an error.
 At minimum, `--pr <arg>` is required to call `profile` at the parent and command options must be passed after the command declaration.
 
-For example, the call below is correct:
+For example, the calls below is correct:
 
-	./program -pr <profile> command -p <password>
+	$ ./program -pr <profile> command -p <password>
+
+	$ ./program command -pr <profile> -p <password>
 
 But the following one is incorrect:
 
@@ -783,7 +833,7 @@ profile := opt.String("profile", "default", opt.GetEnv("AWS_PROFILE"))
 
 NOTE: Non supported option types behave with a No-Op when `opt.GetEnv` is defined.
 
-=== Possible Roadmap
+=== Possible Env Variable Roadmap
 
 The Roadmap isn't clear given that there might not be enough value in implementing all option types.
 
@@ -807,6 +857,30 @@ Proper CSV parsing to allow comma escaping?
 IntSlice and IntSliceVar:: Comma separated?
 
 StringMap and StringMapVar:: Comma separated key=value?
+
+[[roadmap]]
+== ROADMAP
+
+* Remove Negatable option.
+Provides very little value and makes the code more complicated.
+Conflicts with Boolean Environment values.
+
+* Create new error description for errors when parsing integer ranges (`1..3`).
+
+* Option that runs a function?
+
+* Case insensitive matching.
+
+* Option values in the bundle: `-h1024w800` -> `-h 1024 -w 800`
+
+* prefix and prefix_pattern.
+The string that starts options.
+Defaults to "--" and "-" but could include "/" to support Win32 style argument handling.
+
+* Supports argument dividers other than '='.
+For example: You could define ':' and use `--string=mystring`, `--string:mystring` and `--string mystring`.
+
+* All other Perl's Getopt::Long goodies that seem reasonable to add!
 
 == License
 
