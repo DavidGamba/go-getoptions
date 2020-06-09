@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== WIP v0.20.0: Feature update
+== WIP v0.20.0: Breaking Change
 
 As the releases before, this release has 100% test coverage.
 
@@ -12,7 +12,72 @@ As the releases before, this release has 100% test coverage.
 Since the introduction of `opt.NewCommand(name, description string)` there is a proper parent child relationship between commands.
 There is no need to hack passing desired options to the child command, instead, now all options are automatically propagated to the child.
 +
-This has the side benefit to make the automated help clearer by listing all options that previously where only listed in one of parent levels.
+This has the side benefit to make the automated help clearer by listing all options that previously where only listed in one of the parent levels.
++
+To update, remove calls to `opt.SetOption`, for example:
++
+[source,diff]
+----
+ 	opt := getoptions.New()
+ 	opt.Bool("help", false, opt.Alias("?"))
+ 	opt.Bool("debug", false)
+ 	opt.SetRequireOrder()
+ 	opt.SetUnknownMode(getoptions.Pass)
+ 	list := opt.NewCommand("list", "list stuff")
+-	list.SetOption(opt.Option("help"), opt.Option("debug")).SetCommandFn(listRun)
++	list.SetCommandFn(listRun)
+ 	list.Bool("list-opt", false)
+ 	opt.HelpCommand("")
+ 	remaining, err := opt.Parse([]string{"list"})
+----
+
+=== Feature Update
+
+* Automatically run `opt.Parse` when calling `opt.Dispatch`.
++
+When defining a new command, we define the function that the command will run with `command.SetCommandFn(commandFunction)`.
+If the command is passed in the command line, `opt.Dispatch` calls the command function.
+Previously, `opt.Dispatch` wasn't automatically calling `opt.Parse` in the command function so the first thing that every command function had to do was a call to parse.
++
+For example:
++
+[source,go]
+----
+func main() {
+	opt := getoptions.New()
+	list := opt.NewCommand("list", "list stuff")
+	list.SetCommandFn(listRun)
+	opt.HelpCommand("")
+	remaining, err := opt.Parse(os.Args[1:])
+	if err != nil {
+		...
+	}
+
+	err = opt.Dispatch(context.Background(), "help", remaining)
+	if err != nil {
+		...
+	}
+}
+
+func listRun(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	remaining, err := opt.Parse(args)
+	if err != nil {
+		...
+	}
+	// Function code here
+}
+----
++
+Now, the call `opt.Parse` is automated by `opt.Dispatch` so the command function is simplified to:
++
+[source,go]
+----
+func listRun(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	// Function code here
+}
+----
++
+Where the received `opt` has the arguments already parsed and the received `args` is the remaining arguments that didn't match any option.
 
 == v0.19.0: Feature update
 
