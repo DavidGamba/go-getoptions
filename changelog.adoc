@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== WIP v0.20.0: Breaking Change
+== v0.20.0: Breaking Change
 
 As the releases before, this release has 100% test coverage.
 
