@@ -22,7 +22,7 @@ func program() int {
 	opt := getoptions.New()
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false)
-	opt.SetRequireOrder()
+	opt.String("profile", "default")
 	opt.SetUnknownMode(getoptions.Pass)
 	gitlog.New(opt).SetCommandFn(gitlog.Run)
 	gitshow.New(opt).SetCommandFn(gitshow.Run)

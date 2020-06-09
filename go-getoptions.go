@@ -193,6 +193,7 @@ func (gopt *GetOpt) extraDetails() string {
 // By default, if given the helpCommandName (normally just "help") as the first argument, it will print the help for the parent.
 // If given helpCommandName plus the name of the command, it will print the help for the command.
 func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args []string) error {
+	Debug.Printf("Dispatch %v\n", args)
 	if len(args) == 0 {
 		fmt.Fprintf(gopt.Writer, gopt.Help())
 		fmt.Fprintf(gopt.Writer, gopt.extraDetails()+"\n")
@@ -652,12 +653,14 @@ func (gopt *GetOpt) handleNBool(name string, argument string, usedAlias string) 
 }
 
 func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias string) error {
+	Debug.Printf("handleSingleOption %s, %s\n", name, argument)
 	opt := gopt.Option(name)
 	opt.SetCalled(usedAlias)
 	if argument != "" {
 		return opt.Save(argument)
 	}
 	if !gopt.args.existsNext() {
+		Debug.Printf("handleSingleOption %v %v\n", gopt.args.remaining(), gopt.args.existsNext())
 		if opt.IsOptional {
 			return nil
 		}
@@ -1145,6 +1148,8 @@ func (gopt *GetOpt) Stringer() string {
 
 // TODO: Add case insensitive matching.
 func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias string, found bool, err error) {
+	Debug.Printf("getOptionFromAliases: %s\n", gopt.name)
+
 	// Attempt to fully match node option
 	found = false
 	for name, option := range gopt.obj {
@@ -1253,6 +1258,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 }
 
 func (gopt *GetOpt) passOptionsToChildren() error {
+	Debug.Printf("passOptionsToChildren %s\n", gopt.name)
 	for _, commandOpt := range gopt.commands {
 		for optName, opt := range gopt.obj {
 			commandOpt.obj[optName] = opt
@@ -1261,6 +1267,14 @@ func (gopt *GetOpt) passOptionsToChildren() error {
 		commandOpt.passOptionsToChildren()
 	}
 	return nil
+}
+
+func (gopt *GetOpt) passArgsToParent() {
+	Debug.Printf("passArgsToParent %s\n", gopt.name)
+	if parent := gopt.parent; parent != nil {
+		parent.args = gopt.args
+		parent.passArgsToParent()
+	}
 }
 
 func (gopt *GetOpt) parse(args []string) ([]string, error) {
@@ -1272,6 +1286,7 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 	}
 	al := newArgList(args)
 	gopt.args = al
+	Debug.Printf("parse %s\n", gopt.name)
 	Debug.Printf("Parse args: %v(%d)\n", args, len(args))
 	var remaining []string
 	// opt.argsIndex is the index in the opt.args slice.
@@ -1298,10 +1313,11 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 					return nil, err
 				}
 				if ok {
-					Debug.Printf("Parse found opt_list\n")
+					Debug.Printf("Parse found opt_list %s\n", optName)
+					gopt.passArgsToParent()
 					opt := gopt.Option(optName)
 					handler := opt.Handler
-					Debug.Printf("handler found: name %s, argument %s, index %d, list %s\n", optName, argument, gopt.args.index(), optList[0])
+					Debug.Printf("handler found: name %s, argument %s, index %d, list %s, args %v\n", optName, argument, gopt.args.index(), optList[0], gopt.args.remaining())
 					err := handler(optName, argument, usedAlias)
 					if err != nil {
 						Debug.Printf("handler return: value %v, return %v, %v", opt.Value(), nil, err)

@@ -2109,6 +2109,15 @@ func TestCommandAmbiguosOption(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
+		if profile != "" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
 		remaining, err = command.Parse(remaining)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
@@ -2157,6 +2166,15 @@ func TestCommandAmbiguosOption(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
+		if profile != "hello" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
 		remaining, err = command.Parse(remaining)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
@@ -2187,6 +2205,15 @@ func TestCommandAmbiguosOption(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
+		if profile != "" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
 		remaining, err = command.Parse(remaining)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
@@ -2195,6 +2222,102 @@ func TestCommandAmbiguosOption(t *testing.T) {
 			t.Errorf("Unexpected called option profile %s", profile)
 		}
 		if password != "hello" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
+		t.Log(buf.String())
+	})
+
+	t.Run("Should match command", func(t *testing.T) {
+		buf := setupLogging()
+		called := false
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
+			called = true
+			return nil
+		}
+		var profile, password, password2 string
+		opt := New()
+		opt.SetUnknownMode(Pass)
+		opt.StringVar(&profile, "profile", "")
+		command := opt.NewCommand("command", "")
+		command.StringVar(&password, "password", "", opt.Alias("p"))
+		command.SetCommandFn(fn)
+		command2 := opt.NewCommand("command2", "")
+		command2.StringVar(&password2, "password", "")
+		remaining, err := opt.Parse([]string{"command", "-p", "hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if profile != "" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
+		err = opt.Dispatch(context.Background(), "help", remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !called {
+			t.Errorf("not called")
+		}
+		if profile != "" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "hello" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
+		t.Log(buf.String())
+	})
+
+	t.Run("Should match parent at command", func(t *testing.T) {
+		buf := setupLogging()
+		called := false
+		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
+			called = true
+			return nil
+		}
+		var profile, password, password2 string
+		opt := New()
+		// opt.SetRequireOrder()
+		opt.SetUnknownMode(Pass)
+		opt.StringVar(&profile, "profile", "")
+		command := opt.NewCommand("command", "")
+		command.StringVar(&password, "password", "", opt.Alias("p"))
+		command2 := opt.NewCommand("command2", "")
+		command2.SetCommandFn(fn)
+		remaining, err := opt.Parse([]string{"command2", "-p", "hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if profile != "" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
+		err = opt.Dispatch(context.Background(), "help", remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !called {
+			t.Errorf("not called")
+		}
+		if profile != "hello" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "" {
 			t.Errorf("Unexpected called option password %s", password)
 		}
 		if password2 != "" {
