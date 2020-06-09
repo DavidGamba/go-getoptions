@@ -24,10 +24,6 @@ func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
 
 // Run - Command entry point
 func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-	remaining, err := opt.Parse(args)
-	if err != nil {
-		return err
-	}
 	if opt.Called("help") {
 		fmt.Fprintf(os.Stderr, opt.Help())
 		os.Exit(1)
@@ -35,7 +31,7 @@ func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 	if opt.Called("debug") {
 		logger.SetOutput(os.Stderr)
 	}
-	logger.Println(remaining)
+	logger.Println(args)
 	for i := 0; i < iterations; i++ {
 		select {
 		case <-ctx.Done():

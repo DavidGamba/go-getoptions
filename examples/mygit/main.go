@@ -24,9 +24,9 @@ func program() int {
 	opt.Bool("debug", false)
 	opt.SetRequireOrder()
 	opt.SetUnknownMode(getoptions.Pass)
-	gitlog.New(opt).SetOption(opt.Option("help"), opt.Option("debug")).SetCommandFn(gitlog.Run)
-	gitshow.New(opt).SetOption(opt.Option("help"), opt.Option("debug")).SetCommandFn(gitshow.Run)
-	gitslow.New(opt).SetOption(opt.Option("help"), opt.Option("debug")).SetCommandFn(gitslow.Run)
+	gitlog.New(opt).SetCommandFn(gitlog.Run)
+	gitshow.New(opt).SetCommandFn(gitshow.Run)
+	gitslow.New(opt).SetCommandFn(gitslow.Run)
 	opt.HelpCommand("")
 	remaining, err := opt.Parse(os.Args[1:])
 	if err != nil {
