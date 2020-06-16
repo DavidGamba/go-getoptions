@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== WIP v0.20.1: Feature Update
+== v0.20.1: Feature Update
 
 * Improve autocompletion behaviour.
 +
