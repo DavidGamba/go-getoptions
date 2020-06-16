@@ -11,6 +11,7 @@ package completion
 import (
 	"io/ioutil"
 	"log"
+	"regexp"
 	"strings"
 )
 
@@ -173,7 +174,9 @@ func discardByPrefix(list []string, prefix string) []string {
 // CompLineComplete - Given a compLine (get it with os.Getenv("COMP_LINE")) it returns a list of completions.
 func (n *Node) CompLineComplete(compLine string) []string {
 	// TODO: This split might not consider files that have spaces in them.
-	compLineParts := strings.Split(compLine, " ")
+	re := regexp.MustCompile(`\s+`)
+	compLineParts := re.Split(compLine, -1)
+
 	// return compLineParts
 	if len(compLineParts) == 0 || compLineParts[0] == "" {
 		Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Empty compLineParts\n", n.Name, compLine, []string{})

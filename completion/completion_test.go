@@ -9,10 +9,18 @@
 package completion
 
 import (
+	"bytes"
 	"os"
 	"reflect"
 	"testing"
 )
+
+func setupLogging() *bytes.Buffer {
+	s := ""
+	buf := bytes.NewBufferString(s)
+	Debug.SetOutput(buf)
+	return buf
+}
 
 func TestGetChildNames(t *testing.T) {
 	Debug.SetOutput(os.Stderr)
@@ -66,11 +74,13 @@ func TestGetChildNames(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			buf := setupLogging()
 			Debug.Printf("TestGetChildNames - name: %s, prefix: %s\n", tt.name, tt.prefix)
 			got := tt.node.Completions(tt.prefix)
 			if !reflect.DeepEqual(got, tt.results) {
 				t.Errorf("(%s).Completions(%s) got = '%#v', want '%#v'", tt.node.Name, tt.prefix, got, tt.results)
 			}
+			t.Log(buf.String())
 		})
 	}
 
@@ -83,13 +93,17 @@ func TestGetChildNames(t *testing.T) {
 	}{
 		{"nil", rootNode, "", []string{}},
 		{"top level", rootNode, "./executable ", []string{"log", "logger", "show"}},
+		{"top level", rootNode, "./executable  ", []string{"log", "logger", "show"}},
 		{"top level", rootNode, "./executable l", []string{"log", "logger"}},
+		{"top level", rootNode, "./executable  l", []string{"log", "logger"}},
 		{"top level", rootNode, "./executable lo", []string{"log", "logger"}},
 		{"top level", rootNode, "./executable log", []string{"log", "logger"}},
+		{"top level", rootNode, "./executable  log", []string{"log", "logger"}},
 		{"top level", rootNode, "./executable sh", []string{"show"}},
 		{"options", rootNode, "./executable -", []string{"-h", "--help", "-v", "--version"}},
 		{"options", rootNode, "./executable -h", []string{"-h"}},
 		{"options", rootNode, "./executable -h ", []string{"log", "logger", "show"}},
+		{"options", rootNode, "./executable  -h  l", []string{"log", "logger"}},
 		{"command", rootNode, "./executable log ", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
 		{"command", rootNode, "./executable log bDir1/f", []string{"bDir1/file"}},
 		{"command", rootNode, "./executable log bDir1/file ", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
@@ -99,10 +113,12 @@ func TestGetChildNames(t *testing.T) {
 	}
 	for _, tt := range compLineTests {
 		t.Run(tt.name, func(t *testing.T) {
+			buf := setupLogging()
 			got := tt.node.CompLineComplete(tt.compLine)
 			if !reflect.DeepEqual(got, tt.results) {
 				t.Errorf("CompLineComplete() got = '%#v', want '%#v'", got, tt.results)
 			}
+			t.Log(buf.String())
 		})
 	}
 }

@@ -1,6 +1,12 @@
 = Changelog
 :toc:
 
+== WIP v0.20.1: Feature Update
+
+* Improve autocompletion behaviour.
++
+Break words in COMP_LINE by matching against multiple spaces `\s+` instead of a single one.
+
 == v0.20.0: Breaking Change
 
 As the releases before, this release has 100% test coverage.
