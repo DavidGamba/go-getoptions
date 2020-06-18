@@ -1,0 +1,14 @@
+= Build
+
+Lightweight build system inspired by Magefile.
+
+It tracks inputs and outputs for modification and allows to parallelize tasks by defining dependencies.
+
+I want something better than Bash scripts and Makefiles but not as limiting as Bazel, Buck and Please (never tried Pants but they are all inspired by Blaze).
+Scons and Gradle are hard to work with.
+
+Mage is awesome but the first thing a member of our team tried to do with it was run it in a debugger.
+Mage builds a separate go file that it then compiles and run.
+It also relies on panic/recover for its control flow.
+
+This system leverages go-getoptions to provide an alternative.
