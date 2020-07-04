@@ -66,3 +66,24 @@ func (g *Graph) TaskDependensOn(t ID, tDependencies ...ID) error {
 	}
 	return nil
 }
+
+// GetStartTasks - finds leaf nodes.
+func (g *Graph) GetStartVertex() ([]*Vertex, error) {
+	s := []*Vertex{}
+	for _, vertex := range g.Vertices {
+		if len(vertex.Children) == 0 {
+			s = append(s, vertex)
+		}
+	}
+	return s, nil
+}
+
+// TODO: Add CheckCycle
+
+func GetVertexIDs(list []*Vertex) []ID {
+	ids := []ID{}
+	for _, v := range list {
+		ids = append(ids, v.ID)
+	}
+	return ids
+}
