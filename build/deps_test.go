@@ -13,12 +13,15 @@ import (
 func TestMutexMap(t *testing.T) {
 	m := NewMutexMap()
 	count := 0
+	countMutex := sync.Mutex{}
 	fn := func(m *mutexMap, wg *sync.WaitGroup) {
 		defer wg.Done()
 		done := m.Lock("fn")
 		defer done()
 		time.Sleep(2 * time.Millisecond)
+		countMutex.Lock()
 		count++
+		countMutex.Unlock()
 	}
 	before := time.Now()
 	var wg sync.WaitGroup
@@ -59,7 +62,7 @@ func TestDependsOn(t *testing.T) {
 	m := NewMutexMap()
 	results := []int{}
 
-	sm := &sync.Mutex{}
+	sm := sync.Mutex{}
 	fn1 := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 		done := m.LockTask("fn1")
 		defer done()
@@ -72,7 +75,6 @@ func TestDependsOn(t *testing.T) {
 		done := m.LockTask("fn2")
 		defer done()
 		DependsOn(m, ctx, opt, args, fn1)
-		time.Sleep(5 * time.Millisecond) // Ensures 1 is done before 2
 		sm.Lock()
 		results = append(results, 2)
 		sm.Unlock()
@@ -91,7 +93,7 @@ func TestDependsOn(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
-	if !reflect.DeepEqual(results, []int{1, 1, 2, 3}) {
-		t.Errorf("Got %v, Want %v", results, []int{1, 1, 2, 3})
+	if !reflect.DeepEqual(results, []int{1, 1, 2, 3}) && !reflect.DeepEqual(results, []int{1, 2, 1, 3}) {
+		t.Errorf("Got %v, Want %v or %v", results, []int{1, 1, 2, 3}, []int{1, 2, 1, 3})
 	}
 }

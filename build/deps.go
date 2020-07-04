@@ -24,26 +24,27 @@ var Debug = log.New(os.Stderr, "", log.LstdFlags)
 //     done := sharedMutex.Lock("key")
 //     defer done()
 type mutexMap struct {
-	m map[string]chan struct{}
-	l *sync.Mutex
+	sm sync.Map
 }
 
 func NewMutexMap() *mutexMap {
 	return &mutexMap{
-		m: map[string]chan struct{}{},
-		l: &sync.Mutex{},
+		sm: sync.Map{},
 	}
 }
 
 func (m *mutexMap) Lock(name string) func() {
-	m.l.Lock()
-	if _, ok := m.m[name]; !ok {
-		m.m[name] = make(chan struct{}, 1)
+	_, ok := m.sm.Load(name)
+	if !ok {
+		c := make(chan struct{}, 1)
+		m.sm.Store(name, c)
 	}
-	m.l.Unlock()
-	m.m[name] <- struct{}{}
+	v, ok := m.sm.Load(name)
+	if ok {
+		v.(chan struct{}) <- struct{}{}
+	}
 	return func() {
-		<-m.m[name]
+		<-v.(chan struct{})
 	}
 }
 
