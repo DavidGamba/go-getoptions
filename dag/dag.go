@@ -230,11 +230,6 @@ func (g *Graph) DephFirstSort() ([]*Vertex, error) {
 			return sorted, err
 		}
 	}
-	fmt.Printf("sorted: %v\n", sorted)
-	for _, e := range sorted {
-		fmt.Printf(" %s ", e.ID)
-	}
-	fmt.Println()
 	return sorted, nil
 }
 
