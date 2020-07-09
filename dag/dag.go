@@ -180,6 +180,8 @@ func (g *Graph) TaskDependensOn(t ID, tDependencies ...ID) error {
 // It checks for tasks updates every 1 Millisecond by default.
 // Modify using the graph.TickerDuration
 func (g *Graph) Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	runStart := time.Now()
+
 	if len(g.errs) != 0 {
 		msg := ""
 		for _, e := range g.errs {
@@ -221,6 +223,7 @@ LOOP:
 			}(done, v)
 		}
 	}
+	Logger.Printf("Completed Run in %s\n", durationStr(time.Since(runStart)))
 	return nil
 }
 
