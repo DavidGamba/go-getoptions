@@ -20,6 +20,10 @@ type (
 		Fn getoptions.CommandFn
 	}
 
+	TaskMap struct {
+		m map[string]*Task
+	}
+
 	Vertex struct {
 		ID       ID
 		Task     *Task
@@ -32,6 +36,8 @@ type (
 		TickerDuration time.Duration
 		Vertices       map[ID]*Vertex
 		dotDiagram     string
+		// Track AddTask and TaskDependensOn errors
+		errs []error
 	}
 
 	runStatus int
@@ -54,10 +60,12 @@ const (
 	traversed
 )
 
+var ErrorTaskNil = fmt.Errorf("nil task given")
 var ErrorTaskDuplicate = fmt.Errorf("graph already contains task definition")
 var ErrorTaskNotFound = fmt.Errorf("task not found in graph")
 var ErrorTaskDependencyDuplicate = fmt.Errorf("task dependency already defined")
 var ErrorGraphHasCycle = fmt.Errorf("Graph has a cycle")
+var ErrorAddTaskOrDependency = fmt.Errorf("errors found in AddTask or TaskDependensOn stages")
 
 // NewTask - Allows creating a reusable Task that can be passed to multiple graphs.
 func NewTask(id string, fn getoptions.CommandFn) *Task {
@@ -65,6 +73,28 @@ func NewTask(id string, fn getoptions.CommandFn) *Task {
 		ID: ID(id),
 		Fn: fn,
 	}
+}
+
+// NewTaskMap - Map helper to group multiple Tasks.
+func NewTaskMap() *TaskMap {
+	return &TaskMap{
+		m: make(map[string]*Task),
+	}
+}
+
+// Add - Adds a new task to the TaskMap
+func (tm *TaskMap) Add(id string, fn getoptions.CommandFn) *Task {
+	newTask := NewTask(id, fn)
+	tm.m[id] = newTask
+	return newTask
+}
+
+// Get - Gets the task form the TaskMap, if not found returns nil
+func (tm *TaskMap) Get(id string) *Task {
+	if t, ok := tm.m[id]; ok {
+		return t
+	}
+	return nil
 }
 
 // NewGraph - Create a graph that allows running Tasks in parallel.
@@ -98,8 +128,14 @@ func (g *Graph) CreateTask(id string, fn getoptions.CommandFn) error {
 
 // AddTask - Add Task to graph.
 func (g *Graph) AddTask(t *Task) error {
+	if t == nil {
+		g.errs = append(g.errs, ErrorTaskNil)
+		return ErrorTaskNil
+	}
 	if _, ok := g.Vertices[t.ID]; ok {
-		return fmt.Errorf("%w: %s", ErrorTaskDuplicate, t.ID)
+		err := fmt.Errorf("%w: %s", ErrorTaskDuplicate, t.ID)
+		g.errs = append(g.errs, err)
+		return err
 	}
 	g.Vertices[t.ID] = &Vertex{
 		ID:       t.ID,
@@ -115,16 +151,22 @@ func (g *Graph) AddTask(t *Task) error {
 func (g *Graph) TaskDependensOn(t ID, tDependencies ...ID) error {
 	task, ok := g.Vertices[t]
 	if !ok {
-		return fmt.Errorf("%w: %s", ErrorTaskNotFound, t)
+		err := fmt.Errorf("%w: %s", ErrorTaskNotFound, t)
+		g.errs = append(g.errs, err)
+		return err
 	}
 	for _, tDependency := range tDependencies {
 		dependency, ok := g.Vertices[tDependency]
 		if !ok {
-			return fmt.Errorf("%w: %s", ErrorTaskNotFound, t)
+			err := fmt.Errorf("%w: %s", ErrorTaskNotFound, t)
+			g.errs = append(g.errs, err)
+			return err
 		}
 		for _, c := range task.Children {
 			if c.ID == dependency.ID {
-				return fmt.Errorf("%w: %s -> %s", ErrorTaskDependencyDuplicate, task.ID, dependency.ID)
+				err := fmt.Errorf("%w: %s -> %s", ErrorTaskDependencyDuplicate, task.ID, dependency.ID)
+				g.errs = append(g.errs, err)
+				return err
 			}
 		}
 		g.dotDiagram += fmt.Sprintf("\t\"%s\" -> \"%s\";\n", t, tDependency)
@@ -138,6 +180,14 @@ func (g *Graph) TaskDependensOn(t ID, tDependencies ...ID) error {
 // It checks for tasks updates every 1 Millisecond by default.
 // Modify using the graph.TickerDuration
 func (g *Graph) Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	if len(g.errs) != 0 {
+		msg := ""
+		for _, e := range g.errs {
+			msg += fmt.Sprintf("> %s\n", e)
+		}
+		return fmt.Errorf("%w:\n%s", ErrorAddTaskOrDependency, msg)
+	}
+
 	// Check for cycles
 	_, err := g.DephFirstSort()
 	if err != nil {
