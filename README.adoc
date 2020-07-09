@@ -882,6 +882,8 @@ For example: You could define ':' and use `--string=mystring`, `--string:mystrin
 
 * All other Perl's Getopt::Long goodies that seem reasonable to add!
 
+* IntOptional help synopsis should look like [--option [<int>]] instead of [--option <int>]
+
 == License
 
 This file is part of go-getoptions.
