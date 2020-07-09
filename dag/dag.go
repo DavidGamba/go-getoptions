@@ -151,7 +151,6 @@ LOOP:
 		select {
 		case id := <-done:
 			count++
-			Logger.Printf("count %d\n", count)
 			g.Vertices[id].status = runDone
 			if count >= len(g.Vertices) {
 				break LOOP
