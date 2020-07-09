@@ -283,7 +283,6 @@ func (g *Graph) DephFirstSort() ([]*Vertex, error) {
 }
 
 func visit(sorted *[]*Vertex, status *map[ID]visitStatus, v *Vertex) error {
-	Logger.Printf("visiting %s\n", v.ID)
 	if (*status)[v.ID] == traversed {
 		return nil
 	}
