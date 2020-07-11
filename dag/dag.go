@@ -21,7 +21,8 @@ type (
 	}
 
 	TaskMap struct {
-		m map[string]*Task
+		m    map[string]*Task
+		errs []error
 	}
 
 	Vertex struct {
@@ -61,6 +62,8 @@ const (
 )
 
 var ErrorTaskNil = fmt.Errorf("nil task given")
+var ErrorTaskID = fmt.Errorf("missing task ID")
+var ErrorTaskFn = fmt.Errorf("missing task function")
 var ErrorTaskDuplicate = fmt.Errorf("graph already contains task definition")
 var ErrorTaskNotFound = fmt.Errorf("task not found in graph")
 var ErrorTaskDependencyDuplicate = fmt.Errorf("task dependency already defined")
@@ -78,22 +81,34 @@ func NewTask(id string, fn getoptions.CommandFn) *Task {
 // NewTaskMap - Map helper to group multiple Tasks.
 func NewTaskMap() *TaskMap {
 	return &TaskMap{
-		m: make(map[string]*Task),
+		m:    make(map[string]*Task),
+		errs: make([]error, 0),
 	}
 }
 
 // Add - Adds a new task to the TaskMap
 func (tm *TaskMap) Add(id string, fn getoptions.CommandFn) *Task {
+	if id == "" {
+		tm.errs = append(tm.errs, ErrorTaskID)
+	}
+	if fn == nil {
+		tm.errs = append(tm.errs, fmt.Errorf("%w for %s", ErrorTaskFn, id))
+	}
 	newTask := NewTask(id, fn)
 	tm.m[id] = newTask
 	return newTask
 }
 
-// Get - Gets the task form the TaskMap, if not found returns nil
+// Get - Gets the task form the TaskMap, if not found returns an empty Task.
 func (tm *TaskMap) Get(id string) *Task {
 	if t, ok := tm.m[id]; ok {
 		return t
 	}
+	return NewTask(id, nil)
+}
+
+// Validate - Verifies that there are no errors in the TaskMap.
+func (tm *TaskMap) Validate() error {
 	return nil
 }
 
@@ -119,6 +134,12 @@ digraph G {
 
 // CreateTask - Helper to avoid having to call NewTask and then AddTask if there is no need for reusable Tasks.
 func (g *Graph) CreateTask(id string, fn getoptions.CommandFn) error {
+	if id == "" {
+		return ErrorTaskID
+	}
+	if fn == nil {
+		return ErrorTaskFn
+	}
 	t := &Task{
 		ID: ID(id),
 		Fn: fn,
@@ -131,6 +152,15 @@ func (g *Graph) AddTask(t *Task) error {
 	if t == nil {
 		g.errs = append(g.errs, ErrorTaskNil)
 		return ErrorTaskNil
+	}
+	if t.ID == "" {
+		g.errs = append(g.errs, ErrorTaskID)
+		return ErrorTaskID
+	}
+	if t.Fn == nil {
+		err := fmt.Errorf("%w for %s", ErrorTaskFn, t.ID)
+		g.errs = append(g.errs, err)
+		return err
 	}
 	if _, ok := g.Vertices[t.ID]; ok {
 		err := fmt.Errorf("%w: %s", ErrorTaskDuplicate, t.ID)
