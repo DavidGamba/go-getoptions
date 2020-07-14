@@ -1,10 +1,15 @@
+// TODO: Allow defining an Entrypoint into the graph and operate from that point.
+// Subgraph concept.
+// TODO: Allow for serial operation if desired.
 package dag
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/DavidGamba/go-getoptions"
@@ -18,6 +23,7 @@ type (
 	Task struct {
 		ID ID
 		Fn getoptions.CommandFn
+		sm sync.Mutex
 	}
 
 	TaskMap struct {
@@ -49,6 +55,7 @@ type (
 const (
 	runPending runStatus = iota
 	runInProgress
+	runSkip
 	runDone
 )
 
@@ -69,13 +76,26 @@ var ErrorTaskNotFound = fmt.Errorf("task not found in graph")
 var ErrorTaskDependencyDuplicate = fmt.Errorf("task dependency already defined")
 var ErrorGraphHasCycle = fmt.Errorf("Graph has a cycle")
 var ErrorAddTaskOrDependency = fmt.Errorf("errors found in AddTask or TaskDependensOn stages")
+var ErrorRunTask = fmt.Errorf("errors during run")
+
+// ErrorSkipParents - Allows for conditional tasks that allow a task to Skip all parent tasks without failing the run
+var ErrorSkipParents = fmt.Errorf("skip parents without failing")
 
 // NewTask - Allows creating a reusable Task that can be passed to multiple graphs.
 func NewTask(id string, fn getoptions.CommandFn) *Task {
 	return &Task{
 		ID: ID(id),
 		Fn: fn,
+		sm: sync.Mutex{},
 	}
+}
+
+func (t *Task) Lock() {
+	t.sm.Lock()
+}
+
+func (t *Task) Unlock() {
+	t.sm.Unlock()
 }
 
 // NewTaskMap - Map helper to group multiple Tasks.
@@ -143,6 +163,7 @@ func (g *Graph) CreateTask(id string, fn getoptions.CommandFn) error {
 	t := &Task{
 		ID: ID(id),
 		Fn: fn,
+		sm: sync.Mutex{},
 	}
 	return g.AddTask(t)
 }
@@ -167,6 +188,7 @@ func (g *Graph) AddTask(t *Task) error {
 		g.errs = append(g.errs, err)
 		return err
 	}
+	g.dotDiagram += fmt.Sprintf("\t\"%s\";\n", t.ID)
 	g.Vertices[t.ID] = &Vertex{
 		ID:       t.ID,
 		Task:     t,
@@ -178,15 +200,15 @@ func (g *Graph) AddTask(t *Task) error {
 }
 
 // TaskDependensOn - Allows defining the edges of the Task graph.
-func (g *Graph) TaskDependensOn(t ID, tDependencies ...ID) error {
-	task, ok := g.Vertices[t]
+func (g *Graph) TaskDependensOn(t string, tDependencies ...string) error {
+	task, ok := g.Vertices[ID(t)]
 	if !ok {
 		err := fmt.Errorf("%w: %s", ErrorTaskNotFound, t)
 		g.errs = append(g.errs, err)
 		return err
 	}
 	for _, tDependency := range tDependencies {
-		dependency, ok := g.Vertices[tDependency]
+		dependency, ok := g.Vertices[ID(tDependency)]
 		if !ok {
 			err := fmt.Errorf("%w: %s", ErrorTaskNotFound, t)
 			g.errs = append(g.errs, err)
@@ -220,40 +242,88 @@ func (g *Graph) Run(ctx context.Context, opt *getoptions.GetOpt, args []string) 
 		return fmt.Errorf("%w:\n%s", ErrorAddTaskOrDependency, msg)
 	}
 
+	if len(g.Vertices) == 0 {
+		return nil
+	}
+
 	// Check for cycles
 	_, err := g.DephFirstSort()
 	if err != nil {
 		return err
 	}
 
-	done := make(chan ID)
+	TaskErrors := []error{}
+	type IDErr struct {
+		ID    ID
+		Error error
+	}
+	done := make(chan IDErr)
 	count := 0
 LOOP:
 	for {
 		select {
-		case id := <-done:
+		case iderr := <-done:
 			count++
-			g.Vertices[id].status = runDone
+			g.Vertices[iderr.ID].status = runDone
 			if count >= len(g.Vertices) {
 				break LOOP
 			}
+			if iderr.Error != nil {
+				Logger.Printf("Task %s error: %s\n", iderr.ID, iderr.Error)
+				if !errors.Is(iderr.Error, ErrorSkipParents) {
+					TaskErrors = append(TaskErrors, iderr.Error)
+					continue
+				}
+				skipParents(g.Vertices[iderr.ID])
+			}
 		default:
-			v, ok := g.getNextVertex()
+			v, allDone, ok := g.getNextVertex()
+			if allDone {
+				// Tasks completed outside of this task run.
+				// For example when the same graph was passed to multiple methods and run multiple times.
+				break LOOP
+			}
 			if !ok {
 				time.Sleep(g.TickerDuration)
+				// TODO: Add a timeout to not wait infinitely for a task.
+				continue
+			}
+			if v.status == runSkip {
+				Logger.Printf("Skipped Task %s\n", v.ID)
+				v.status = runDone
+				go func(done chan IDErr, v *Vertex) {
+					done <- IDErr{v.ID, nil}
+				}(done, v)
+				continue
+			}
+			if len(TaskErrors) > 0 {
+				Logger.Printf("Skipped Task %s\n", v.ID)
+				v.status = runDone
+				go func(done chan IDErr, v *Vertex) {
+					done <- IDErr{v.ID, fmt.Errorf("skipped %s", v.ID)}
+				}(done, v)
 				continue
 			}
 			v.status = runInProgress
 			Logger.Printf("Running Task %s\n", v.ID)
-			go func(done chan ID, v *Vertex) {
+			go func(done chan IDErr, v *Vertex) {
 				start := time.Now()
-				v.Task.Fn(ctx, opt, args)
+				v.Task.Lock()
+				defer v.Task.Unlock()
+				err := v.Task.Fn(ctx, opt, args)
 				Logger.Printf("Completed Task %s in %s\n", v.ID, durationStr(time.Since(start)))
-				done <- v.ID
+				done <- IDErr{v.ID, err}
 			}(done, v)
 		}
 	}
 	Logger.Printf("Completed Run in %s\n", durationStr(time.Since(runStart)))
+	if len(TaskErrors) > 0 {
+		msg := ""
+		for _, e := range TaskErrors {
+			msg += fmt.Sprintf("> %s\n", e)
+		}
+		return fmt.Errorf("%w:\n%s", ErrorRunTask, msg)
+	}
 	return nil
 }
 
@@ -266,13 +336,17 @@ func durationStr(d time.Duration) string {
 }
 
 // getNextVertex - Walks the graph to get the next Vertex that is pending and without pending dependencies.
-func (g *Graph) getNextVertex() (*Vertex, bool) {
+func (g *Graph) getNextVertex() (*Vertex, bool, bool) {
+	doneCount := 0
 	for _, vertex := range g.Vertices {
-		if vertex.status != runPending {
+		if vertex.status != runPending && vertex.status != runSkip {
+			if vertex.status == runDone {
+				doneCount++
+			}
 			continue
 		}
 		if len(vertex.Children) == 0 {
-			return vertex, true
+			return vertex, false, true
 		}
 		childPending := false
 		for _, child := range vertex.Children {
@@ -284,10 +358,22 @@ func (g *Graph) getNextVertex() (*Vertex, bool) {
 			}
 		}
 		if !childPending {
-			return vertex, true
+			return vertex, false, true
 		}
 	}
-	return nil, false
+	if doneCount == len(g.Vertices) {
+		return nil, true, false
+	}
+	return nil, false, false
+}
+
+// skipParents - Marks all Vertex parents as runDone
+func skipParents(v *Vertex) {
+	Logger.Printf("skip parents for %s\n", v.ID)
+	for _, c := range v.Parents {
+		c.status = runSkip
+		skipParents(c)
+	}
 }
 
 // DephFirstSort - Returns a sorted list with the Vertices

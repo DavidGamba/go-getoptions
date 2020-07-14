@@ -3,6 +3,7 @@ package dag
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -86,6 +87,14 @@ func TestDag(t *testing.T) {
 	expectedDiagram := `
 digraph G {
 	rankdir = TB;
+	"t1";
+	"t2";
+	"t3";
+	"t4";
+	"t5";
+	"t6";
+	"t7";
+	"t8";
 	"t1" -> "t2";
 	"t1" -> "t3";
 	"t2" -> "t4";
@@ -224,6 +233,131 @@ func TestCycle(t *testing.T) {
 	err = g.Run(nil, nil, nil)
 	if err == nil || !errors.Is(err, ErrorGraphHasCycle) {
 		t.Errorf("Wrong error: %s\n", err)
+	}
+}
+
+func TestDagTaskError(t *testing.T) {
+	var err error
+
+	sm := sync.Mutex{}
+	results := []int{}
+	g := NewGraph()
+	addTask := func(id string, fn getoptions.CommandFn) {
+		if err != nil {
+			return
+		}
+		err = g.CreateTask(id, fn)
+	}
+	generateFn := func(n int) getoptions.CommandFn {
+		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			if n == 4 {
+				return fmt.Errorf("error for %d", n)
+			}
+			sm.Lock()
+			time.Sleep(1 * time.Millisecond)
+			results = append(results, n)
+			sm.Unlock()
+			return nil
+		}
+	}
+	addTask("t1", generateFn(1))
+	addTask("t2", generateFn(2))
+	addTask("t3", generateFn(3))
+	addTask("t4", generateFn(4))
+	addTask("t5", generateFn(5))
+	addTask("t6", generateFn(6))
+	addTask("t7", generateFn(7))
+	addTask("t8", generateFn(8))
+
+	g.TaskDependensOn("t1", "t2", "t3")
+	g.TaskDependensOn("t2", "t4")
+	g.TaskDependensOn("t3", "t4")
+	g.TaskDependensOn("t4", "t5")
+	g.TaskDependensOn("t6", "t2")
+	g.TaskDependensOn("t6", "t8")
+	g.TaskDependensOn("t7", "t5")
+
+	err = g.Run(nil, nil, nil)
+	if err == nil || !errors.Is(err, ErrorRunTask) {
+		t.Errorf("Wrong error: %s\n", err)
+	}
+	if len(results) > 3 {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	for i, e := range results {
+		switch i {
+		case 0, 1:
+			if e != 5 && e != 8 {
+				t.Errorf("Wrong list: %v\n", results)
+			}
+		case 2:
+			if e != 7 {
+				t.Errorf("Wrong list: %v\n", results)
+			}
+		}
+	}
+}
+
+func TestDagTaskSkipParents(t *testing.T) {
+	var err error
+
+	sm := sync.Mutex{}
+	results := []int{}
+	g := NewGraph()
+	addTask := func(id string, fn getoptions.CommandFn) {
+		if err != nil {
+			return
+		}
+		err = g.CreateTask(id, fn)
+	}
+	generateFn := func(n int) getoptions.CommandFn {
+		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			sm.Lock()
+			time.Sleep(1 * time.Millisecond)
+			if n == 4 {
+				sm.Unlock()
+				return ErrorSkipParents
+			}
+			results = append(results, n)
+			sm.Unlock()
+			return nil
+		}
+	}
+	addTask("t1", generateFn(1))
+	addTask("t2", generateFn(2))
+	addTask("t3", generateFn(3))
+	addTask("t4", generateFn(4))
+	addTask("t5", generateFn(5))
+	addTask("t6", generateFn(6))
+	addTask("t7", generateFn(7))
+	addTask("t8", generateFn(8))
+
+	g.TaskDependensOn("t1", "t2", "t3")
+	g.TaskDependensOn("t2", "t4")
+	g.TaskDependensOn("t3", "t4")
+	g.TaskDependensOn("t4", "t5")
+	g.TaskDependensOn("t6", "t2")
+	g.TaskDependensOn("t6", "t8")
+	g.TaskDependensOn("t7", "t5")
+
+	err = g.Run(nil, nil, nil)
+	if err != nil {
+		t.Errorf("Wrong error: %s\n", err)
+	}
+	if len(results) > 3 {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	for i, e := range results {
+		switch i {
+		case 0, 1:
+			if e != 5 && e != 8 {
+				t.Errorf("Wrong list: %v\n", results)
+			}
+		case 2:
+			if e != 7 {
+				t.Errorf("Wrong list: %v\n", results)
+			}
+		}
 	}
 }
 

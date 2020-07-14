@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// TODO: Print or return the srcs that were modified after the targets
+
 // SourceAfter - Check if any of the sources was modified after any of the targets.
 func SourceAfter(targets []string, srcs ...string) (bool, error) {
 	sourceLatest, err := getLatestModTime(false, srcs...)
