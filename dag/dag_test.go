@@ -337,13 +337,26 @@ func TestTaskMapErrors(t *testing.T) {
 	tm := NewTaskMap()
 	tm.Add("t1", generateFn(1))
 	tm.Add("t2", generateFn(2))
-	tm.Add("t2", generateFn(2))
-	tm.Add("", generateFn(3))
-	tm.Add("t4", nil)
+	tm.Add("t2", generateFn(2)) // ErrorTaskDuplicate
+	tm.Add("", generateFn(3))   // ErrorTaskID
+	tm.Add("t4", nil)           // ErrorTaskFn
 
 	err = tm.Validate()
-	if err == nil || !errors.Is(err, ErrorTaskMap) {
-		t.Errorf("Unexpected error: %s\n", err)
+	var errs *Errors
+	if err == nil || !errors.As(err, &errs) {
+		t.Fatalf("Unexpected error: %s\n", err)
+	}
+	if len(errs.Errors) != 3 {
+		t.Fatalf("Unexpected error: %#v\n", errs.Errors)
+	}
+	if !errors.Is(errs.Errors[0], ErrorTaskDuplicate) {
+		t.Fatalf("Unexpected error: %s\n", errs.Errors[0])
+	}
+	if !errors.Is(errs.Errors[1], ErrorTaskID) {
+		t.Fatalf("Unexpected error: %s\n", errs.Errors[1])
+	}
+	if !errors.Is(errs.Errors[2], ErrorTaskFn) {
+		t.Fatalf("Unexpected error: %s\n", errs.Errors[2])
 	}
 
 	if tm.Get("t5").ID != "t5" {

@@ -29,7 +29,12 @@ type (
 
 	TaskMap struct {
 		m    map[string]*Task
-		errs []error
+		errs *Errors
+	}
+
+	Errors struct {
+		Msg    string
+		Errors []error
 	}
 
 	Vertex struct {
@@ -44,8 +49,7 @@ type (
 		TickerDuration time.Duration
 		Vertices       map[ID]*Vertex
 		dotDiagram     string
-		// Track AddTask and TaskDependensOn errors
-		errs []error
+		errs           []error
 	}
 
 	runStatus int
@@ -83,6 +87,14 @@ var ErrorRunTask = fmt.Errorf("graph run errors")
 // ErrorSkipParents - Allows for conditional tasks that allow a task to Skip all parent tasks without failing the run
 var ErrorSkipParents = fmt.Errorf("skip parents without failing")
 
+func (errs *Errors) Error() string {
+	msg := ""
+	for _, e := range errs.Errors {
+		msg += fmt.Sprintf("> %s\n", e)
+	}
+	return fmt.Sprintf("%s errors found:\n%s", errs.Msg, msg)
+}
+
 // NewTask - Allows creating a reusable Task that can be passed to multiple graphs.
 func NewTask(id string, fn getoptions.CommandFn) *Task {
 	return &Task{
@@ -104,25 +116,24 @@ func (t *Task) Unlock() {
 func NewTaskMap() *TaskMap {
 	return &TaskMap{
 		m:    make(map[string]*Task),
-		errs: make([]error, 0),
+		errs: &Errors{"Task Map", make([]error, 0)},
 	}
 }
 
 // Add - Adds a new task to the TaskMap.
 // Errors collected for TaskMap.Validate().
 func (tm *TaskMap) Add(id string, fn getoptions.CommandFn) *Task {
-	var err error
 	if id == "" {
-		err = ErrorTaskID
-		tm.errs = append(tm.errs, err)
+		err := ErrorTaskID
+		tm.errs.Errors = append(tm.errs.Errors, err)
 	}
 	if fn == nil {
-		err = fmt.Errorf("%w for %s", ErrorTaskFn, id)
-		tm.errs = append(tm.errs, err)
+		err := fmt.Errorf("%w for %s", ErrorTaskFn, id)
+		tm.errs.Errors = append(tm.errs.Errors, err)
 	}
 	if _, ok := tm.m[id]; ok {
-		err = fmt.Errorf("%w: '%s'", ErrorTaskDuplicate, id)
-		tm.errs = append(tm.errs, err)
+		err := fmt.Errorf("%w: '%s'", ErrorTaskDuplicate, id)
+		tm.errs.Errors = append(tm.errs.Errors, err)
 	}
 	newTask := NewTask(id, fn)
 	tm.m[id] = newTask
@@ -136,18 +147,14 @@ func (tm *TaskMap) Get(id string) *Task {
 		return t
 	}
 	err := fmt.Errorf("%w: %s", ErrorTaskNotFound, id)
-	tm.errs = append(tm.errs, err)
+	tm.errs.Errors = append(tm.errs.Errors, err)
 	return NewTask(id, nil)
 }
 
 // Validate - Verifies that there are no errors in the TaskMap.
 func (tm *TaskMap) Validate() error {
-	if len(tm.errs) != 0 {
-		msg := ""
-		for _, e := range tm.errs {
-			msg += fmt.Sprintf("> %s\n", e)
-		}
-		return fmt.Errorf("%w:\n%s", ErrorTaskMap, msg)
+	if len(tm.errs.Errors) != 0 {
+		return tm.errs
 	}
 	return nil
 }
