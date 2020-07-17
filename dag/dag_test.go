@@ -193,7 +193,7 @@ func TestRunErrorCollection(t *testing.T) {
 	}
 
 	err = g.Run(nil, nil, nil)
-	if err == nil || !errors.Is(err, ErrorAddTaskOrDependency) {
+	if err == nil || !errors.Is(err, ErrorGraph) {
 		t.Errorf("Wrong error: %s\n", err)
 	}
 }

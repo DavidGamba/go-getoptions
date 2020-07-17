@@ -74,10 +74,10 @@ var ErrorTaskFn = fmt.Errorf("missing task function")
 var ErrorTaskDuplicate = fmt.Errorf("task definition already exists")
 var ErrorTaskNotFound = fmt.Errorf("task not found in graph")
 var ErrorTaskDependencyDuplicate = fmt.Errorf("task dependency already defined")
-var ErrorGraphHasCycle = fmt.Errorf("Graph has a cycle")
-var ErrorAddTaskOrDependency = fmt.Errorf("errors found in AddTask or TaskDependensOn stages")
-var ErrorTaskMap = fmt.Errorf("errors found when adding tasks to task map")
-var ErrorRunTask = fmt.Errorf("errors during run")
+var ErrorGraphHasCycle = fmt.Errorf("graph has a cycle")
+var ErrorGraph = fmt.Errorf("graph errors found")
+var ErrorTaskMap = fmt.Errorf("task map errors found")
+var ErrorRunTask = fmt.Errorf("graph run errors")
 
 // ErrorSkipParents - Allows for conditional tasks that allow a task to Skip all parent tasks without failing the run
 var ErrorSkipParents = fmt.Errorf("skip parents without failing")
@@ -274,6 +274,18 @@ func (g *Graph) TaskDependensOn(t *Task, tDependencies ...*Task) error {
 	return nil
 }
 
+// Validate - Verifies that there are no errors in the Graph.
+func (g *Graph) Validate() error {
+	if len(g.errs) != 0 {
+		msg := ""
+		for _, e := range g.errs {
+			msg += fmt.Sprintf("> %s\n", e)
+		}
+		return fmt.Errorf("%w:\n%s", ErrorGraph, msg)
+	}
+	return nil
+}
+
 // Run - Execute the graph tasks in parallel where possible.
 // It checks for tasks updates every 1 Millisecond by default.
 // Modify using the graph.TickerDuration
@@ -285,7 +297,7 @@ func (g *Graph) Run(ctx context.Context, opt *getoptions.GetOpt, args []string) 
 		for _, e := range g.errs {
 			msg += fmt.Sprintf("> %s\n", e)
 		}
-		return fmt.Errorf("%w:\n%s", ErrorAddTaskOrDependency, msg)
+		return fmt.Errorf("%w:\n%s", ErrorGraph, msg)
 	}
 
 	if len(g.Vertices) == 0 {
