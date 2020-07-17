@@ -184,6 +184,22 @@ func TestRunErrorCollection(t *testing.T) {
 	if !errors.Is(errs.Errors[10], ErrorTaskNil) {
 		t.Fatalf("Unexpected error at %d, %s\n", 10, errs.Error())
 	}
+	expected := `Graph errors found:
+> missing task ID
+> missing task function for t5
+> nil task given
+> missing task ID
+> missing task function for 123
+> task not found in graph: t0
+> missing task function for t0
+> task not found in graph: t0
+> missing task function for t0
+> task dependency already defined: t2 -> t1
+> nil task given
+`
+	if expected != errs.Error() {
+		t.Fatalf("Unexpected error: '%s'\nexpected: '%s'\n", err, expected)
+	}
 
 	err = g.Run(nil, nil, nil)
 	if err == nil {

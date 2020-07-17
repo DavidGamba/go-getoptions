@@ -248,11 +248,7 @@ func (g *Graph) retrieveOrAddVertex(t *Task) (*Vertex, error) {
 		if err != nil {
 			return nil, err
 		}
-		vertex, ok = g.Vertices[t.ID]
-		if !ok {
-			err := fmt.Errorf("%w: %s", ErrorTaskNotFound, t.ID)
-			return vertex, err
-		}
+		vertex = g.Vertices[t.ID]
 	}
 	return vertex, nil
 }
