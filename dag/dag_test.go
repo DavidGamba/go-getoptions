@@ -108,57 +108,27 @@ digraph G {
 
 func TestRunErrorCollection(t *testing.T) {
 	var err error
-	g := NewGraph()
-	addTask := func(id string, fn getoptions.CommandFn) {
-		if err != nil {
-			return
-		}
-		err = g.AddTask(NewTask(id, fn))
-	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			return nil
 		}
 	}
-	addTask("t1", generateFn(1))
-	addTask("t2", generateFn(2))
-	addTask("t3", generateFn(3))
-	if err != nil {
-		t.Errorf("Unexpected error: %s\n", err)
-	}
 
-	err = g.AddTask(NewTask("", generateFn(4)))
-	if err == nil || !errors.Is(err, ErrorTaskID) {
-		t.Errorf("Wrong error: %s\n", err)
-	}
+	g := NewGraph()
+	g.AddTask(NewTask("t1", generateFn(1)))
+	g.AddTask(NewTask("t2", generateFn(2)))
+	g.AddTask(NewTask("t3", generateFn(3)))
 
-	err = g.AddTask(NewTask("t5", nil))
-	if err == nil || !errors.Is(err, ErrorTaskFn) {
-		t.Errorf("Wrong error: %s\n", err)
-	}
+	g.AddTask(NewTask("", generateFn(4)))
 
-	err = g.AddTask(nil)
-	if err == nil || !errors.Is(err, ErrorTaskNil) {
-		t.Errorf("Wrong error: %s\n", err)
-	}
+	g.AddTask(NewTask("t5", nil))
 
-	err = g.AddTask(NewTask("", generateFn(123)))
-	if err == nil {
-		t.Errorf("Expected error none triggered\n")
-	}
-	if !errors.Is(err, ErrorTaskID) {
-		t.Errorf("Wrong error: %s\n", err)
-	}
+	g.AddTask(nil)
 
-	err = g.AddTask(NewTask("123", nil))
-	if err == nil {
-		t.Errorf("Expected error none triggered\n")
-	}
-	if !errors.Is(err, ErrorTaskFn) {
-		t.Errorf("Wrong error: %s\n", err)
-	}
+	g.AddTask(NewTask("", generateFn(123)))
 
-	err = nil
+	g.AddTask(NewTask("123", nil))
+
 	g.TaskDependensOn(g.Task("t2"), g.Task("t1"))
 	err = g.TaskDependensOn(g.Task("t3"), g.Task("t2"))
 	if err != nil {
@@ -196,25 +166,19 @@ func TestRunErrorCollection(t *testing.T) {
 }
 
 func TestCycle(t *testing.T) {
-	var err error
-	g := NewGraph()
-	addTask := func(id string, fn getoptions.CommandFn) {
-		if err != nil {
-			return
-		}
-		err = g.AddTask(NewTask(id, fn))
-	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			return nil
 		}
 	}
-	addTask("t1", generateFn(1))
-	addTask("t2", generateFn(2))
+
+	g := NewGraph()
+	g.AddTask(NewTask("t1", generateFn(1)))
+	g.AddTask(NewTask("t2", generateFn(2)))
 
 	g.TaskDependensOn(g.Task("t1"), g.Task("t2"))
 	g.TaskDependensOn(g.Task("t2"), g.Task("t1"))
-	_, err = g.DephFirstSort()
+	_, err := g.DephFirstSort()
 	if err == nil || !errors.Is(err, ErrorGraphHasCycle) {
 		t.Errorf("Wrong error: %s\n", err)
 	}
@@ -231,12 +195,6 @@ func TestDagTaskError(t *testing.T) {
 	sm := sync.Mutex{}
 	results := []int{}
 	g := NewGraph()
-	addTask := func(id string, fn getoptions.CommandFn) {
-		if err != nil {
-			return
-		}
-		err = g.AddTask(NewTask(id, fn))
-	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			if n == 4 {
@@ -249,14 +207,14 @@ func TestDagTaskError(t *testing.T) {
 			return nil
 		}
 	}
-	addTask("t1", generateFn(1))
-	addTask("t2", generateFn(2))
-	addTask("t3", generateFn(3))
-	addTask("t4", generateFn(4))
-	addTask("t5", generateFn(5))
-	addTask("t6", generateFn(6))
-	addTask("t7", generateFn(7))
-	addTask("t8", generateFn(8))
+	g.AddTask(NewTask("t1", generateFn(1)))
+	g.AddTask(NewTask("t2", generateFn(2)))
+	g.AddTask(NewTask("t3", generateFn(3)))
+	g.AddTask(NewTask("t4", generateFn(4)))
+	g.AddTask(NewTask("t5", generateFn(5)))
+	g.AddTask(NewTask("t6", generateFn(6)))
+	g.AddTask(NewTask("t7", generateFn(7)))
+	g.AddTask(NewTask("t8", generateFn(8)))
 
 	g.TaskDependensOn(g.Task("t1"), g.Task("t2"), g.Task("t3"))
 	g.TaskDependensOn(g.Task("t2"), g.Task("t4"))
@@ -292,13 +250,6 @@ func TestDagTaskSkipParents(t *testing.T) {
 
 	sm := sync.Mutex{}
 	results := []int{}
-	g := NewGraph()
-	addTask := func(id string, fn getoptions.CommandFn) {
-		if err != nil {
-			return
-		}
-		err = g.AddTask(NewTask(id, fn))
-	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			sm.Lock()
@@ -312,14 +263,16 @@ func TestDagTaskSkipParents(t *testing.T) {
 			return nil
 		}
 	}
-	addTask("t1", generateFn(1))
-	addTask("t2", generateFn(2))
-	addTask("t3", generateFn(3))
-	addTask("t4", generateFn(4))
-	addTask("t5", generateFn(5))
-	addTask("t6", generateFn(6))
-	addTask("t7", generateFn(7))
-	addTask("t8", generateFn(8))
+
+	g := NewGraph()
+	g.AddTask(NewTask("t1", generateFn(1)))
+	g.AddTask(NewTask("t2", generateFn(2)))
+	g.AddTask(NewTask("t3", generateFn(3)))
+	g.AddTask(NewTask("t4", generateFn(4)))
+	g.AddTask(NewTask("t5", generateFn(5)))
+	g.AddTask(NewTask("t6", generateFn(6)))
+	g.AddTask(NewTask("t7", generateFn(7)))
+	g.AddTask(NewTask("t8", generateFn(8)))
 
 	g.TaskDependensOn(g.Task("t1"), g.Task("t2"), g.Task("t3"))
 	g.TaskDependensOn(g.Task("t2"), g.Task("t4"))
@@ -352,22 +305,16 @@ func TestDagTaskSkipParents(t *testing.T) {
 
 func TestTaskMap(t *testing.T) {
 	var err error
-	tm := NewTaskMap()
-	addTask := func(id string, fn getoptions.CommandFn) {
-		if err != nil {
-			return
-		}
-		tm.Add(id, fn)
-	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			return nil
 		}
 	}
 
-	addTask("t1", generateFn(1))
-	addTask("t2", generateFn(2))
-	addTask("t3", generateFn(3))
+	tm := NewTaskMap()
+	tm.Add("t1", generateFn(1))
+	tm.Add("t2", generateFn(2))
+	tm.Add("t3", generateFn(3))
 
 	err = tm.Validate()
 	if err != nil {
@@ -381,22 +328,16 @@ func TestTaskMap(t *testing.T) {
 
 func TestTaskMapErrors(t *testing.T) {
 	var err error
-	tm := NewTaskMap()
-	addTask := func(id string, fn getoptions.CommandFn) {
-		if err != nil {
-			return
-		}
-		tm.Add(id, fn)
-	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			return nil
 		}
 	}
 
-	addTask("t1", generateFn(1))
-	addTask("t2", generateFn(2))
-	addTask("t2", generateFn(2))
+	tm := NewTaskMap()
+	tm.Add("t1", generateFn(1))
+	tm.Add("t2", generateFn(2))
+	tm.Add("t2", generateFn(2))
 	tm.Add("", generateFn(3))
 	tm.Add("t4", nil)
 

@@ -21,9 +21,10 @@ type (
 	ID string
 
 	Task struct {
-		ID ID
-		Fn getoptions.CommandFn
-		sm sync.Mutex
+		ID  ID
+		Fn  getoptions.CommandFn
+		sm  sync.Mutex
+		err error
 	}
 
 	TaskMap struct {
@@ -107,21 +108,20 @@ func NewTaskMap() *TaskMap {
 	}
 }
 
-// Add - Adds a new task to the TaskMap
+// Add - Adds a new task to the TaskMap.
+// Errors collected for TaskMap.Validate().
 func (tm *TaskMap) Add(id string, fn getoptions.CommandFn) *Task {
 	var err error
 	if id == "" {
 		err = ErrorTaskID
 		tm.errs = append(tm.errs, err)
-		// Don't allow empty ID tasks
-		return nil
 	}
 	if fn == nil {
 		err = fmt.Errorf("%w for %s", ErrorTaskFn, id)
 		tm.errs = append(tm.errs, err)
 	}
 	if _, ok := tm.m[id]; ok {
-		err = fmt.Errorf("%w: %s", ErrorTaskDuplicate, id)
+		err = fmt.Errorf("%w: '%s'", ErrorTaskDuplicate, id)
 		tm.errs = append(tm.errs, err)
 	}
 	newTask := NewTask(id, fn)
@@ -129,11 +129,14 @@ func (tm *TaskMap) Add(id string, fn getoptions.CommandFn) *Task {
 	return newTask
 }
 
-// Get - Gets the task form the TaskMap, if not found returns an empty Task.
+// Get - Gets the task form the TaskMap, if not found returns a new empty Task.
+// Errors collected for TaskMap.Validate().
 func (tm *TaskMap) Get(id string) *Task {
 	if t, ok := tm.m[id]; ok {
 		return t
 	}
+	err := fmt.Errorf("%w: %s", ErrorTaskNotFound, id)
+	tm.errs = append(tm.errs, err)
 	return NewTask(id, nil)
 }
 
@@ -177,28 +180,30 @@ func (g *Graph) Task(id string) *Task {
 		g.errs = append(g.errs, err)
 		// Return an empty task so downstream errors can reference the ID.
 		return &Task{
-			ID: ID(id),
-			Fn: nil,
-			sm: sync.Mutex{},
+			ID:  ID(id),
+			Fn:  nil,
+			sm:  sync.Mutex{},
+			err: fmt.Errorf("%w: %s", ErrorTaskNotFound, id),
 		}
 	}
 	return vertex.Task
 }
 
 // AddTask - Add Task to graph.
-func (g *Graph) AddTask(t *Task) error {
+// Errors collected for Graph.Validate().
+func (g *Graph) AddTask(t *Task) {
 	if t == nil {
 		g.errs = append(g.errs, ErrorTaskNil)
-		return ErrorTaskNil
+		return
 	}
 	if t.ID == "" {
 		g.errs = append(g.errs, ErrorTaskID)
-		return ErrorTaskID
+		return
 	}
 	if t.Fn == nil {
 		err := fmt.Errorf("%w for %s", ErrorTaskFn, t.ID)
 		g.errs = append(g.errs, err)
-		return err
+		return
 	}
 	// Allow duplicate definitions, use a Task Map if you want to ensure you define your tasks only once.
 	// if _, ok := g.Vertices[t.ID]; ok {
@@ -214,25 +219,19 @@ func (g *Graph) AddTask(t *Task) error {
 		Parents:  make([]*Vertex, 0),
 		status:   runPending,
 	}
-	return nil
+	return
 }
 
 func (g *Graph) retrieveOrAddVertex(t *Task) (*Vertex, error) {
 	if t == nil {
-		g.errs = append(g.errs, ErrorTaskNil)
 		return nil, ErrorTaskNil
 	}
 	vertex, ok := g.Vertices[t.ID]
 	if !ok {
-		err := g.AddTask(t)
-		if err != nil {
-			g.errs = append(g.errs, err)
-			return vertex, err
-		}
+		g.AddTask(t)
 		vertex, ok = g.Vertices[t.ID]
 		if !ok {
 			err := fmt.Errorf("%w: %s", ErrorTaskNotFound, t.ID)
-			g.errs = append(g.errs, err)
 			return vertex, err
 		}
 	}
@@ -243,6 +242,7 @@ func (g *Graph) retrieveOrAddVertex(t *Task) (*Vertex, error) {
 func (g *Graph) TaskDependensOn(t *Task, tDependencies ...*Task) error {
 	vertex, err := g.retrieveOrAddVertex(t)
 	if err != nil {
+		g.errs = append(g.errs, err)
 		return err
 	}
 	for _, tDependency := range tDependencies {
