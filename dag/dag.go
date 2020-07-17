@@ -169,6 +169,7 @@ digraph G {
 	return dotDiagramHeader + g.dotDiagram + dotDiagramFooter
 }
 
+// Task - Retrieve a Task from the graph by its ID.
 func (g *Graph) Task(id string) *Task {
 	vertex, ok := g.Vertices[ID(id)]
 	if !ok {

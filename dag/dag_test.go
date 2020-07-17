@@ -16,13 +16,6 @@ func TestDag(t *testing.T) {
 
 	sm := sync.Mutex{}
 	results := []int{}
-	g := NewGraph()
-	addTask := func(id string, fn getoptions.CommandFn) {
-		if err != nil {
-			return
-		}
-		err = g.AddTask(NewTask(id, fn))
-	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			sm.Lock()
@@ -32,25 +25,29 @@ func TestDag(t *testing.T) {
 			return nil
 		}
 	}
-	addTask("t1", generateFn(1))
-	addTask("t2", generateFn(2))
-	addTask("t3", generateFn(3))
-	addTask("t4", generateFn(4))
-	addTask("t5", generateFn(5))
-	addTask("t6", generateFn(6))
-	addTask("t7", generateFn(7))
-	addTask("t8", generateFn(8))
+
+	tm := NewTaskMap()
+	tm.Add("t1", generateFn(1))
+	tm.Add("t2", generateFn(2))
+	tm.Add("t3", generateFn(3))
+	tm.Add("t4", generateFn(4))
+	tm.Add("t5", generateFn(5))
+	tm.Add("t6", generateFn(6))
+	tm.Add("t7", generateFn(7))
+	tm.Add("t8", generateFn(8))
+	err = tm.Validate()
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
 
-	g.TaskDependensOn(g.Task("t1"), g.Task("t2"), g.Task("t3"))
-	g.TaskDependensOn(g.Task("t2"), g.Task("t4"))
-	g.TaskDependensOn(g.Task("t3"), g.Task("t4"))
-	g.TaskDependensOn(g.Task("t4"), g.Task("t5"))
-	g.TaskDependensOn(g.Task("t6"), g.Task("t2"))
-	g.TaskDependensOn(g.Task("t6"), g.Task("t8"))
-	err = g.TaskDependensOn(g.Task("t7"), g.Task("t5"))
+	g := NewGraph()
+	g.TaskDependensOn(tm.Get("t1"), tm.Get("t2"), tm.Get("t3"))
+	g.TaskDependensOn(tm.Get("t2"), tm.Get("t4"))
+	g.TaskDependensOn(tm.Get("t3"), tm.Get("t4"))
+	g.TaskDependensOn(tm.Get("t4"), tm.Get("t5"))
+	g.TaskDependensOn(tm.Get("t6"), tm.Get("t2"))
+	g.TaskDependensOn(tm.Get("t6"), tm.Get("t8"))
+	err = g.TaskDependensOn(tm.Get("t7"), tm.Get("t5"))
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
@@ -89,19 +86,19 @@ digraph G {
 	rankdir = TB;
 	"t1";
 	"t2";
-	"t3";
-	"t4";
-	"t5";
-	"t6";
-	"t7";
-	"t8";
 	"t1" -> "t2";
+	"t3";
 	"t1" -> "t3";
+	"t4";
 	"t2" -> "t4";
 	"t3" -> "t4";
+	"t5";
 	"t4" -> "t5";
+	"t6";
 	"t6" -> "t2";
+	"t8";
 	"t6" -> "t8";
+	"t7";
 	"t7" -> "t5";
 }`
 	if g.String() != expectedDiagram {
