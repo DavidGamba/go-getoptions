@@ -105,6 +105,17 @@ digraph G {
 	if g.String() != expectedDiagram {
 		t.Errorf("Wrong output: '%s'\nexpected: '%s'\n", g.String(), expectedDiagram)
 	}
+
+	// Empty graph
+	g2 := NewGraph()
+	err = g2.Validate()
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+	err = g2.Run(nil, nil, nil)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
 }
 
 func TestRunErrorCollection(t *testing.T) {
