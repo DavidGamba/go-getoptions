@@ -78,11 +78,9 @@ var ErrorTaskNil = fmt.Errorf("nil task given")
 var ErrorTaskID = fmt.Errorf("missing task ID")
 var ErrorTaskFn = fmt.Errorf("missing task function")
 var ErrorTaskDuplicate = fmt.Errorf("task definition already exists")
-var ErrorTaskNotFound = fmt.Errorf("task not found in graph")
+var ErrorTaskNotFound = fmt.Errorf("task not found")
 var ErrorTaskDependencyDuplicate = fmt.Errorf("task dependency already defined")
 var ErrorGraphHasCycle = fmt.Errorf("graph has a cycle")
-var ErrorGraph = fmt.Errorf("graph errors found")
-var ErrorTaskMap = fmt.Errorf("task map errors found")
 var ErrorRunTask = fmt.Errorf("graph run errors")
 
 // ErrorSkipParents - Allows for conditional tasks that allow a task to Skip all parent tasks without failing the run
@@ -141,7 +139,7 @@ func (tm *TaskMap) Add(id string, fn getoptions.CommandFn) *Task {
 	return newTask
 }
 
-// Get - Gets the task form the TaskMap, if not found returns a new empty Task.
+// Get - Gets the task from the TaskMap, if not found returns a new empty Task.
 // Errors collected for TaskMap.Validate().
 func (tm *TaskMap) Get(id string) *Task {
 	if t, ok := tm.m[id]; ok {
@@ -374,6 +372,8 @@ LOOP:
 		}
 	}
 	Logger.Printf("Completed Run in %s\n", durationStr(time.Since(runStart)))
+
+	// TODO: Refactor this error handling
 	if len(TaskErrors) > 0 {
 		msg := ""
 		for _, e := range TaskErrors {

@@ -35,10 +35,6 @@ func TestDag(t *testing.T) {
 	tm.Add("t6", generateFn(6))
 	tm.Add("t7", generateFn(7))
 	tm.Add("t8", generateFn(8))
-	err = tm.Validate()
-	if err != nil {
-		t.Errorf("Unexpected error: %s\n", err)
-	}
 
 	g := NewGraph()
 	g.TaskDependensOn(tm.Get("t1"), tm.Get("t2"), tm.Get("t3"))
@@ -48,6 +44,12 @@ func TestDag(t *testing.T) {
 	g.TaskDependensOn(tm.Get("t6"), tm.Get("t2"))
 	g.TaskDependensOn(tm.Get("t6"), tm.Get("t8"))
 	g.TaskDependensOn(tm.Get("t7"), tm.Get("t5"))
+
+	// Validate the TaskMap after all calls to Get.
+	err = tm.Validate()
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
 	err = g.Validate()
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
