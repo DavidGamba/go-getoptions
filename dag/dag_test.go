@@ -21,7 +21,7 @@ func TestDag(t *testing.T) {
 		if err != nil {
 			return
 		}
-		err = g.CreateTask(id, fn)
+		err = g.AddTask(NewTask(id, fn))
 	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
@@ -116,7 +116,7 @@ func TestRunErrorCollection(t *testing.T) {
 		if err != nil {
 			return
 		}
-		err = g.CreateTask(id, fn)
+		err = g.AddTask(NewTask(id, fn))
 	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
@@ -130,12 +130,12 @@ func TestRunErrorCollection(t *testing.T) {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
 
-	err = g.CreateTask("", generateFn(4))
+	err = g.AddTask(NewTask("", generateFn(4)))
 	if err == nil || !errors.Is(err, ErrorTaskID) {
 		t.Errorf("Wrong error: %s\n", err)
 	}
 
-	err = g.CreateTask("t5", nil)
+	err = g.AddTask(NewTask("t5", nil))
 	if err == nil || !errors.Is(err, ErrorTaskFn) {
 		t.Errorf("Wrong error: %s\n", err)
 	}
@@ -172,7 +172,7 @@ func TestRunErrorCollection(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error none triggered\n")
 	}
-	if !errors.Is(err, ErrorTaskFn) {
+	if !errors.Is(err, ErrorTaskNotFound) {
 		t.Errorf("Wrong error: %s\n", err)
 	}
 
@@ -180,7 +180,7 @@ func TestRunErrorCollection(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected error none triggered\n")
 	}
-	if !errors.Is(err, ErrorTaskFn) {
+	if !errors.Is(err, ErrorTaskNotFound) {
 		t.Errorf("Wrong error: %s\n", err)
 	}
 
@@ -205,7 +205,7 @@ func TestCycle(t *testing.T) {
 		if err != nil {
 			return
 		}
-		err = g.CreateTask(id, fn)
+		err = g.AddTask(NewTask(id, fn))
 	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
@@ -238,7 +238,7 @@ func TestDagTaskError(t *testing.T) {
 		if err != nil {
 			return
 		}
-		err = g.CreateTask(id, fn)
+		err = g.AddTask(NewTask(id, fn))
 	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
@@ -300,7 +300,7 @@ func TestDagTaskSkipParents(t *testing.T) {
 		if err != nil {
 			return
 		}
-		err = g.CreateTask(id, fn)
+		err = g.AddTask(NewTask(id, fn))
 	}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {

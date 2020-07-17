@@ -109,14 +109,19 @@ func NewTaskMap() *TaskMap {
 
 // Add - Adds a new task to the TaskMap
 func (tm *TaskMap) Add(id string, fn getoptions.CommandFn) *Task {
+	var err error
 	if id == "" {
-		tm.errs = append(tm.errs, ErrorTaskID)
+		err = ErrorTaskID
+		tm.errs = append(tm.errs, err)
+		// Don't allow empty ID tasks
+		return nil
 	}
 	if fn == nil {
-		tm.errs = append(tm.errs, fmt.Errorf("%w for %s", ErrorTaskFn, id))
+		err = fmt.Errorf("%w for %s", ErrorTaskFn, id)
+		tm.errs = append(tm.errs, err)
 	}
 	if _, ok := tm.m[id]; ok {
-		err := fmt.Errorf("%w: %s", ErrorTaskDuplicate, id)
+		err = fmt.Errorf("%w: %s", ErrorTaskDuplicate, id)
 		tm.errs = append(tm.errs, err)
 	}
 	newTask := NewTask(id, fn)
@@ -162,22 +167,6 @@ digraph G {
 	dotDiagramFooter := `}`
 
 	return dotDiagramHeader + g.dotDiagram + dotDiagramFooter
-}
-
-// CreateTask - Helper to avoid having to call NewTask and then AddTask if there is no need for reusable Tasks.
-func (g *Graph) CreateTask(id string, fn getoptions.CommandFn) error {
-	if id == "" {
-		return ErrorTaskID
-	}
-	if fn == nil {
-		return ErrorTaskFn
-	}
-	t := &Task{
-		ID: ID(id),
-		Fn: fn,
-		sm: sync.Mutex{},
-	}
-	return g.AddTask(t)
 }
 
 func (g *Graph) Task(id string) *Task {
