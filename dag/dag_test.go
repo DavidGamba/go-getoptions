@@ -47,7 +47,8 @@ func TestDag(t *testing.T) {
 	g.TaskDependensOn(tm.Get("t4"), tm.Get("t5"))
 	g.TaskDependensOn(tm.Get("t6"), tm.Get("t2"))
 	g.TaskDependensOn(tm.Get("t6"), tm.Get("t8"))
-	err = g.TaskDependensOn(tm.Get("t7"), tm.Get("t5"))
+	g.TaskDependensOn(tm.Get("t7"), tm.Get("t5"))
+	err = g.Validate()
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
@@ -118,49 +119,59 @@ func TestRunErrorCollection(t *testing.T) {
 	g.AddTask(NewTask("t1", generateFn(1)))
 	g.AddTask(NewTask("t2", generateFn(2)))
 	g.AddTask(NewTask("t3", generateFn(3)))
-
-	g.AddTask(NewTask("", generateFn(4)))
-
-	g.AddTask(NewTask("t5", nil))
-
-	g.AddTask(nil)
-
-	g.AddTask(NewTask("", generateFn(123)))
-
-	g.AddTask(NewTask("123", nil))
+	g.AddTask(NewTask("", generateFn(4)))   // ErrorTaskID
+	g.AddTask(NewTask("t5", nil))           // ErrorTaskFn
+	g.AddTask(nil)                          // ErrorTaskNil
+	g.AddTask(NewTask("", generateFn(123))) // ErrorTaskID
+	g.AddTask(NewTask("123", nil))          // ErrorTaskFn
 
 	g.TaskDependensOn(g.Task("t2"), g.Task("t1"))
-	err = g.TaskDependensOn(g.Task("t3"), g.Task("t2"))
-	if err != nil {
-		t.Errorf("Unexpected error: %s\n", err)
-	}
+	g.TaskDependensOn(g.Task("t3"), g.Task("t2"))
+	g.TaskDependensOn(g.Task("t3"), g.Task("t0")) // ErrorTaskNotFound, ErrorTaskFn
+	g.TaskDependensOn(g.Task("t0"), g.Task("t3")) // ErrorTaskNotFound, ErrorTaskFn
+	g.TaskDependensOn(g.Task("t2"), g.Task("t1")) // ErrorTaskDependencyDuplicate
 
-	err = g.TaskDependensOn(g.Task("t3"), g.Task("t0"))
-	if err == nil {
-		t.Errorf("Expected error none triggered\n")
+	err = g.Validate()
+	var errs *Errors
+	if err == nil || !errors.As(err, &errs) {
+		t.Fatalf("Unexpected error: %s\n", err)
 	}
-	if !errors.Is(err, ErrorTaskNotFound) {
-		t.Errorf("Wrong error: %s\n", err)
+	if len(errs.Errors) != 10 {
+		t.Fatalf("Unexpected error count: %d\n", len(errs.Errors))
 	}
-
-	err = g.TaskDependensOn(g.Task("t0"), g.Task("t3"))
-	if err == nil {
-		t.Errorf("Expected error none triggered\n")
+	if !errors.Is(errs.Errors[0], ErrorTaskID) {
+		t.Fatalf("Unexpected error at %d, %s\n", 0, errs.Error())
 	}
-	if !errors.Is(err, ErrorTaskNotFound) {
-		t.Errorf("Wrong error: %s\n", err)
+	if !errors.Is(errs.Errors[1], ErrorTaskFn) {
+		t.Fatalf("Unexpected error at %d, %s\n", 1, errs.Error())
 	}
-
-	err = g.TaskDependensOn(g.Task("t2"), g.Task("t1"))
-	if err == nil {
-		t.Errorf("Expected error none triggered\n")
+	if !errors.Is(errs.Errors[2], ErrorTaskNil) {
+		t.Fatalf("Unexpected error at %d, %s\n", 2, errs.Error())
 	}
-	if !errors.Is(err, ErrorTaskDependencyDuplicate) {
-		t.Errorf("Wrong error: %s\n", err)
+	if !errors.Is(errs.Errors[3], ErrorTaskID) {
+		t.Fatalf("Unexpected error at %d, %s\n", 3, errs.Error())
+	}
+	if !errors.Is(errs.Errors[4], ErrorTaskFn) {
+		t.Fatalf("Unexpected error at %d, %s\n", 4, errs.Error())
+	}
+	if !errors.Is(errs.Errors[5], ErrorTaskNotFound) {
+		t.Fatalf("Unexpected error at %d, %s\n", 5, errs.Error())
+	}
+	if !errors.Is(errs.Errors[6], ErrorTaskFn) {
+		t.Fatalf("Unexpected error at %d, %s\n", 6, errs.Error())
+	}
+	if !errors.Is(errs.Errors[7], ErrorTaskNotFound) {
+		t.Fatalf("Unexpected error at %d, %s\n", 7, errs.Error())
+	}
+	if !errors.Is(errs.Errors[8], ErrorTaskFn) {
+		t.Fatalf("Unexpected error at %d, %s\n", 8, errs.Error())
+	}
+	if !errors.Is(errs.Errors[9], ErrorTaskDependencyDuplicate) {
+		t.Fatalf("Unexpected error at %d, %s\n", 9, errs.Error())
 	}
 
 	err = g.Run(nil, nil, nil)
-	if err == nil || !errors.Is(err, ErrorGraph) {
+	if err == nil {
 		t.Errorf("Wrong error: %s\n", err)
 	}
 }

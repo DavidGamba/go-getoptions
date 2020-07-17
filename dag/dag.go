@@ -1,6 +1,8 @@
 // TODO: Allow defining an Entrypoint into the graph and operate from that point.
 // Subgraph concept.
 // TODO: Allow for serial operation if desired.
+
+// Requires Go 1.13+
 package dag
 
 import (
@@ -21,10 +23,9 @@ type (
 	ID string
 
 	Task struct {
-		ID  ID
-		Fn  getoptions.CommandFn
-		sm  sync.Mutex
-		err error
+		ID ID
+		Fn getoptions.CommandFn
+		sm sync.Mutex
 	}
 
 	TaskMap struct {
@@ -49,7 +50,7 @@ type (
 		TickerDuration time.Duration
 		Vertices       map[ID]*Vertex
 		dotDiagram     string
-		errs           []error
+		errs           *Errors
 	}
 
 	runStatus int
@@ -164,6 +165,7 @@ func NewGraph() *Graph {
 	return &Graph{
 		TickerDuration: 1 * time.Millisecond,
 		Vertices:       make(map[ID]*Vertex, 0),
+		errs:           &Errors{"Graph", make([]error, 0)},
 	}
 }
 
@@ -184,13 +186,12 @@ func (g *Graph) Task(id string) *Task {
 	vertex, ok := g.Vertices[ID(id)]
 	if !ok {
 		err := fmt.Errorf("%w: %s", ErrorTaskNotFound, id)
-		g.errs = append(g.errs, err)
+		g.errs.Errors = append(g.errs.Errors, err)
 		// Return an empty task so downstream errors can reference the ID.
 		return &Task{
-			ID:  ID(id),
-			Fn:  nil,
-			sm:  sync.Mutex{},
-			err: fmt.Errorf("%w: %s", ErrorTaskNotFound, id),
+			ID: ID(id),
+			Fn: nil,
+			sm: sync.Mutex{},
 		}
 	}
 	return vertex.Task
@@ -199,18 +200,24 @@ func (g *Graph) Task(id string) *Task {
 // AddTask - Add Task to graph.
 // Errors collected for Graph.Validate().
 func (g *Graph) AddTask(t *Task) {
+	err := g.addTask(t)
+	if err != nil {
+		g.errs.Errors = append(g.errs.Errors, err)
+	}
+}
+
+func (g *Graph) addTask(t *Task) error {
 	if t == nil {
-		g.errs = append(g.errs, ErrorTaskNil)
-		return
+		err := ErrorTaskNil
+		return err
 	}
 	if t.ID == "" {
-		g.errs = append(g.errs, ErrorTaskID)
-		return
+		err := ErrorTaskID
+		return err
 	}
 	if t.Fn == nil {
 		err := fmt.Errorf("%w for %s", ErrorTaskFn, t.ID)
-		g.errs = append(g.errs, err)
-		return
+		return err
 	}
 	// Allow duplicate definitions, use a Task Map if you want to ensure you define your tasks only once.
 	// if _, ok := g.Vertices[t.ID]; ok {
@@ -218,7 +225,9 @@ func (g *Graph) AddTask(t *Task) {
 	// 	g.errs = append(g.errs, err)
 	// 	return err
 	// }
-	g.dotDiagram += fmt.Sprintf("\t\"%s\";\n", t.ID)
+	if _, ok := g.Vertices[t.ID]; !ok {
+		g.dotDiagram += fmt.Sprintf("\t\"%s\";\n", t.ID)
+	}
 	g.Vertices[t.ID] = &Vertex{
 		ID:       t.ID,
 		Task:     t,
@@ -226,7 +235,7 @@ func (g *Graph) AddTask(t *Task) {
 		Parents:  make([]*Vertex, 0),
 		status:   runPending,
 	}
-	return
+	return nil
 }
 
 func (g *Graph) retrieveOrAddVertex(t *Task) (*Vertex, error) {
@@ -235,7 +244,10 @@ func (g *Graph) retrieveOrAddVertex(t *Task) (*Vertex, error) {
 	}
 	vertex, ok := g.Vertices[t.ID]
 	if !ok {
-		g.AddTask(t)
+		err := g.addTask(t)
+		if err != nil {
+			return nil, err
+		}
 		vertex, ok = g.Vertices[t.ID]
 		if !ok {
 			err := fmt.Errorf("%w: %s", ErrorTaskNotFound, t.ID)
@@ -246,39 +258,36 @@ func (g *Graph) retrieveOrAddVertex(t *Task) (*Vertex, error) {
 }
 
 // TaskDependensOn - Allows adding tasks to the graph and defining their edges.
-func (g *Graph) TaskDependensOn(t *Task, tDependencies ...*Task) error {
+func (g *Graph) TaskDependensOn(t *Task, tDependencies ...*Task) {
 	vertex, err := g.retrieveOrAddVertex(t)
 	if err != nil {
-		g.errs = append(g.errs, err)
-		return err
+		g.errs.Errors = append(g.errs.Errors, err)
+		return
 	}
 	for _, tDependency := range tDependencies {
 		vDependency, err := g.retrieveOrAddVertex(tDependency)
 		if err != nil {
-			return err
+			g.errs.Errors = append(g.errs.Errors, err)
+			return
 		}
 		for _, c := range vertex.Children {
 			if c.ID == vDependency.ID {
 				err := fmt.Errorf("%w: %s -> %s", ErrorTaskDependencyDuplicate, vertex.ID, vDependency.ID)
-				g.errs = append(g.errs, err)
-				return err
+				g.errs.Errors = append(g.errs.Errors, err)
+				return
 			}
 		}
 		g.dotDiagram += fmt.Sprintf("\t\"%s\" -> \"%s\";\n", vertex.ID, vDependency.ID)
 		vertex.Children = append(vertex.Children, vDependency)
 		vDependency.Parents = append(vDependency.Parents, vertex)
 	}
-	return nil
+	return
 }
 
 // Validate - Verifies that there are no errors in the Graph.
 func (g *Graph) Validate() error {
-	if len(g.errs) != 0 {
-		msg := ""
-		for _, e := range g.errs {
-			msg += fmt.Sprintf("> %s\n", e)
-		}
-		return fmt.Errorf("%w:\n%s", ErrorGraph, msg)
+	if len(g.errs.Errors) != 0 {
+		return g.errs
 	}
 	return nil
 }
@@ -289,12 +298,9 @@ func (g *Graph) Validate() error {
 func (g *Graph) Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 	runStart := time.Now()
 
-	if len(g.errs) != 0 {
-		msg := ""
-		for _, e := range g.errs {
-			msg += fmt.Sprintf("> %s\n", e)
-		}
-		return fmt.Errorf("%w:\n%s", ErrorGraph, msg)
+	err := g.Validate()
+	if err != nil {
+		return err
 	}
 
 	if len(g.Vertices) == 0 {
@@ -302,7 +308,7 @@ func (g *Graph) Run(ctx context.Context, opt *getoptions.GetOpt, args []string) 
 	}
 
 	// Check for cycles
-	_, err := g.DephFirstSort()
+	_, err = g.DephFirstSort()
 	if err != nil {
 		return err
 	}
