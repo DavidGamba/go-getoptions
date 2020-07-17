@@ -44,13 +44,13 @@ func TestDag(t *testing.T) {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
 
-	g.TaskDependensOn("t1", "t2", "t3")
-	g.TaskDependensOn("t2", "t4")
-	g.TaskDependensOn("t3", "t4")
-	g.TaskDependensOn("t4", "t5")
-	g.TaskDependensOn("t6", "t2")
-	g.TaskDependensOn("t6", "t8")
-	err = g.TaskDependensOn("t7", "t5")
+	g.TaskDependensOn(g.Task("t1"), g.Task("t2"), g.Task("t3"))
+	g.TaskDependensOn(g.Task("t2"), g.Task("t4"))
+	g.TaskDependensOn(g.Task("t3"), g.Task("t4"))
+	g.TaskDependensOn(g.Task("t4"), g.Task("t5"))
+	g.TaskDependensOn(g.Task("t6"), g.Task("t2"))
+	g.TaskDependensOn(g.Task("t6"), g.Task("t8"))
+	err = g.TaskDependensOn(g.Task("t7"), g.Task("t5"))
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
@@ -145,14 +145,6 @@ func TestRunErrorCollection(t *testing.T) {
 		t.Errorf("Wrong error: %s\n", err)
 	}
 
-	err = g.AddTask(NewTask("t3", generateFn(3)))
-	if err == nil {
-		t.Errorf("Expected error none triggered\n")
-	}
-	if !errors.Is(err, ErrorTaskDuplicate) {
-		t.Errorf("Wrong error: %s\n", err)
-	}
-
 	err = g.AddTask(NewTask("", generateFn(123)))
 	if err == nil {
 		t.Errorf("Expected error none triggered\n")
@@ -170,29 +162,29 @@ func TestRunErrorCollection(t *testing.T) {
 	}
 
 	err = nil
-	g.TaskDependensOn("t2", "t1")
-	g.TaskDependensOn("t3", "t2")
+	g.TaskDependensOn(g.Task("t2"), g.Task("t1"))
+	err = g.TaskDependensOn(g.Task("t3"), g.Task("t2"))
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
 
-	err = g.TaskDependensOn("t3", "t0")
+	err = g.TaskDependensOn(g.Task("t3"), g.Task("t0"))
 	if err == nil {
 		t.Errorf("Expected error none triggered\n")
 	}
-	if !errors.Is(err, ErrorTaskNotFound) {
+	if !errors.Is(err, ErrorTaskFn) {
 		t.Errorf("Wrong error: %s\n", err)
 	}
 
-	err = g.TaskDependensOn("t0", "t3")
+	err = g.TaskDependensOn(g.Task("t0"), g.Task("t3"))
 	if err == nil {
 		t.Errorf("Expected error none triggered\n")
 	}
-	if !errors.Is(err, ErrorTaskNotFound) {
+	if !errors.Is(err, ErrorTaskFn) {
 		t.Errorf("Wrong error: %s\n", err)
 	}
 
-	err = g.TaskDependensOn("t2", "t1")
+	err = g.TaskDependensOn(g.Task("t2"), g.Task("t1"))
 	if err == nil {
 		t.Errorf("Expected error none triggered\n")
 	}
@@ -223,8 +215,8 @@ func TestCycle(t *testing.T) {
 	addTask("t1", generateFn(1))
 	addTask("t2", generateFn(2))
 
-	g.TaskDependensOn("t1", "t2")
-	g.TaskDependensOn("t2", "t1")
+	g.TaskDependensOn(g.Task("t1"), g.Task("t2"))
+	g.TaskDependensOn(g.Task("t2"), g.Task("t1"))
 	_, err = g.DephFirstSort()
 	if err == nil || !errors.Is(err, ErrorGraphHasCycle) {
 		t.Errorf("Wrong error: %s\n", err)
@@ -269,13 +261,13 @@ func TestDagTaskError(t *testing.T) {
 	addTask("t7", generateFn(7))
 	addTask("t8", generateFn(8))
 
-	g.TaskDependensOn("t1", "t2", "t3")
-	g.TaskDependensOn("t2", "t4")
-	g.TaskDependensOn("t3", "t4")
-	g.TaskDependensOn("t4", "t5")
-	g.TaskDependensOn("t6", "t2")
-	g.TaskDependensOn("t6", "t8")
-	g.TaskDependensOn("t7", "t5")
+	g.TaskDependensOn(g.Task("t1"), g.Task("t2"), g.Task("t3"))
+	g.TaskDependensOn(g.Task("t2"), g.Task("t4"))
+	g.TaskDependensOn(g.Task("t3"), g.Task("t4"))
+	g.TaskDependensOn(g.Task("t4"), g.Task("t5"))
+	g.TaskDependensOn(g.Task("t6"), g.Task("t2"))
+	g.TaskDependensOn(g.Task("t6"), g.Task("t8"))
+	g.TaskDependensOn(g.Task("t7"), g.Task("t5"))
 
 	err = g.Run(nil, nil, nil)
 	if err == nil || !errors.Is(err, ErrorRunTask) {
@@ -332,13 +324,13 @@ func TestDagTaskSkipParents(t *testing.T) {
 	addTask("t7", generateFn(7))
 	addTask("t8", generateFn(8))
 
-	g.TaskDependensOn("t1", "t2", "t3")
-	g.TaskDependensOn("t2", "t4")
-	g.TaskDependensOn("t3", "t4")
-	g.TaskDependensOn("t4", "t5")
-	g.TaskDependensOn("t6", "t2")
-	g.TaskDependensOn("t6", "t8")
-	g.TaskDependensOn("t7", "t5")
+	g.TaskDependensOn(g.Task("t1"), g.Task("t2"), g.Task("t3"))
+	g.TaskDependensOn(g.Task("t2"), g.Task("t4"))
+	g.TaskDependensOn(g.Task("t3"), g.Task("t4"))
+	g.TaskDependensOn(g.Task("t4"), g.Task("t5"))
+	g.TaskDependensOn(g.Task("t6"), g.Task("t2"))
+	g.TaskDependensOn(g.Task("t6"), g.Task("t8"))
+	g.TaskDependensOn(g.Task("t7"), g.Task("t5"))
 
 	err = g.Run(nil, nil, nil)
 	if err != nil {

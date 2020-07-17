@@ -180,6 +180,21 @@ func (g *Graph) CreateTask(id string, fn getoptions.CommandFn) error {
 	return g.AddTask(t)
 }
 
+func (g *Graph) Task(id string) *Task {
+	vertex, ok := g.Vertices[ID(id)]
+	if !ok {
+		err := fmt.Errorf("%w: %s", ErrorTaskNotFound, id)
+		g.errs = append(g.errs, err)
+		// Return an empty task so downstream errors can reference the ID.
+		return &Task{
+			ID: ID(id),
+			Fn: nil,
+			sm: sync.Mutex{},
+		}
+	}
+	return vertex.Task
+}
+
 // AddTask - Add Task to graph.
 func (g *Graph) AddTask(t *Task) error {
 	if t == nil {
@@ -195,11 +210,12 @@ func (g *Graph) AddTask(t *Task) error {
 		g.errs = append(g.errs, err)
 		return err
 	}
-	if _, ok := g.Vertices[t.ID]; ok {
-		err := fmt.Errorf("%w: %s", ErrorTaskDuplicate, t.ID)
-		g.errs = append(g.errs, err)
-		return err
-	}
+	// Allow duplicate definitions, use a Task Map if you want to ensure you define your tasks only once.
+	// if _, ok := g.Vertices[t.ID]; ok {
+	// 	err := fmt.Errorf("%w: %s", ErrorTaskDuplicate, t.ID)
+	// 	g.errs = append(g.errs, err)
+	// 	return err
+	// }
 	g.dotDiagram += fmt.Sprintf("\t\"%s\";\n", t.ID)
 	g.Vertices[t.ID] = &Vertex{
 		ID:       t.ID,
@@ -211,31 +227,49 @@ func (g *Graph) AddTask(t *Task) error {
 	return nil
 }
 
-// TaskDependensOn - Allows defining the edges of the Task graph.
-func (g *Graph) TaskDependensOn(t string, tDependencies ...string) error {
-	task, ok := g.Vertices[ID(t)]
+func (g *Graph) retrieveOrAddVertex(t *Task) (*Vertex, error) {
+	if t == nil {
+		g.errs = append(g.errs, ErrorTaskNil)
+		return nil, ErrorTaskNil
+	}
+	vertex, ok := g.Vertices[t.ID]
 	if !ok {
-		err := fmt.Errorf("%w: %s", ErrorTaskNotFound, t)
-		g.errs = append(g.errs, err)
+		err := g.AddTask(t)
+		if err != nil {
+			g.errs = append(g.errs, err)
+			return vertex, err
+		}
+		vertex, ok = g.Vertices[t.ID]
+		if !ok {
+			err := fmt.Errorf("%w: %s", ErrorTaskNotFound, t.ID)
+			g.errs = append(g.errs, err)
+			return vertex, err
+		}
+	}
+	return vertex, nil
+}
+
+// TaskDependensOn - Allows adding tasks to the graph and defining their edges.
+func (g *Graph) TaskDependensOn(t *Task, tDependencies ...*Task) error {
+	vertex, err := g.retrieveOrAddVertex(t)
+	if err != nil {
 		return err
 	}
 	for _, tDependency := range tDependencies {
-		dependency, ok := g.Vertices[ID(tDependency)]
-		if !ok {
-			err := fmt.Errorf("%w: %s", ErrorTaskNotFound, t)
-			g.errs = append(g.errs, err)
+		vDependency, err := g.retrieveOrAddVertex(tDependency)
+		if err != nil {
 			return err
 		}
-		for _, c := range task.Children {
-			if c.ID == dependency.ID {
-				err := fmt.Errorf("%w: %s -> %s", ErrorTaskDependencyDuplicate, task.ID, dependency.ID)
+		for _, c := range vertex.Children {
+			if c.ID == vDependency.ID {
+				err := fmt.Errorf("%w: %s -> %s", ErrorTaskDependencyDuplicate, vertex.ID, vDependency.ID)
 				g.errs = append(g.errs, err)
 				return err
 			}
 		}
-		g.dotDiagram += fmt.Sprintf("\t\"%s\" -> \"%s\";\n", t, tDependency)
-		task.Children = append(task.Children, dependency)
-		dependency.Parents = append(dependency.Parents, task)
+		g.dotDiagram += fmt.Sprintf("\t\"%s\" -> \"%s\";\n", vertex.ID, vDependency.ID)
+		vertex.Children = append(vertex.Children, vDependency)
+		vDependency.Parents = append(vDependency.Parents, vertex)
 	}
 	return nil
 }
