@@ -141,13 +141,14 @@ func TestRunErrorCollection(t *testing.T) {
 	g.TaskDependensOn(g.Task("t3"), g.Task("t0")) // ErrorTaskNotFound, ErrorTaskFn
 	g.TaskDependensOn(g.Task("t0"), g.Task("t3")) // ErrorTaskNotFound, ErrorTaskFn
 	g.TaskDependensOn(g.Task("t2"), g.Task("t1")) // ErrorTaskDependencyDuplicate
+	g.TaskDependensOn(g.Task("t2"), nil)          // ErrorTaskNil
 
 	err = g.Validate()
 	var errs *Errors
 	if err == nil || !errors.As(err, &errs) {
 		t.Fatalf("Unexpected error: %s\n", err)
 	}
-	if len(errs.Errors) != 10 {
+	if len(errs.Errors) != 11 {
 		t.Fatalf("Unexpected error count: %d\n", len(errs.Errors))
 	}
 	if !errors.Is(errs.Errors[0], ErrorTaskID) {
@@ -179,6 +180,9 @@ func TestRunErrorCollection(t *testing.T) {
 	}
 	if !errors.Is(errs.Errors[9], ErrorTaskDependencyDuplicate) {
 		t.Fatalf("Unexpected error at %d, %s\n", 9, errs.Error())
+	}
+	if !errors.Is(errs.Errors[10], ErrorTaskNil) {
+		t.Fatalf("Unexpected error at %d, %s\n", 10, errs.Error())
 	}
 
 	err = g.Run(nil, nil, nil)
