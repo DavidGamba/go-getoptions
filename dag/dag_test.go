@@ -407,11 +407,12 @@ func TestTaskMapErrors(t *testing.T) {
 
 	addTask("t1", generateFn(1))
 	addTask("t2", generateFn(2))
+	addTask("t2", generateFn(2))
 	tm.Add("", generateFn(3))
 	tm.Add("t4", nil)
 
 	err = tm.Validate()
-	if err != nil {
+	if err == nil || !errors.Is(err, ErrorTaskMap) {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
 

@@ -71,11 +71,12 @@ const (
 var ErrorTaskNil = fmt.Errorf("nil task given")
 var ErrorTaskID = fmt.Errorf("missing task ID")
 var ErrorTaskFn = fmt.Errorf("missing task function")
-var ErrorTaskDuplicate = fmt.Errorf("graph already contains task definition")
+var ErrorTaskDuplicate = fmt.Errorf("task definition already exists")
 var ErrorTaskNotFound = fmt.Errorf("task not found in graph")
 var ErrorTaskDependencyDuplicate = fmt.Errorf("task dependency already defined")
 var ErrorGraphHasCycle = fmt.Errorf("Graph has a cycle")
 var ErrorAddTaskOrDependency = fmt.Errorf("errors found in AddTask or TaskDependensOn stages")
+var ErrorTaskMap = fmt.Errorf("errors found when adding tasks to task map")
 var ErrorRunTask = fmt.Errorf("errors during run")
 
 // ErrorSkipParents - Allows for conditional tasks that allow a task to Skip all parent tasks without failing the run
@@ -114,6 +115,10 @@ func (tm *TaskMap) Add(id string, fn getoptions.CommandFn) *Task {
 	if fn == nil {
 		tm.errs = append(tm.errs, fmt.Errorf("%w for %s", ErrorTaskFn, id))
 	}
+	if _, ok := tm.m[id]; ok {
+		err := fmt.Errorf("%w: %s", ErrorTaskDuplicate, id)
+		tm.errs = append(tm.errs, err)
+	}
 	newTask := NewTask(id, fn)
 	tm.m[id] = newTask
 	return newTask
@@ -129,6 +134,13 @@ func (tm *TaskMap) Get(id string) *Task {
 
 // Validate - Verifies that there are no errors in the TaskMap.
 func (tm *TaskMap) Validate() error {
+	if len(tm.errs) != 0 {
+		msg := ""
+		for _, e := range tm.errs {
+			msg += fmt.Sprintf("> %s\n", e)
+		}
+		return fmt.Errorf("%w:\n%s", ErrorTaskMap, msg)
+	}
 	return nil
 }
 
