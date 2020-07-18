@@ -216,6 +216,15 @@ func (n *Node) CompLineComplete(compLine string) []string {
 					// Recurse into the node self completion
 					return n.CompLineComplete(strings.Join(compLineParts, " "))
 				}
+				if strings.HasPrefix(current, e+"=") {
+					if len(compLineParts) == 1 {
+						Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Fully Matched Option/Custom\n", n.Name, compLine, current)
+						return []string{current}
+					}
+					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched Option/Custom %s, recursing to self\n", n.Name, compLine, current)
+					// Recurse into the node self completion
+					return n.CompLineComplete(strings.Join(compLineParts, " "))
+				}
 			}
 		}
 		// Get FileList completions after all other completions
