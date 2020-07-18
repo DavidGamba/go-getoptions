@@ -60,7 +60,7 @@ const (
 	FileListNode
 	// OptionsNode - Only enabled if prefix starts with -
 	OptionsNode
-	// OptionsWithCompletion - The completion completes to --option=
+	// OptionsWithCompletion - Only enabled if prefix starts with -
 	OptionsWithCompletion
 	// CustomNode -
 	CustomNode
@@ -109,6 +109,13 @@ func (n *Node) SelfCompletions(prefix string) []string {
 			Debug.Printf("SelfCompletions - node: %s > %v\n", n.Name, ee)
 			return ee
 		}
+	case OptionsWithCompletion:
+		if strings.HasPrefix(prefix, "-") {
+			sortForCompletion(n.Entries)
+			ee := keepByPrefix(n.Entries, prefix)
+			Debug.Printf("SelfCompletions - node: %s > %v\n", n.Name, ee)
+			return ee
+		}
 	case CustomNode:
 		sortForCompletion(n.Entries)
 		ee := keepByPrefix(n.Entries, prefix)
@@ -122,11 +129,25 @@ func (n *Node) SelfCompletions(prefix string) []string {
 // Completions -
 func (n *Node) Completions(prefix string) []string {
 	results := []string{}
+	stringNodeResults := []string{}
+	optionResults := []string{}
 	for _, child := range n.Children {
-		results = append(results, child.SelfCompletions(prefix)...)
+		switch child.Kind {
+		case StringNode:
+			stringNodeResults = append(stringNodeResults, child.SelfCompletions(prefix)...)
+		case OptionsNode, OptionsWithCompletion:
+			optionResults = append(optionResults, child.SelfCompletions(prefix)...)
+		default:
+			results = append(results, child.SelfCompletions(prefix)...)
+		}
 	}
-	Debug.Printf("Completions - node: %s, prefix %s > %v\n", n.Name, prefix, results)
-	return results
+	sortForCompletion(results)
+	sortForCompletion(optionResults)
+	// Put command completions first, then options, then anything else
+	r := append(stringNodeResults, optionResults...)
+	r = append(r, results...)
+	Debug.Printf("Completions - node: %s, prefix %s > %v\n", n.Name, prefix, r)
+	return r
 }
 
 // GetChildByName - Traverses to the children and returns the first one to match name.
@@ -172,7 +193,7 @@ func discardByPrefix(list []string, prefix string) []string {
 }
 
 // CompLineComplete - Given a compLine (get it with os.Getenv("COMP_LINE")) it returns a list of completions.
-func (n *Node) CompLineComplete(compLine string) []string {
+func (n *Node) CompLineComplete(lastWasOption bool, compLine string) []string {
 	// TODO: This split might not consider files that have spaces in them.
 	re := regexp.MustCompile(`\s+`)
 	compLineParts := re.Split(compLine, -1)
@@ -197,10 +218,10 @@ func (n *Node) CompLineComplete(compLine string) []string {
 		}
 		// Check if the current fully matches a command (child node)
 		child := n.GetChildByName(current)
-		if child.Name == current && child.Kind == StringNode {
+		if child.Kind == StringNode && child.Name == current {
 			Debug.Printf("CompLineComplete - node: %s, compLine %s - Recursing into command %s\n", n.Name, compLine, current)
 			// Recurse into the child node's completion
-			return child.CompLineComplete(strings.Join(compLineParts, " "))
+			return child.CompLineComplete(false, strings.Join(compLineParts, " "))
 		}
 		// Check if the current fully matches an option
 		list := n.GetChildrenByKind(OptionsNode)
@@ -214,16 +235,32 @@ func (n *Node) CompLineComplete(compLine string) []string {
 					}
 					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched Option/Custom %s, recursing to self\n", n.Name, compLine, current)
 					// Recurse into the node self completion
-					return n.CompLineComplete(strings.Join(compLineParts, " "))
+					return n.CompLineComplete(false, strings.Join(compLineParts, " "))
 				}
-				if strings.HasPrefix(current, e+"=") {
+			}
+		}
+		// Check if the current fully matches an option
+		list = n.GetChildrenByKind(OptionsWithCompletion)
+		list = append(list, n.GetChildrenByKind(CustomNode)...)
+		for _, child := range list {
+			for _, e := range child.Entries {
+				if current == e {
 					if len(compLineParts) == 1 {
 						Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Fully Matched Option/Custom\n", n.Name, compLine, current)
 						return []string{current}
 					}
 					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched Option/Custom %s, recursing to self\n", n.Name, compLine, current)
 					// Recurse into the node self completion
-					return n.CompLineComplete(strings.Join(compLineParts, " "))
+					return n.CompLineComplete(true, strings.Join(compLineParts, " "))
+				}
+				if strings.HasPrefix(current, e+"=") {
+					if len(compLineParts) == 1 {
+						Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Fully Matched Option/Custom with =\n", n.Name, compLine, current)
+						return n.Completions(current)
+					}
+					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched Option/Custom  with = %s, recursing to self\n", n.Name, compLine, current)
+					// Recurse into the node self completion
+					return n.CompLineComplete(false, strings.Join(compLineParts, " "))
 				}
 			}
 		}
@@ -238,9 +275,18 @@ func (n *Node) CompLineComplete(compLine string) []string {
 					}
 					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched File %s, recursing to self\n", n.Name, compLine, current)
 					// Recurse into the node self completion
-					return n.CompLineComplete(strings.Join(compLineParts, " "))
+					return n.CompLineComplete(false, strings.Join(compLineParts, " "))
 				}
 			}
+		}
+
+		// Doesn't match anything but previous arg was an option
+		if lastWasOption {
+			Debug.Printf("CompLineComplete - node: %s, compLine %s - Previous was option %s, recursing to self\n", n.Name, compLine, current)
+			if len(compLineParts) == 1 {
+				return []string{current}
+			}
+			return n.CompLineComplete(false, strings.Join(compLineParts, " "))
 		}
 
 		// Return a partial match

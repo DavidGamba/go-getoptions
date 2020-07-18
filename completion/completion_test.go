@@ -27,7 +27,8 @@ func TestGetChildNames(t *testing.T) {
 
 	// Tree setup
 	rootNode := NewNode("executable", Root, nil)
-	rootNode.AddChild(NewNode("options", OptionsNode, []string{"--version", "--help", "--profile", "-v", "-h", "-p"}))
+	rootNode.AddChild(NewNode("options", OptionsNode, []string{"--version", "--help", "-v", "-h"}))
+	rootNode.AddChild(NewNode("options", OptionsWithCompletion, []string{"--profile", "-p"}))
 
 	logNode := NewNode("log", StringNode, nil)
 	rootNode.AddChild(logNode)
@@ -109,10 +110,12 @@ func TestGetChildNames(t *testing.T) {
 		{"options", rootNode, "./executable  --help  l", []string{"log", "logger"}},
 		{"options", rootNode, "./executable  --profile  l", []string{"log", "logger"}},
 		{"options", rootNode, "./executable  --profile=dev  l", []string{"log", "logger"}},
+		{"options", rootNode, "./executable  --pro", []string{"--profile"}},
 		{"options", rootNode, "./executable  --profile", []string{"--profile"}},
-		{"options", rootNode, "./executable  --profile=dev", []string{"--profile=dev"}},
-		// TODO:
-		// {"options", rootNode, "./executable  --profile dev  l", []string{"log", "logger"}},
+		{"options", rootNode, "./executable  --profile=", []string{}},
+		{"options", rootNode, "./executable  --profile=dev", []string{}},
+		{"options", rootNode, "./executable  --profile dev", []string{"dev"}},
+		{"options", rootNode, "./executable  --profile dev  l", []string{"log", "logger"}},
 		{"command", rootNode, "./executable log ", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
 		{"command", rootNode, "./executable log bDir1/f", []string{"bDir1/file"}},
 		{"command", rootNode, "./executable log bDir1/file ", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
@@ -121,11 +124,12 @@ func TestGetChildNames(t *testing.T) {
 		{"command", rootNode, "./executable logger ../.a", []string{"../.aFile2"}},
 		{"command", rootNode, "./executable logger ../.aFile2", []string{"../.aFile2"}},
 		{"command", rootNode, "./executable show", []string{"abcd1234", "bbcd/1234", "..hola", "--hola"}},
+		{"not a valid arg", rootNode, "./executable dev", []string{}},
 	}
 	for _, tt := range compLineTests {
 		t.Run(tt.name, func(t *testing.T) {
 			buf := setupLogging()
-			got := tt.node.CompLineComplete(tt.compLine)
+			got := tt.node.CompLineComplete(false, tt.compLine)
 			if !reflect.DeepEqual(got, tt.results) {
 				t.Errorf("CompLineComplete() got = '%#v', want '%#v'", got, tt.results)
 			}

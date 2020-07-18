@@ -117,6 +117,7 @@ type CommandFn func(context.Context, *GetOpt, []string) error
 func New() *GetOpt {
 	root := completion.NewNode("root", completion.Root, nil)
 	root.AddChild(completion.NewNode("options", completion.OptionsNode, nil))
+	root.AddChild(completion.NewNode("options-with-arg", completion.OptionsWithCompletion, nil))
 	gopt := &GetOpt{
 		name:       filepath.Base(os.Args[0]),
 		obj:        make(map[string]*option.Option),
@@ -157,6 +158,17 @@ func (gopt *GetOpt) SetCommandFn(fn CommandFn) *GetOpt {
 
 func (gopt *GetOpt) completionAppendAliases(aliases []string) {
 	node := gopt.completion.GetChildByName("options")
+	for _, alias := range aliases {
+		if len(alias) == 1 {
+			node.Entries = append(node.Entries, "-"+alias)
+		} else {
+			node.Entries = append(node.Entries, "--"+alias)
+		}
+	}
+}
+
+func (gopt *GetOpt) completionWithArgAppendAliases(aliases []string) {
+	node := gopt.completion.GetChildByName("options-with-arg")
 	for _, alias := range aliases {
 		if len(alias) == 1 {
 			node.Entries = append(node.Entries, "-"+alias)
@@ -315,10 +327,15 @@ func (gopt *GetOpt) Option(name string) *option.Option {
 // Internal only
 func (gopt *GetOpt) setOption(opts ...*option.Option) *GetOpt {
 	node := gopt.completion.GetChildByName("options")
+	nodeWithArg := gopt.completion.GetChildByName("options-with-arg")
 	for _, opt := range opts {
 		gopt.obj[opt.Name] = opt
-		// TODO: Add aliases
-		node.Entries = append(node.Entries, opt.Name)
+		if opt.OptType == option.BoolType {
+			// TODO: Add aliases
+			node.Entries = append(node.Entries, opt.Name)
+		} else {
+			nodeWithArg.Entries = append(nodeWithArg.Entries, opt.Name)
+		}
 	}
 	return gopt
 }
@@ -691,7 +708,7 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionWithArgAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 	return &def
 }
@@ -1272,9 +1289,14 @@ func (gopt *GetOpt) passOptionsToChildren() error {
 	for _, commandOpt := range gopt.commands {
 		for optName, opt := range gopt.obj {
 			commandOpt.obj[optName] = opt
+
 			parentNode := gopt.completion.GetChildByName("options")
 			node := commandOpt.completion.GetChildByName("options")
 			node.Entries = append(node.Entries, parentNode.Entries...)
+
+			parentNodeWithArg := gopt.completion.GetChildByName("options-with-arg")
+			nodeWithArg := commandOpt.completion.GetChildByName("options-with-arg")
+			nodeWithArg.Entries = append(nodeWithArg.Entries, parentNodeWithArg.Entries...)
 		}
 		// Once we are done passing the options to the command, pass them along to its children.
 		commandOpt.passOptionsToChildren()
@@ -1294,7 +1316,7 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 	compLine := os.Getenv("COMP_LINE")
 	// https://stackoverflow.com/a/33396628
 	if compLine != "" {
-		fmt.Fprintln(completionWriter, strings.Join(gopt.completion.CompLineComplete(compLine), "\n"))
+		fmt.Fprintln(completionWriter, strings.Join(gopt.completion.CompLineComplete(false, compLine), "\n"))
 		exitFn(1)
 	}
 	al := newArgList(args)
