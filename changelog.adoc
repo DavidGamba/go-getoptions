@@ -1,7 +1,32 @@
 = Changelog
 :toc:
 
+== WIP: v0.20.2: Feature Update
+
+As the releases before, this release has 100% test coverage.
+
+=== Deprecration WARNING
+
+Support for Go 1.10, 1.11 and 1.12 will be dropped in a future release.
+The `errors.Is` and `errors.As` features greatly simplify error testing and handling and will likely be introduced in the near future.
+
+=== Improve autocompletion behaviour.
+
+* Pass autocompletion entries to children.
++
+From v0.20.0 all options starting being passed to children commands.
+Their completion entries were missing.
+
+* Separate internal option completion between flags that don't expect and argument and options that do.
+When an option that expects an argument is found, the given argument won't break the completion chain.
+Only one argument is supported per option.
+
+* Don't break autocompletion chain when there is an option in the chain that accepts an argument with `=`.
+For example: `program --profile=dev <tab><tab>` will show completions for program.
+
 == v0.20.1: Feature Update
+
+As the releases before, this release has 100% test coverage.
 
 * Improve autocompletion behaviour.
 +
