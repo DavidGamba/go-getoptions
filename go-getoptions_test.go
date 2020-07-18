@@ -2146,7 +2146,7 @@ func TestCommandAmbiguosOption(t *testing.T) {
 		if err == nil {
 			t.Errorf("Ambiguous argument didn't raise error")
 		}
-		if err != nil && err.Error() != fmt.Sprintf(text.ErrorAmbiguousArgument, "p", []string{"profile", "password"}) {
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorAmbiguousArgument, "p", []string{"password", "profile"}) {
 			t.Errorf("Error string didn't match expected value: %s", err)
 		}
 		t.Log(buf.String())
