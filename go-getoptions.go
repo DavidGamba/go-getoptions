@@ -1219,10 +1219,24 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias strin
 		}
 		Debug.Printf("commandMatches: %v(%d), %s\n", commandMatches, len(commandMatches), alias)
 
-		if len(matches) >= 1 && len(commandMatches) >= 1 {
-			sort.Strings(matches)
-			sort.Strings(commandMatches)
-			return optName, usedAlias, found, fmt.Errorf(text.ErrorAmbiguousArgument, alias, append(matches, commandMatches...))
+		dedup := func(s []string) []string {
+			m := map[string]struct{}{}
+			for _, e := range s {
+				m[e] = struct{}{}
+			}
+			r := []string{}
+			for k := range m {
+				r = append(r, k)
+			}
+			return r
+		}
+		matches = dedup(matches)
+		commandMatches = dedup(commandMatches)
+		combined := dedup(append(matches, commandMatches...))
+
+		if len(combined) >= 2 {
+			sort.Strings(combined)
+			return optName, usedAlias, found, fmt.Errorf(text.ErrorAmbiguousArgument, alias, combined)
 		}
 		if len(matches) == 1 {
 			found = true
@@ -1249,11 +1263,11 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias strin
 //     // Parse cmdline arguments or any provided []string
 //     remaining, err := opt.Parse(os.Args[1:])
 func (gopt *GetOpt) Parse(args []string) ([]string, error) {
+	gopt.passOptionsToChildren()
 	remaining, err := gopt.parse(args)
 	if err != nil {
 		return remaining, err
 	}
-	gopt.passOptionsToChildren()
 	return remaining, nil
 }
 
@@ -1262,6 +1276,9 @@ func (gopt *GetOpt) passOptionsToChildren() error {
 	for _, commandOpt := range gopt.commands {
 		for optName, opt := range gopt.obj {
 			commandOpt.obj[optName] = opt
+			parentNode := gopt.completion.GetChildByName("options")
+			node := commandOpt.completion.GetChildByName("options")
+			node.Entries = append(node.Entries, parentNode.Entries...)
 		}
 		// Once we are done passing the options to the command, pass them along to its children.
 		commandOpt.passOptionsToChildren()
