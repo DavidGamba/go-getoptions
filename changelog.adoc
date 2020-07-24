@@ -1,6 +1,21 @@
 = Changelog
 :toc:
 
+== WIP v0.21.0: Breaking Change
+
+=== Support Go version 1.13+
+
+Dropping support for Go 1.10, 1.11 and 1.12.
+The `errors.Is` and `errors.As` features greatly simplify error testing and handling and are used in the new DAG build system.
+
+=== New Feature
+
+Introduces a new Directed Acyclic Graph Build System.
+
+The build system is a separate import package: `import "github.com/DavidGamba/go-getoptions/dag"`
+
+Documentation can be found in its own link::github.com/DavidGamba/go-getoptions/dag/README.adoc[README].
+
 == v0.20.2: Feature Update
 
 As the releases before, this release has 100% test coverage.

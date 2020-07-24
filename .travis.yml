@@ -12,7 +12,7 @@ before_install:
   - go get golang.org/x/tools/cmd/cover
 
 script:
-  - go test -coverprofile=coverage.txt -covermode=atomic ./ ./completion/ ./option ./help
+  - go test -coverprofile=coverage.txt -covermode=atomic ./ ./completion/ ./option ./help ./dag
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
