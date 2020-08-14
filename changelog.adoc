@@ -15,7 +15,7 @@ Introduces a new Directed Acyclic Graph Build System.
 
 The build system is a separate import package: `import "github.com/DavidGamba/go-getoptions/dag"`
 
-Documentation can be found in its own link::github.com/DavidGamba/go-getoptions/dag/README.adoc[README].
+Documentation can be found in its own link:./dag/README.adoc[README].
 
 == v0.20.2: Feature Update
 

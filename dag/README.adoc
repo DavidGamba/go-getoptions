@@ -1,0 +1,83 @@
+= Directed Acyclic Graph Build System
+
+Lightweight Directed Acyclic Graph (DAG) Build System.
+
+It allows building a list of tasks and then running the tasks in different DAG trees.
+
+The tree dependencies as calculated and tasks that have met their dependencies are run in parallel.
+There is an option to run it serially for cases where user interaction is required.
+
+== Usage
+
+A detailed example can be found in link:../examples/dag/main.go[]
+
+To see what the build system would do run:
+
+----
+$ go run main.go build --quiet --dot
+
+digraph G {
+        label = "build graph";
+        rankdir = TB;
+        "bt3";
+        "bt1";
+        "bt3" -> "bt1";
+        "bt2";
+        "bt3" -> "bt2";
+}
+----
+
+----
+$ go run main.go clean --quiet --dot
+
+digraph G {
+        label = "clean graph";
+        rankdir = TB;
+        "ct1";
+        "ct3";
+        "ct1" -> "ct3";
+        "ct2";
+        "ct2" -> "ct3";
+}
+----
+
+----
+$ go run main.go
+SYNOPSIS:
+    main [--dot] [--help|-?] [--quiet] <command> [<args>]
+
+COMMANDS:
+    build    build project artifacts
+    clean    clean project artifacts
+    help     Use 'main help <command>' for extra details.
+
+OPTIONS:
+    --dot        Generate graphviz dot diagram (default: false)
+
+    --help|-?    (default: false)
+
+    --quiet      (default: false)
+
+Use 'main help <command>' for extra details.
+exit status 1
+----
+
+== Motivation
+
+I want something better than Bash scripts and Makefiles but not as limiting as Bazel, Buck and Please (never tried Pants but they are all inspired by Blaze).
+Scons and Gradle are hard to work with.
+
+Mage is awesome but the first thing I saw a developer do with it was run it in a debugger which is not possible with the current design.
+Mage builds a separate go file that it then compiles and runs. It also relies on panic/recover for its control flow.
+
+This build system leverages go-getoptions and a DAG tree to provide an alternative.
+
+== License
+
+This file is part of go-getoptions.
+
+Copyright (C) 2015-2020  David Gamba Rios
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
