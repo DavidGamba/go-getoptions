@@ -64,12 +64,8 @@ func TestDag(t *testing.T) {
 	g.TaskDependensOn(tm.Get("t6"), tm.Get("t8"))
 	g.TaskDependensOn(tm.Get("t7"), tm.Get("t5"))
 
-	// Validate the TaskMap after all calls to Get.
-	err = tm.Validate()
-	if err != nil {
-		t.Errorf("Unexpected error: %s\n", err)
-	}
-	err = g.Validate()
+	// Validate before running
+	err = g.Validate(tm)
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
@@ -130,7 +126,7 @@ digraph G {
 
 	// Empty graph
 	g2 := NewGraph("test graph 2")
-	err = g2.Validate()
+	err = g2.Validate(nil)
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
@@ -168,7 +164,7 @@ func TestRunErrorCollection(t *testing.T) {
 	g.TaskDependensOn(g.Task("t2"), g.Task("t1")) // ErrorTaskDependencyDuplicate
 	g.TaskDependensOn(g.Task("t2"), nil)          // ErrorTaskNil
 
-	err = g.Validate()
+	err = g.Validate(nil)
 	var errs *Errors
 	if err == nil || !errors.As(err, &errs) {
 		t.Fatalf("Unexpected error: %s\n", err)
@@ -511,12 +507,8 @@ func TestDagSerial(t *testing.T) {
 	g.TaskDependensOn(tm.Get("t6"), tm.Get("t8"))
 	g.TaskDependensOn(tm.Get("t7"), tm.Get("t5"))
 
-	// Validate the TaskMap after all calls to Get.
-	err = tm.Validate()
-	if err != nil {
-		t.Errorf("Unexpected error: %s\n", err)
-	}
-	err = g.Validate()
+	// Validate before running
+	err = g.Validate(tm)
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
@@ -620,6 +612,15 @@ func TestTaskMapErrors(t *testing.T) {
 	}
 	if !errors.Is(errs.Errors[2], ErrorTaskFn) {
 		t.Fatalf("Unexpected error: %s\n", errs.Errors[2])
+	}
+
+	g := NewGraph("graph")
+	err = g.Validate(tm)
+	if err == nil || !errors.As(err, &errs) {
+		t.Fatalf("Unexpected error: %s\n", err)
+	}
+	if len(errs.Errors) != 3 {
+		t.Fatalf("Unexpected error: %s\n", errs)
 	}
 
 	if tm.Get("t5").ID != "t5" {

@@ -300,7 +300,14 @@ func (g *Graph) TaskDependensOn(t *Task, tDependencies ...*Task) {
 }
 
 // Validate - Verifies that there are no errors in the Graph.
-func (g *Graph) Validate() error {
+// It also runs Validate() on the given TaskMap (pass nil if a TaskMap wasn't used).
+func (g *Graph) Validate(tm *TaskMap) error {
+	if tm != nil {
+		err := tm.Validate()
+		if err != nil {
+			return err
+		}
+	}
 	if len(g.errs.Errors) != 0 {
 		return g.errs
 	}
@@ -313,9 +320,8 @@ func (g *Graph) Validate() error {
 func (g *Graph) Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 	runStart := time.Now()
 
-	err := g.Validate()
-	if err != nil {
-		return err
+	if len(g.errs.Errors) != 0 {
+		return g.errs
 	}
 
 	if len(g.Vertices) == 0 {
@@ -323,7 +329,7 @@ func (g *Graph) Run(ctx context.Context, opt *getoptions.GetOpt, args []string) 
 	}
 
 	// Check for cycles
-	_, err = g.DephFirstSort()
+	_, err := g.DephFirstSort()
 	if err != nil {
 		return err
 	}
