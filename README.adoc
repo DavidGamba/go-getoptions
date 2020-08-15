@@ -138,7 +138,46 @@ Greeting List:
         es=Hola Mundo
 ----
 
+== Examples
+
+=== Simple script
+
+A simple script link:./examples/myscript/main.go[]
+
+To use the autocompletion, cd to the link:./examples/myscript[] dir and run: `source sourceme.bash`
+The run `go build` and `./myscript`.
+
+Tab completion for this script is triggered for options only, so you need to have a dash `-` to trigger it: `./myscript -<tab><tab>`
+
+=== Program with multiple commands separated in multiple packages
+
+This is the other extreme, a large program that can separate each command in a separate go package.
+
+The base is located at link:./examples/mygit/main.go[]
+
+The commands are located at:
+
+* link:./examples/mygit/log/main.go[]
+* link:./examples/mygit/show/main.go[]
+* link:./examples/mygit/slow/main.go[]
+
+To use the autocompletion, cd to the link:./examples/mygit[] dir and run: `source sourceme.bash`
+The run `go build` and `./mygit`.
+
+Tab completion without arguments triggers completion for commands, for option completion add a dash `-` and trigger it: `./mygit -<tab><tab>`
+
+The slow command shows an example of an slow command that can be cancelated with `Ctrl+C`.
+The cancellation is passed to the command through `context.Context` and it is handled at the command to stop taking new work and trigger a cleanup routine.
+Running `Ctrl+C` twice cancels the cancellation routine and fully cancels the program.
+
+== DAG Task Orchestration
+
+For an overview of the Directed Acyclic Graph Build System see 
+
 == Features
+
+• Built in auto completion.
+A single line of bash is all it takes.
 
 • Allow passing options and non-options in any order.
 
