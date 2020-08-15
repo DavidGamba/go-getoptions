@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== WIP v0.21.0: Breaking Change
+== v0.21.0: Breaking Change
 
 === Drop support for Go versions before 1.14
 
