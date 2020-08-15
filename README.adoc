@@ -157,9 +157,9 @@ The base is located at link:./examples/mygit/main.go[]
 
 The commands are located at:
 
-* link:./examples/mygit/log/main.go[]
-* link:./examples/mygit/show/main.go[]
-* link:./examples/mygit/slow/main.go[]
+* link:./examples/mygit/log/log.go[]
+* link:./examples/mygit/show/show.go[]
+* link:./examples/mygit/slow/slow.go[]
 
 To use the autocompletion, cd to the link:./examples/mygit[] dir and run: `source sourceme.bash`
 The run `go build` and `./mygit`.
