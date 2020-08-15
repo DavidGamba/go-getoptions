@@ -166,13 +166,22 @@ The run `go build` and `./mygit`.
 
 Tab completion without arguments triggers completion for commands, for option completion add a dash `-` and trigger it: `./mygit -<tab><tab>`
 
-The slow command shows an example of an slow command that can be cancelated with `Ctrl+C`.
+The link:./examples/mygit/slow/slow.go[slow] command shows an example of an slow command that can be cancelled with `Ctrl+C`.
 The cancellation is passed to the command through `context.Context` and it is handled at the command to stop taking new work and trigger a cleanup routine.
 Running `Ctrl+C` twice cancels the cancellation routine and fully cancels the program.
 
-== DAG Task Orchestration
+=== Directed Acyclic Graph Build System
 
-For an overview of the Directed Acyclic Graph Build System see 
+This example shows task dependency orchestration and parallelization link:./examples/dag/main.go[].
+
+To use the autocompletion, cd to the link:./examples/dag[] dir and run: `source sourceme.bash`
+The run `go build` and `./dag`.
+
+Tab completion without arguments triggers completion for commands, for option completion add a dash `-` and trigger it: `./dag -<tab><tab>`
+
+== DAG Build System
+
+For an overview of the Directed Acyclic Graph Build System see link:./dag/README.adoc[]
 
 == Features
 
