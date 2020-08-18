@@ -621,54 +621,6 @@ func (gopt *GetOpt) handleBool(name string, argument string, usedAlias string) e
 	return opt.Save()
 }
 
-// NBool - define a *Negatable* `bool` option and its aliases.
-//
-// NBool automatically makes aliases with the prefix 'no' and 'no-' to the given name and aliases.
-// If the option is found, when the argument is prefixed by 'no' (or by 'no-'), for example '--no-nflag', the value is set to the provided default.
-// Otherwise, with a regular call, for example '--nflag', it is set to the opposite of the default.
-func (gopt *GetOpt) NBool(name string, def bool, fns ...ModifyFn) *bool {
-	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.BoolType)
-	opt.DefaultStr = fmt.Sprintf("%t", def)
-	opt.SetBoolPtr(&def)
-	opt.Handler = gopt.handleNBool
-	for _, fn := range fns {
-		fn(opt)
-	}
-	var aliases []string
-	for _, a := range opt.Aliases {
-		aliases = append(aliases, "no"+a)
-		aliases = append(aliases, "no-"+a)
-	}
-	gopt.failIfDefined(aliases)
-	opt.SetAlias(aliases...)
-	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(opt)
-	return &def
-}
-
-// NBoolVar - define a *Negatable* `bool` option and its aliases.
-// The result will be available through the variable marked by the given pointer.
-//
-// NBoolVar automatically makes aliases with the prefix 'no' and 'no-' to the given name and aliases.
-// If the option is found, when the argument is prefixed by 'no' (or by 'no-'), for example '--no-nflag', the value is set to the provided default.
-// Otherwise, with a regular call, for example '--nflag', it is set to the opposite of the default.
-func (gopt *GetOpt) NBoolVar(p *bool, name string, def bool, fns ...ModifyFn) {
-	gopt.NBool(name, def, fns...)
-	*p = def
-	gopt.Option(name).SetBoolPtr(p)
-}
-
-func (gopt *GetOpt) handleNBool(name string, argument string, usedAlias string) error {
-	Debug.Println("handleNBool")
-	opt := gopt.Option(name)
-	opt.SetCalled(usedAlias)
-	if !strings.HasPrefix(usedAlias, "no-") {
-		return opt.Save()
-	}
-	return nil
-}
-
 func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias string) error {
 	Debug.Printf("handleSingleOption %s, %s\n", name, argument)
 	opt := gopt.Option(name)

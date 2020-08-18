@@ -1,6 +1,15 @@
 = Changelog
 :toc:
 
+== WIP v0.22.0: Breaking Change
+
+As the releases before, this release has 100% test coverage.
+
+=== Feature Removal
+
+Removing negatable flags `NBool` and `NBoolVar`.
+A feature that adds a bunch of complexity for very little value and prevents reading environment variables into booleans.
+
 == v0.21.0: Breaking Change
 
 As the releases before, this release has 100% test coverage.

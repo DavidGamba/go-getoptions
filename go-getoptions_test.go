@@ -462,7 +462,6 @@ func TestGetOptBool(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
 		opt.Bool("flag", false)
-		opt.NBool("nflag", false, opt.Alias("neg"))
 		return opt
 	}
 
@@ -476,21 +475,6 @@ func TestGetOptBool(t *testing.T) {
 			"flag",
 			[]string{"--flag"},
 			true,
-		},
-		{setup(),
-			"nflag",
-			[]string{"--nflag"},
-			true,
-		},
-		{setup(),
-			"nflag",
-			[]string{"--neg"},
-			true,
-		},
-		{setup(),
-			"nflag",
-			[]string{"--no-nflag"},
-			false,
 		},
 	}
 	for _, c := range cases {
@@ -1506,10 +1490,6 @@ func TestVars(t *testing.T) {
 	opt.BoolVar(&flag5, "flag5", false)
 	opt.BoolVar(&flag6, "flag6", true)
 
-	var nflag, nflag2 bool
-	opt.NBoolVar(&nflag, "nflag", false)
-	opt.NBoolVar(&nflag2, "n2", false)
-
 	var str, str2 string
 	opt.StringVar(&str, "stringVar", "")
 	opt.StringVar(&str2, "stringVar2", "")
@@ -1525,8 +1505,6 @@ func TestVars(t *testing.T) {
 		"-flag2",
 		"-flag3",
 		"-flag4",
-		"-nf",
-		"--no-n2",
 		"--stringVar", "hello",
 		"--stringVar2=world",
 		"--intVar", "123",
@@ -1555,12 +1533,6 @@ func TestVars(t *testing.T) {
 		t.Errorf("flag6 didn't have expected value: %v != %v", flag6, true)
 	}
 
-	if nflag != true {
-		t.Errorf("nflag didn't have expected value: %v != %v", nflag, true)
-	}
-	if nflag2 != false {
-		t.Errorf("nflag2 didn't have expected value: %v != %v", nflag2, false)
-	}
 	if str != "hello" {
 		t.Errorf("str didn't have expected value: %v != %v", str, "hello")
 	}
@@ -1576,15 +1548,13 @@ func TestVars(t *testing.T) {
 }
 
 func TestDefaultValues(t *testing.T) {
-	var flag, nflag bool
+	var flag bool
 	var str, str2 string
 	var integer, integer2 int
 
 	opt := New()
 	opt.Bool("flag", false)
 	opt.BoolVar(&flag, "varflag", false)
-	opt.NBool("nflag", false)
-	opt.NBoolVar(&nflag, "varnflag", false)
 	opt.String("string", "")
 	opt.String("string2", "default")
 	str3 := opt.String("string3", "default")
@@ -1606,8 +1576,6 @@ func TestDefaultValues(t *testing.T) {
 	expected := map[string]interface{}{
 		"flag":          false,
 		"varflag":       false,
-		"nflag":         false,
-		"varnflag":      false,
 		"string":        "",
 		"string2":       "default",
 		"stringVar":     "",
@@ -1626,9 +1594,6 @@ func TestDefaultValues(t *testing.T) {
 
 	if flag != false {
 		t.Errorf("flag didn't have expected value: %v != %v", flag, true)
-	}
-	if nflag != false {
-		t.Errorf("nflag didn't have expected value: %v != %v", nflag, true)
 	}
 	if str != "" {
 		t.Errorf("str didn't have expected value: %v != %v", str, "")
@@ -1656,9 +1621,6 @@ func TestDefaultValues(t *testing.T) {
 	}
 	if opt.Value("non-used-flag") != nil && opt.Value("non-used-flag").(bool) {
 		t.Errorf("non-used-flag didn't have expected value: %v != %v", opt.Value("non-used-flag"), nil)
-	}
-	if opt.Value("flag") != nil && opt.Value("nflag").(bool) {
-		t.Errorf("nflag didn't have expected value: %v != %v", opt.Value("nflag"), nil)
 	}
 	if opt.Value("string") != "" {
 		t.Errorf("str didn't have expected value: %v != %v", opt.Value("string"), "")
@@ -3028,18 +2990,13 @@ func TestGetEnv(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
-	var flag, nflag, nflag2 bool
+	var flag bool
 	var str string
 	var integer int
 	opt := New()
 	opt.Bool("flag", false)
 	opt.BoolVar(&flag, "varflag", false)
 	opt.Bool("non-used-flag", false)
-	opt.NBool("nflag", false)
-	opt.NBool("nftrue", false)
-	opt.NBool("nfnil", false)
-	opt.NBoolVar(&nflag, "varnflag", false)
-	opt.NBoolVar(&nflag2, "varnflag2", false)
 	opt.String("string", "")
 	opt.StringVar(&str, "stringVar", "")
 	opt.Int("int", 0)
@@ -3052,11 +3009,7 @@ func TestAll(t *testing.T) {
 		"hello",
 		"--flag",
 		"--varflag",
-		"--no-nflag",
-		"--nft",
 		"happy",
-		"--varnflag",
-		"--no-varnflag2",
 		"--string", "hello",
 		"--stringVar", "hello",
 		"--int", "123",
@@ -3083,8 +3036,6 @@ func TestAll(t *testing.T) {
 
 	expected := map[string]interface{}{
 		"flag":               true,
-		"nflag":              false,
-		"nftrue":             true,
 		"string":             "hello",
 		"int":                123,
 		"string-repeat":      []string{"hello", "world"},
@@ -3101,12 +3052,6 @@ func TestAll(t *testing.T) {
 	if flag != true {
 		t.Errorf("flag didn't have expected value: %v != %v", flag, true)
 	}
-	if nflag != true {
-		t.Errorf("nflag didn't have expected value: %v != %v", nflag, true)
-	}
-	if nflag2 != false {
-		t.Errorf("nflag2 didn't have expected value: %v != %v", nflag2, false)
-	}
 	if str != "hello" {
 		t.Errorf("str didn't have expected value: %v != %v", str, "hello")
 	}
@@ -3121,9 +3066,6 @@ func TestAll(t *testing.T) {
 	}
 	if opt.Value("non-used-flag").(bool) {
 		t.Errorf("non-used-flag didn't have expected value: %v != %v", opt.Value("non-used-flag"), false)
-	}
-	if opt.Value("nflag").(bool) {
-		t.Errorf("nflag didn't have expected value: %v != %v", opt.Value("nflag"), true)
 	}
 	if opt.Value("string") != "hello" {
 		t.Errorf("str didn't have expected value: %v != %v", opt.Value("string"), "hello")

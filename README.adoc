@@ -389,24 +389,6 @@ In `go-getoptions` this is accomplished with:
 
 The features listed above relieve the programmer from the cumbersome task of converting the option argument into the expected type.
 
-Another feature a better option parser should have is the ability to set a flag to `False`.
-
-=== Negatable boolean options
-
-`True` when passed on the command line without any modifier and `False` when the `--no-` modifier is prefixed.
-For example:
-
-`program --verbose`
-
-and:
-
-`program --no-verbose`, or `program --noverbose`
-
-In `go-getoptions` this is accomplished with:
-
-- `ptr := opt.NBool(name, default_value)` which automatically defines `no-name` and `noname`.
-- `opt.NBoolVar(&ptr, name, default_value)` which automatically defines `no-name` and `noname`.
-
 That covers the most basic set of features, but still it is not enough to get past a basic program.
 The following features will allow for a more complete interface.
 
@@ -908,10 +890,6 @@ StringMap and StringMapVar:: Comma separated key=value?
 
 [[roadmap]]
 == ROADMAP
-
-* Remove Negatable option.
-Provides very little value and makes the code more complicated.
-Conflicts with Boolean Environment values.
 
 * Create new error description for errors when parsing integer ranges (`1..3`).
 
