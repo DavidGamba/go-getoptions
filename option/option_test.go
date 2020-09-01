@@ -26,28 +26,36 @@ func TestOption(t *testing.T) {
 	}{
 		{"bool", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolPtr(&b)
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
 		}(), []string{""}, true, nil},
 		{"bool", func() *Option {
 			b := true
-			return New("help", BoolType).SetBoolPtr(&b)
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
 		}(), []string{""}, false, nil},
 		{"bool setbool", func() *Option {
 			b := true
-			return New("help", BoolType).SetBoolPtr(&b).SetBool(false)
-		}(), []string{""}, true, nil},
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b).SetBool(b)
+		}(), []string{""}, false, nil},
 		{"bool setbool", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolPtr(&b).SetBool(false)
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b).SetBool(b)
 		}(), []string{""}, true, nil},
-		{"bool setbool", func() *Option {
+		{"bool env", func() *Option {
+			b := false
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+		}(), []string{"true"}, true, nil},
+		{"bool env", func() *Option {
+			b := false
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+		}(), []string{"false"}, false, nil},
+		{"bool env", func() *Option {
 			b := true
-			return New("help", BoolType).SetBoolPtr(&b).SetBool(true)
-		}(), []string{""}, false, nil},
-		{"bool setbool", func() *Option {
-			b := false
-			return New("help", BoolType).SetBoolPtr(&b).SetBool(true)
-		}(), []string{""}, false, nil},
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+		}(), []string{"true"}, true, nil},
+		{"bool env", func() *Option {
+			b := true
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+		}(), []string{"false"}, false, nil},
 
 		{"string", func() *Option {
 			s := ""
@@ -188,15 +196,15 @@ func TestRequired(t *testing.T) {
 	}{
 		{"bool", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolPtr(&b)
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
 		}(), []string{""}, true, nil, nil},
 		{"bool", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolPtr(&b).SetRequired("")
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b).SetRequired("")
 		}(), []string{""}, true, nil, fmt.Errorf(text.ErrorMissingRequiredOption, "help")},
 		{"bool", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolPtr(&b).SetRequired("err")
+			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b).SetRequired("err")
 		}(), []string{""}, true, nil, fmt.Errorf("err")},
 	}
 	for _, tt := range tests {

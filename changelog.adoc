@@ -10,6 +10,14 @@ As the releases before, this release has 100% test coverage.
 Removing negatable flags `NBool` and `NBoolVar`.
 A feature that adds a bunch of complexity for very little value and prevents reading environment variables into booleans.
 
+=== New Feature
+
+`opt.GetEnv` Is now supported when using `opt.Bool` and `opt.BoolVar`.
+Previously only `opt.String` and `opt.StringVar` were supported.
+
+When using `opt.GetEnv` with `opt.Bool` or `opt.BoolVar`, only the words "true" or "false" are valid.
+They can be provided in any casing, for example: "true", "True" or "TRUE".
+
 == v0.21.0: Breaking Change
 
 As the releases before, this release has 100% test coverage.

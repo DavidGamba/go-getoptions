@@ -453,7 +453,7 @@ func (gopt *GetOpt) Required(msg ...string) ModifyFn {
 // GetEnv - Will read an environment variable if set.
 // Precedence higher to lower: CLI option, environment variable, option default.
 //
-// Currently, only `opt.String` and `opt.StringVar` are supported.
+// Currently, only `opt.Bool`, `opt.BoolVar`, `opt.String`, and `opt.StringVar` are supported.
 //
 // When an environment variable that matches the variable from opt.GetEnv is
 // set, opt.GetEnv will set opt.Called(name) to true and will set
@@ -461,13 +461,25 @@ func (gopt *GetOpt) Required(msg ...string) ModifyFn {
 // In other words, when an option is required (opt.Required is set) opt.GetEnv
 // satisfies that requirement.
 //
+// When using `opt.GetEnv` with `opt.Bool` or `opt.BoolVar`, only the words
+// "true" or "false" are valid.  They can be provided in any casing, for
+// example: "true", "True" or "TRUE".
+//
 // NOTE: Non supported option types behave with a No-Op when `opt.GetEnv` is defined.
 func (gopt *GetOpt) GetEnv(name string) ModifyFn {
 	return func(opt *option.Option) {
 		opt.SetEnvVar(name)
-		if os.Getenv(name) != "" {
-			if opt.OptType == option.StringType {
-				opt.Save(os.Getenv(name))
+		value := os.Getenv(name)
+		if value != "" {
+			switch opt.OptType {
+			case option.BoolType:
+				v := strings.ToLower(value)
+				if v == "true" || v == "false" {
+					opt.Save(v)
+					opt.SetCalled(name)
+				}
+			case option.StringType:
+				opt.Save(value)
 				opt.SetCalled(name)
 			}
 		}
@@ -596,6 +608,7 @@ func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
 	opt := option.New(name, option.BoolType)
 	opt.DefaultStr = fmt.Sprintf("%t", def)
 	opt.SetBoolPtr(&def)
+	opt.SetBoolDefault(def)
 	opt.Handler = gopt.handleBool
 	for _, fn := range fns {
 		fn(opt)
@@ -609,9 +622,19 @@ func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
 // The result will be available through the variable marked by the given pointer.
 // If the option is found, the result will be the opposite of the provided default.
 func (gopt *GetOpt) BoolVar(p *bool, name string, def bool, fns ...ModifyFn) {
-	gopt.Bool(name, def, fns...)
+	gopt.failIfDefined([]string{name})
 	*p = def
-	gopt.Option(name).SetBoolPtr(p)
+	opt := option.New(name, option.BoolType)
+	opt.DefaultStr = fmt.Sprintf("%t", def)
+	opt.SetBoolPtr(p)
+	opt.SetBoolDefault(def)
+	opt.Handler = gopt.handleBool
+	for _, fn := range fns {
+		fn(opt)
+	}
+	gopt.completionAppendAliases(opt.Aliases)
+	gopt.setOption(opt)
+
 }
 
 func (gopt *GetOpt) handleBool(name string, argument string, usedAlias string) error {

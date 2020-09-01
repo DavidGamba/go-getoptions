@@ -64,6 +64,8 @@ type Option struct {
 	HelpArgName  string // Optional arg name used for help
 	HelpSynopsis string // Help synopsis
 
+	boolDefault bool // copy of bool default value
+
 	// Pointer receivers:
 	value    interface{}        // Value without type safety
 	pBool    *bool              // receiver for bool pointer
@@ -179,6 +181,11 @@ func (opt *Option) SetCalled(usedAlias string) *Option {
 	return opt
 }
 
+func (opt *Option) SetBoolDefault(b bool) *Option {
+	opt.boolDefault = b
+	return opt
+}
+
 // SetBool - Set the option's data.
 func (opt *Option) SetBool(b bool) *Option {
 	opt.value = b
@@ -289,7 +296,7 @@ func (opt *Option) SetKeyValueToStringMap(k, v string) *Option {
 
 // Save - Saves the data provided into the option
 func (opt *Option) Save(a ...string) error {
-	Debug.Printf("optType: %d\n", opt.OptType)
+	Debug.Printf("name: %s, optType: %d\n", opt.Name, opt.OptType)
 	switch opt.OptType {
 	case StringType:
 		opt.SetString(a[0])
@@ -356,7 +363,13 @@ func (opt *Option) Save(a ...string) error {
 		opt.SetKeyValueToStringMap(keyValue[0], keyValue[1])
 		return nil
 	default: // BoolType
-		opt.SetBool(!*opt.pBool)
+		if len(a) > 0 && a[0] == "true" {
+			opt.SetBool(true)
+		} else if len(a) > 0 && a[0] == "false" {
+			opt.SetBool(false)
+		} else {
+			opt.SetBool(!opt.boolDefault)
+		}
 		return nil
 	}
 }
