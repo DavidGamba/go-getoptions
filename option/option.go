@@ -45,15 +45,16 @@ const (
 type Option struct {
 	Name           string
 	Aliases        []string
-	EnvVar         string  // Env Var that sets the option value
-	Called         bool    // Indicates if the option was passed on the command line
-	UsedAlias      string  // Alias/Env var used when the option was called
-	Handler        Handler // method used to handle the option
-	IsOptional     bool    // Indicates if an option has an optional argument
-	MapKeysToLower bool    // Indicates if the option of map type has it keys set ToLower
-	OptType        Type    // Option Type
-	MinArgs        int     // minimum args when using multi
-	MaxArgs        int     // maximum args when using multi
+	EnvVar         string   // Env Var that sets the option value
+	Called         bool     // Indicates if the option was passed on the command line
+	UsedAlias      string   // Alias/Env var used when the option was called
+	Handler        Handler  // method used to handle the option
+	IsOptional     bool     // Indicates if an option has an optional argument
+	MapKeysToLower bool     // Indicates if the option of map type has it keys set ToLower
+	OptType        Type     // Option Type
+	MinArgs        int      // minimum args when using multi
+	MaxArgs        int      // maximum args when using multi
+	ValidArgs      []string // List of valid arguments that the option could receive
 
 	IsRequired    bool   // Indicates if the option is required
 	IsRequiredErr string // Error message for the required option

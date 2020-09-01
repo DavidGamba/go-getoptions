@@ -516,6 +516,16 @@ func (gopt *GetOpt) ArgName(name string) ModifyFn {
 	}
 }
 
+// ValidateArg - Validates that the passed argument to an option is one of the elements of the given list.
+// If ArgName is not set, it will set the help ArgName to the elements of the list separated by |.
+// If ArgName is set, it takes precedence over the above default.
+func (gopt *GetOpt) ValidateArg(validArgs []string) ModifyFn {
+	return func(opt *option.Option) {
+		opt.ValidArgs = validArgs
+		opt.SetHelpArgName(strings.Join(validArgs, "|"))
+	}
+}
+
 // HelpSynopsisArgs - Defines the help synopsis args description.
 // Defaults to: [<args>]
 func (gopt *GetOpt) HelpSynopsisArgs(args string) *GetOpt {
