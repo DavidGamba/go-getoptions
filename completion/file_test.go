@@ -10,6 +10,7 @@ package completion
 
 import (
 	"reflect"
+	"regexp"
 	"testing"
 )
 
@@ -30,7 +31,7 @@ func TestListDir(t *testing.T) {
 		{"dir", "test/test_tree/bDir1", "../", []string{"../aFile1", "../aFile2", "../.aFile2", "../..aFile2", "../...aFile2", "../bDir1/", "../bDir2/", "../cFile1", "../cFile2"}, ""},
 		{"dir", "test/test_tree/bDir1", "../.", []string{".././", "../../", "../.aFile2", "../..aFile2", "../...aFile2"}, ""},
 		{"error", "x", "", []string{}, "open x: no such file or directory"},
-		{"error", "test/test_tree/aFile1", "", []string{}, "readdirent: not a directory"},
+		{"error", "test/test_tree/aFile1", "", []string{}, "readdirent[^:]*: not a directory"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -38,8 +39,12 @@ func TestListDir(t *testing.T) {
 			if gotErr == nil && tt.err != "" {
 				t.Errorf("getFileList() got = '%v', want '%v'", gotErr, tt.err)
 			}
-			if gotErr != nil && gotErr.Error() != tt.err {
-				t.Errorf("getFileList() got = '%v', want '%v'", gotErr, tt.err)
+			r, err := regexp.Compile(tt.err)
+			if err != nil {
+				t.Fatalf("bad regex in test: %s", err)
+			}
+			if gotErr != nil && !r.MatchString(gotErr.Error()) {
+				t.Errorf("getFileList() got = '%s', want '%s'", gotErr.Error(), tt.err)
 			}
 			if !reflect.DeepEqual(got, tt.list) {
 				t.Errorf("getFileList() got = %v, want %v", got, tt.list)
