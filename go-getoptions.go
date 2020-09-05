@@ -120,7 +120,6 @@ type CommandFn func(context.Context, *GetOpt, []string) error
 func New() *GetOpt {
 	root := completion.NewNode("root", completion.Root, nil)
 	root.AddChild(completion.NewNode("options", completion.OptionsNode, nil))
-	root.AddChild(completion.NewNode("options-with-arg", completion.OptionsWithCompletion, nil))
 	gopt := &GetOpt{
 		name:       filepath.Base(os.Args[0]),
 		obj:        make(map[string]*option.Option),
@@ -160,7 +159,7 @@ func (gopt *GetOpt) SetCommandFn(fn CommandFn) *GetOpt {
 	return gopt
 }
 
-func (gopt *GetOpt) completionAppendAliases(aliases []string) {
+func (gopt *GetOpt) completionAppendAliases(name string, aliases []string) {
 	node := gopt.completion.GetChildByName("options")
 	for _, alias := range aliases {
 		if len(alias) == 1 {
@@ -171,14 +170,22 @@ func (gopt *GetOpt) completionAppendAliases(aliases []string) {
 	}
 }
 
-func (gopt *GetOpt) completionWithArgAppendAliases(aliases []string) {
-	node := gopt.completion.GetChildByName("options-with-arg")
+func (gopt *GetOpt) completionWithArgAppendAliases(name string, aliases []string) {
+	root := gopt.completion
+	node := completion.NewNode(name, completion.OptionsWithCompletion, nil)
+	root.AddChild(node)
 	for _, alias := range aliases {
 		if len(alias) == 1 {
 			node.Entries = append(node.Entries, "-"+alias)
 		} else {
 			node.Entries = append(node.Entries, "--"+alias)
 		}
+	}
+
+func (gopt *GetOpt) completionAddCompletionsToOption(name string, completions []string) {
+	node := gopt.completion.GetChildByName(name)
+	if node.Name != "" {
+		node.OptionCompletions = append(node.OptionCompletions, completions...)
 	}
 }
 
@@ -336,16 +343,8 @@ func (gopt *GetOpt) Option(name string) *option.Option {
 
 // Internal only
 func (gopt *GetOpt) setOption(opts ...*option.Option) *GetOpt {
-	node := gopt.completion.GetChildByName("options")
-	nodeWithArg := gopt.completion.GetChildByName("options-with-arg")
 	for _, opt := range opts {
 		gopt.obj[opt.Name] = opt
-		if opt.OptType == option.BoolType {
-			// TODO: Add aliases
-			node.Entries = append(node.Entries, opt.Name)
-		} else {
-			nodeWithArg.Entries = append(nodeWithArg.Entries, opt.Name)
-		}
 	}
 	return gopt
 }
@@ -520,10 +519,11 @@ func (gopt *GetOpt) ArgName(name string) ModifyFn {
 // ValidateArg - Validates that the passed argument to an option is one of the elements of the given list.
 // If ArgName is not set, it will set the help ArgName to the elements of the list separated by |.
 // If ArgName is set, it takes precedence over the above default.
-func (gopt *GetOpt) ValidateArg(validArgs []string) ModifyFn {
+func (gopt *GetOpt) ValidateArg(validArgs ...string) ModifyFn {
 	return func(opt *option.Option) {
 		opt.ValidArgs = validArgs
 		opt.SetHelpArgName(strings.Join(validArgs, "|"))
+		gopt.completionAddCompletionsToOption(opt.Name, validArgs)
 	}
 }
 
@@ -633,7 +633,7 @@ func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &def
 }
@@ -652,7 +652,7 @@ func (gopt *GetOpt) BoolVar(p *bool, name string, def bool, fns ...ModifyFn) {
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 
 }
@@ -699,11 +699,11 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 	opt.SetHelpArgName("string")
 
 	opt.SetStringPtr(&def)
+	gopt.completionWithArgAppendAliases(name, opt.Aliases)
 
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionWithArgAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 	return &def
 }
@@ -721,11 +721,11 @@ func (gopt *GetOpt) StringVar(p *string, name, def string, fns ...ModifyFn) {
 	// Initialization code differs from non-Var version in the pointer assignment.
 	*p = def
 	opt.SetStringPtr(p)
+	gopt.completionAppendAliases(name, opt.Aliases)
 
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 }
 
@@ -742,10 +742,10 @@ func (gopt *GetOpt) StringOptional(name string, def string, fns ...ModifyFn) *st
 	opt.IsOptional = true
 	opt.Handler = gopt.handleSingleOption
 	opt.SetHelpArgName("string")
+	gopt.completionAppendAliases(name, opt.Aliases)
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 	return &def
 }
@@ -773,7 +773,7 @@ func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &def
 }
@@ -802,7 +802,7 @@ func (gopt *GetOpt) IntOptional(name string, def int, fns ...ModifyFn) *int {
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &def
 }
@@ -830,7 +830,7 @@ func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &def
 }
@@ -877,7 +877,7 @@ func (gopt *GetOpt) StringSlice(name string, min, max int, fns ...ModifyFn) *[]s
 		fn(opt)
 	}
 	Debug.Printf("StringMulti return: %v\n", s)
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &s
 }
@@ -940,7 +940,7 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int 
 		fn(opt)
 	}
 	Debug.Printf("IntMulti return: %v\n", s)
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &s
 }
@@ -1004,7 +1004,7 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 		fn(opt)
 	}
 	Debug.Printf("StringMulti return: %v\n", s)
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return s
 }
@@ -1117,7 +1117,7 @@ func (gopt *GetOpt) Increment(name string, def int, fns ...ModifyFn) *int {
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &def
 }
@@ -1285,13 +1285,11 @@ func (gopt *GetOpt) passOptionsToChildren() error {
 		for optName, opt := range gopt.obj {
 			commandOpt.obj[optName] = opt
 
-			parentNode := gopt.completion.GetChildByName("options")
-			node := commandOpt.completion.GetChildByName("options")
-			node.Entries = append(node.Entries, parentNode.Entries...)
-
-			parentNodeWithArg := gopt.completion.GetChildByName("options-with-arg")
-			nodeWithArg := commandOpt.completion.GetChildByName("options-with-arg")
-			nodeWithArg.Entries = append(nodeWithArg.Entries, parentNodeWithArg.Entries...)
+			parentRoot := gopt.completion
+			commandRoot := commandOpt.completion
+			for _, child := range parentRoot.Children {
+				commandRoot.AddChild(child)
+			}
 		}
 		// Once we are done passing the options to the command, pass them along to its children.
 		commandOpt.passOptionsToChildren()

@@ -25,9 +25,10 @@ func setupLogging() *bytes.Buffer {
 func treeSetup() *Node {
 	rootNode := NewNode("executable", Root, nil)
 	rootNode.AddChild(NewNode("options", OptionsNode, []string{"--version", "--help", "-v", "-h"}))
-	optionWithCompletion := NewNode("options", OptionsWithCompletion, []string{"--profile", "-p"})
+	optionWithCompletion := NewNode("profile", OptionsWithCompletion, []string{"--profile", "-p"})
 	optionWithCompletion.OptionCompletions = []string{"pA", "pB"}
 	rootNode.AddChild(optionWithCompletion)
+	rootNode.AddChild(NewNode("region", OptionsWithCompletion, []string{"--region", "-r"}))
 
 	logNode := NewNode("log", StringNode, nil)
 	rootNode.AddChild(logNode)
@@ -63,7 +64,7 @@ func TestGetChildNames(t *testing.T) {
 		{"get commands", rootNode, "", []string{"log", "logger", "show"}},
 		{"get commands", rootNode, "log", []string{"log", "logger"}},
 		{"get commands", rootNode, "show", []string{"show"}},
-		{"get options", rootNode, "-", []string{"-h", "--help", "-p", "--profile", "-v", "--version"}},
+		{"get options", rootNode, "-", []string{"-h", "--help", "-p", "--profile", "-r", "--region", "-v", "--version"}},
 		{"get options", rootNode, "-h", []string{"-h"}},
 		{"get commands", rootNode.GetChildByName("x"), "", []string{}},
 		{"filter out hidden files", rootNode.GetChildByName("log"), "", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
@@ -109,7 +110,7 @@ func TestGetChildNames(t *testing.T) {
 		{"top level", rootNode, "./executable log", []string{"log", "logger"}},
 		{"top level", rootNode, "./executable  log", []string{"log", "logger"}},
 		{"top level", rootNode, "./executable sh", []string{"show"}},
-		{"options", rootNode, "./executable -", []string{"-h", "--help", "-p", "--profile", "-v", "--version"}},
+		{"options", rootNode, "./executable -", []string{"-h", "--help", "-p", "--profile", "-r", "--region", "-v", "--version"}},
 		{"options", rootNode, "./executable -h", []string{"-h"}},
 		{"options", rootNode, "./executable -h ", []string{"log", "logger", "show"}},
 		{"options", rootNode, "./executable  -h  l", []string{"log", "logger"}},
@@ -155,6 +156,7 @@ func TestOptionsWithCompletion(t *testing.T) {
 		compLine string
 		results  []string
 	}{
+		{"options", rootNode, "./executable  --region ", []string{}},
 		{"options", rootNode, "./executable  --profile ", []string{"pA", "pB"}},
 		{"options", rootNode, "./executable  --profile p", []string{"pA", "pB"}},
 		{"options", rootNode, "./executable  --profile pA", []string{"pA"}},
