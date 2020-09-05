@@ -73,11 +73,7 @@ func Build(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 		fmt.Printf("%s\n", g)
 		return nil
 	}
-	err = g.Run(ctx, opt, args)
-	if err != nil {
-		return err
-	}
-	return nil
+	return g.Run(ctx, opt, args)
 }
 
 func Clean(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
@@ -93,11 +89,7 @@ func Clean(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 		fmt.Printf("%s\n", g)
 		return nil
 	}
-	err = g.Run(ctx, opt, args)
-	if err != nil {
-		return err
-	}
-	return nil
+	return g.Run(ctx, opt, args)
 }
 
 func buildTask1(ctx context.Context, opt *getoptions.GetOpt, args []string) error {

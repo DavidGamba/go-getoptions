@@ -154,6 +154,7 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	return cmd
 }
 
+// SetCommandFn - Defines the command entry point function.
 func (gopt *GetOpt) SetCommandFn(fn CommandFn) *GetOpt {
 	gopt.CommandFn = fn
 	return gopt
@@ -606,7 +607,7 @@ func (gopt *GetOpt) HelpCommand(description string) *GetOpt {
 	// TODO: "help" is hardcoded
 	opt := gopt.NewCommand("help", description)
 	commands := []string{}
-	for name, _ := range gopt.commands {
+	for name := range gopt.commands {
 		commands = append(commands, name)
 	}
 	opt.CustomCompletion(commands)
@@ -1271,11 +1272,7 @@ func (gopt *GetOpt) getOptionFromAliases(alias string) (optName, usedAlias strin
 //     remaining, err := opt.Parse(os.Args[1:])
 func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	gopt.passOptionsToChildren()
-	remaining, err := gopt.parse(args)
-	if err != nil {
-		return remaining, err
-	}
-	return remaining, nil
+	return gopt.parse(args)
 }
 
 func (gopt *GetOpt) passOptionsToChildren() error {

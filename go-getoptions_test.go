@@ -30,9 +30,8 @@ func firstDiff(got, expected string) string {
 		}
 		if gc != []rune(expected)[i] {
 			return fmt.Sprintf("Index: %d | diff: got '%c' - exp '%c'\n%s\n", i, gc, []rune(expected)[i], same)
-		} else {
-			same += string(gc)
 		}
+		same += string(gc)
 	}
 	if len(expected) > len(got) {
 		return fmt.Sprintf("Index: %d | diff: got '%s' - exp '%s'\n", len(got), got, expected)
