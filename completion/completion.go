@@ -44,6 +44,8 @@ type Node struct {
 	Children []*Node
 	Entries  []string // Use as completions for OptionsNode and CustomNode Kind.
 	// TODO: Maybe add sibling completion that gets activated with = for options
+
+	OptionCompletions []string
 }
 
 // CompletionType -
@@ -127,7 +129,22 @@ func (n *Node) SelfCompletions(prefix string) []string {
 }
 
 // Completions -
-func (n *Node) Completions(prefix string) []string {
+func (n *Node) Completions(lastWasOption *Node, prefix string) []string {
+	if lastWasOption != nil {
+		if prefix == lastWasOption.Name {
+			return lastWasOption.OptionCompletions
+		}
+		results := []string{}
+		for _, e := range lastWasOption.OptionCompletions {
+			if strings.HasPrefix(e, prefix) {
+				results = append(results, e)
+			}
+		}
+		if len(results) > 0 {
+			return results
+		}
+		return []string{prefix}
+	}
 	results := []string{}
 	stringNodeResults := []string{}
 	optionResults := []string{}
@@ -193,7 +210,7 @@ func discardByPrefix(list []string, prefix string) []string {
 }
 
 // CompLineComplete - Given a compLine (get it with os.Getenv("COMP_LINE")) it returns a list of completions.
-func (n *Node) CompLineComplete(lastWasOption bool, compLine string) []string {
+func (n *Node) CompLineComplete(lastWasOption *Node, compLine string) []string {
 	// TODO: This split might not consider files that have spaces in them.
 	re := regexp.MustCompile(`\s+`)
 	compLineParts := re.Split(compLine, -1)
@@ -211,7 +228,7 @@ func (n *Node) CompLineComplete(lastWasOption bool, compLine string) []string {
 	if len(compLineParts) >= 1 {
 		current := compLineParts[0]
 
-		cc := n.Completions(current)
+		cc := n.Completions(lastWasOption, current)
 		if len(compLineParts) == 1 && len(cc) > 1 {
 			Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Multiple completions for this compLine\n", n.Name, compLine, cc)
 			return cc
@@ -221,7 +238,7 @@ func (n *Node) CompLineComplete(lastWasOption bool, compLine string) []string {
 		if child.Kind == StringNode && child.Name == current {
 			Debug.Printf("CompLineComplete - node: %s, compLine %s - Recursing into command %s\n", n.Name, compLine, current)
 			// Recurse into the child node's completion
-			return child.CompLineComplete(false, strings.Join(compLineParts, " "))
+			return child.CompLineComplete(nil, strings.Join(compLineParts, " "))
 		}
 		// Check if the current fully matches an option
 		list := n.GetChildrenByKind(OptionsNode)
@@ -235,7 +252,7 @@ func (n *Node) CompLineComplete(lastWasOption bool, compLine string) []string {
 					}
 					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched Option/Custom %s, recursing to self\n", n.Name, compLine, current)
 					// Recurse into the node self completion
-					return n.CompLineComplete(false, strings.Join(compLineParts, " "))
+					return n.CompLineComplete(nil, strings.Join(compLineParts, " "))
 				}
 			}
 		}
@@ -251,16 +268,16 @@ func (n *Node) CompLineComplete(lastWasOption bool, compLine string) []string {
 					}
 					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched Option/Custom %s, recursing to self\n", n.Name, compLine, current)
 					// Recurse into the node self completion
-					return n.CompLineComplete(true, strings.Join(compLineParts, " "))
+					return n.CompLineComplete(child, strings.Join(compLineParts, " "))
 				}
 				if strings.HasPrefix(current, e+"=") {
 					if len(compLineParts) == 1 {
 						Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Fully Matched Option/Custom with =\n", n.Name, compLine, current)
-						return n.Completions(current)
+						return n.Completions(lastWasOption, current)
 					}
 					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched Option/Custom  with = %s, recursing to self\n", n.Name, compLine, current)
 					// Recurse into the node self completion
-					return n.CompLineComplete(false, strings.Join(compLineParts, " "))
+					return n.CompLineComplete(nil, strings.Join(compLineParts, " "))
 				}
 			}
 		}
@@ -275,26 +292,26 @@ func (n *Node) CompLineComplete(lastWasOption bool, compLine string) []string {
 					}
 					Debug.Printf("CompLineComplete - node: %s, compLine %s - Fully matched File %s, recursing to self\n", n.Name, compLine, current)
 					// Recurse into the node self completion
-					return n.CompLineComplete(false, strings.Join(compLineParts, " "))
+					return n.CompLineComplete(nil, strings.Join(compLineParts, " "))
 				}
 			}
 		}
 
 		// Doesn't match anything but previous arg was an option
-		if lastWasOption {
+		if lastWasOption != nil {
 			Debug.Printf("CompLineComplete - node: %s, compLine %s - Previous was option %s, recursing to self\n", n.Name, compLine, current)
 			if len(compLineParts) == 1 {
 				return []string{current}
 			}
-			return n.CompLineComplete(false, strings.Join(compLineParts, " "))
+			return n.CompLineComplete(nil, strings.Join(compLineParts, " "))
 		}
 
 		// Return a partial match
 		Debug.Printf("CompLineComplete - node: %s, compLine %s - Partial match %s\n", n.Name, compLine, current)
-		return n.Completions(current)
+		return n.Completions(lastWasOption, current)
 	}
 
 	Debug.Printf("CompLineComplete - node: %s, compLine %s > [] - Return all results\n", n.Name, compLine)
 	// No partial request, return all results
-	return n.Completions("")
+	return n.Completions(lastWasOption, "")
 }

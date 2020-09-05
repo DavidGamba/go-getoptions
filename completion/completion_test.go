@@ -22,13 +22,12 @@ func setupLogging() *bytes.Buffer {
 	return buf
 }
 
-func TestGetChildNames(t *testing.T) {
-	Debug.SetOutput(os.Stderr)
-
-	// Tree setup
+func treeSetup() *Node {
 	rootNode := NewNode("executable", Root, nil)
 	rootNode.AddChild(NewNode("options", OptionsNode, []string{"--version", "--help", "-v", "-h"}))
-	rootNode.AddChild(NewNode("options", OptionsWithCompletion, []string{"--profile", "-p"}))
+	optionWithCompletion := NewNode("options", OptionsWithCompletion, []string{"--profile", "-p"})
+	optionWithCompletion.OptionCompletions = []string{"pA", "pB"}
+	rootNode.AddChild(optionWithCompletion)
 
 	logNode := NewNode("log", StringNode, nil)
 	rootNode.AddChild(logNode)
@@ -46,6 +45,13 @@ func TestGetChildNames(t *testing.T) {
 
 	logNode.AddChild(NewNode("options", OptionsNode, []string{"--help"}))
 	logNode.AddChild(NewNode("test/test_tree", FileListNode, nil))
+	return rootNode
+}
+
+func TestGetChildNames(t *testing.T) {
+	Debug.SetOutput(os.Stderr)
+
+	rootNode := treeSetup()
 
 	// Test Raw Completions
 	tests := []struct {
@@ -77,7 +83,7 @@ func TestGetChildNames(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			buf := setupLogging()
 			Debug.Printf("TestGetChildNames - name: %s, prefix: %s\n", tt.name, tt.prefix)
-			got := tt.node.Completions(tt.prefix)
+			got := tt.node.Completions(nil, tt.prefix)
 			if !reflect.DeepEqual(got, tt.results) {
 				t.Errorf("(%s).Completions(%s) got = '%#v', want '%#v'", tt.node.Name, tt.prefix, got, tt.results)
 			}
@@ -108,7 +114,6 @@ func TestGetChildNames(t *testing.T) {
 		{"options", rootNode, "./executable -h ", []string{"log", "logger", "show"}},
 		{"options", rootNode, "./executable  -h  l", []string{"log", "logger"}},
 		{"options", rootNode, "./executable  --help  l", []string{"log", "logger"}},
-		{"options", rootNode, "./executable  --profile  l", []string{"log", "logger"}},
 		{"options", rootNode, "./executable  --profile=dev  l", []string{"log", "logger"}},
 		{"options", rootNode, "./executable  --pro", []string{"--profile"}},
 		{"options", rootNode, "./executable  --profile", []string{"--profile"}},
@@ -129,7 +134,43 @@ func TestGetChildNames(t *testing.T) {
 	for _, tt := range compLineTests {
 		t.Run(tt.name, func(t *testing.T) {
 			buf := setupLogging()
-			got := tt.node.CompLineComplete(false, tt.compLine)
+			got := tt.node.CompLineComplete(nil, tt.compLine)
+			if !reflect.DeepEqual(got, tt.results) {
+				t.Errorf("CompLineComplete() got = '%#v', want '%#v'", got, tt.results)
+			}
+			t.Log(buf.String())
+		})
+	}
+}
+
+func TestOptionsWithCompletion(t *testing.T) {
+	Debug.SetOutput(os.Stderr)
+
+	rootNode := treeSetup()
+
+	// Test Completions with CompLine
+	compLineTests := []struct {
+		name     string
+		node     *Node
+		compLine string
+		results  []string
+	}{
+		{"options", rootNode, "./executable  --profile ", []string{"pA", "pB"}},
+		{"options", rootNode, "./executable  --profile p", []string{"pA", "pB"}},
+		{"options", rootNode, "./executable  --profile pA", []string{"pA"}},
+		{"options", rootNode, "./executable  --profile  l", []string{"l"}},
+		{"options", rootNode, "./executable  --profile=dev  l", []string{"log", "logger"}},
+		{"options", rootNode, "./executable  --pro", []string{"--profile"}},
+		{"options", rootNode, "./executable  --profile", []string{"--profile"}},
+		{"options", rootNode, "./executable  --profile=", []string{}},
+		{"options", rootNode, "./executable  --profile=dev", []string{}},
+		{"options", rootNode, "./executable  --profile dev", []string{"dev"}},
+		{"options", rootNode, "./executable  --profile dev  l", []string{"log", "logger"}},
+	}
+	for _, tt := range compLineTests {
+		t.Run(tt.name, func(t *testing.T) {
+			buf := setupLogging()
+			got := tt.node.CompLineComplete(nil, tt.compLine)
 			if !reflect.DeepEqual(got, tt.results) {
 				t.Errorf("CompLineComplete() got = '%#v', want '%#v'", got, tt.results)
 			}
