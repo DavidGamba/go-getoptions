@@ -168,15 +168,16 @@ func (n *Node) Completions(lastWasOption *Node, prefix string) []string {
 }
 
 // GetChildByName - Traverses to the children and returns the first one to match name.
-func (n *Node) GetChildByName(name string) *Node {
+func (n *Node) GetChildByName(name string) (*Node, bool) {
 	for _, child := range n.Children {
 		if child.Name == name {
-			return child
+			return child, true
 		}
 	}
-	return NewNode("", Root, []string{})
+	return NewNode("", Root, []string{}), false
 }
 
+// GetChildrenByKind -
 func (n *Node) GetChildrenByKind(kind kind) []*Node {
 	children := []*Node{}
 	for _, child := range n.Children {
@@ -234,11 +235,13 @@ func (n *Node) CompLineComplete(lastWasOption *Node, compLine string) []string {
 			return cc
 		}
 		// Check if the current fully matches a command (child node)
-		child := n.GetChildByName(current)
-		if child.Kind == CommandNode && child.Name == current {
-			Debug.Printf("CompLineComplete - node: %s, compLine %s - Recursing into command %s\n", n.Name, compLine, current)
-			// Recurse into the child node's completion
-			return child.CompLineComplete(nil, strings.Join(compLineParts, " "))
+		child, found := n.GetChildByName(current)
+		if found {
+			if child.Kind == CommandNode && child.Name == current {
+				Debug.Printf("CompLineComplete - node: %s, compLine %s - Recursing into command %s\n", n.Name, compLine, current)
+				// Recurse into the child node's completion
+				return child.CompLineComplete(nil, strings.Join(compLineParts, " "))
+			}
 		}
 		// Check if the current fully matches an option
 		list := n.GetChildrenByKind(OptionsNode)

@@ -160,7 +160,7 @@ func (gopt *GetOpt) SetCommandFn(fn CommandFn) *GetOpt {
 }
 
 func (gopt *GetOpt) completionAppendAliases(name string, aliases []string) {
-	node := gopt.completion.GetChildByName("options")
+	node, _ := gopt.completion.GetChildByName("options")
 	for _, alias := range aliases {
 		if len(alias) == 1 {
 			node.Entries = append(node.Entries, "-"+alias)
@@ -184,9 +184,12 @@ func (gopt *GetOpt) completionWithArgAppendAliases(name string, aliases []string
 }
 
 func (gopt *GetOpt) completionAddCompletionsToOption(name string, completions []string) {
-	node := gopt.completion.GetChildByName(name)
-	if node.Name != "" {
+	node, found := gopt.completion.GetChildByName(name)
+	if found {
 		node.OptionCompletions = append(node.OptionCompletions, completions...)
+	} else {
+		// TODO:
+		panic("FIX ME")
 	}
 }
 

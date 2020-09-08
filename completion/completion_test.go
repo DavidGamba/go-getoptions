@@ -53,6 +53,7 @@ func TestGetChildNames(t *testing.T) {
 	Debug.SetOutput(os.Stderr)
 
 	rootNode := treeSetup()
+	getNode := func(name string) *Node { n, _ := rootNode.GetChildByName(name); return n }
 
 	// Test Raw Completions
 	tests := []struct {
@@ -66,19 +67,19 @@ func TestGetChildNames(t *testing.T) {
 		{"get commands", rootNode, "show", []string{"show"}},
 		{"get options", rootNode, "-", []string{"-h", "--help", "-p", "--profile", "-r", "--region", "-v", "--version"}},
 		{"get options", rootNode, "-h", []string{"-h"}},
-		{"get commands", rootNode.GetChildByName("x"), "", []string{}},
-		{"filter out hidden files", rootNode.GetChildByName("log"), "", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
-		{"filter out hidden files", rootNode.GetChildByName("logger"), "", []string{"file"}},
-		{"show hidden files", rootNode.GetChildByName("log"), ".", []string{"./", "../", ".aFile2", "..aFile2", "...aFile2"}},
-		{"show dir contents", rootNode.GetChildByName("log"), "bDir1/", []string{"bDir1/file", "bDir1/.file"}},
-		{"Recurse back", rootNode.GetChildByName("log"), "..", []string{"../", "..aFile2", "...aFile2"}},
-		{"Recurse back", rootNode.GetChildByName("logger"), "..", []string{"../", "../ "}},
-		{"Recurse back", rootNode.GetChildByName("logger"), "../", []string{"../aFile1", "../aFile2", "../.aFile2", "../..aFile2", "../...aFile2", "../bDir1/", "../bDir2/", "../cFile1", "../cFile2"}},
-		{"Recurse back", rootNode.GetChildByName("logger"), "../.", []string{".././", "../../", "../.aFile2", "../..aFile2", "../...aFile2"}},
-		{"Recurse back", rootNode.GetChildByName("logger"), "../..", []string{"../../", "../..aFile2", "../...aFile2"}},
-		{"show dir contents", rootNode.GetChildByName("logger"), "../.a", []string{"../.aFile2"}},
-		{"Full match", rootNode.GetChildByName("logger"), "../.aFile2", []string{"../.aFile2"}},
-		{"show custom output", rootNode.GetChildByName("show"), "", []string{"abcd1234", "bbcd/1234", "..hola", "--hola"}},
+		{"get commands", getNode("x"), "", []string{}},
+		{"filter out hidden files", getNode("log"), "", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
+		{"filter out hidden files", getNode("logger"), "", []string{"file"}},
+		{"show hidden files", getNode("log"), ".", []string{"./", "../", ".aFile2", "..aFile2", "...aFile2"}},
+		{"show dir contents", getNode("log"), "bDir1/", []string{"bDir1/file", "bDir1/.file"}},
+		{"Recurse back", getNode("log"), "..", []string{"../", "..aFile2", "...aFile2"}},
+		{"Recurse back", getNode("logger"), "..", []string{"../", "../ "}},
+		{"Recurse back", getNode("logger"), "../", []string{"../aFile1", "../aFile2", "../.aFile2", "../..aFile2", "../...aFile2", "../bDir1/", "../bDir2/", "../cFile1", "../cFile2"}},
+		{"Recurse back", getNode("logger"), "../.", []string{".././", "../../", "../.aFile2", "../..aFile2", "../...aFile2"}},
+		{"Recurse back", getNode("logger"), "../..", []string{"../../", "../..aFile2", "../...aFile2"}},
+		{"show dir contents", getNode("logger"), "../.a", []string{"../.aFile2"}},
+		{"Full match", getNode("logger"), "../.aFile2", []string{"../.aFile2"}},
+		{"show custom output", getNode("show"), "", []string{"abcd1234", "bbcd/1234", "..hola", "--hola"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
