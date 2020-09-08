@@ -181,6 +181,7 @@ func (gopt *GetOpt) completionWithArgAppendAliases(name string, aliases []string
 			node.Entries = append(node.Entries, "--"+alias)
 		}
 	}
+}
 
 func (gopt *GetOpt) completionAddCompletionsToOption(name string, completions []string) {
 	node := gopt.completion.GetChildByName(name)
