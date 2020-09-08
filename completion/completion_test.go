@@ -30,18 +30,18 @@ func TestGetChildNames(t *testing.T) {
 	rootNode.AddChild(NewNode("options", OptionsNode, []string{"--version", "--help", "-v", "-h"}))
 	rootNode.AddChild(NewNode("options", OptionsWithCompletion, []string{"--profile", "-p"}))
 
-	logNode := NewNode("log", StringNode, nil)
+	logNode := NewNode("log", CommandNode, nil)
 	rootNode.AddChild(logNode)
 
-	loggerNode := NewNode("logger", StringNode, nil)
+	loggerNode := NewNode("logger", CommandNode, nil)
 	loggerNode.AddChild(NewNode("test/test_tree/bDir1", FileListNode, nil))
 	rootNode.AddChild(loggerNode)
 
-	showNode := NewNode("show", StringNode, nil)
+	showNode := NewNode("show", CommandNode, nil)
 	showNode.AddChild(NewNode("custom", CustomNode, []string{"--hola", "..hola", "abcd1234", "bbcd/1234"}))
 	rootNode.AddChild(showNode)
 
-	sublogNode := NewNode("sublog", StringNode, nil)
+	sublogNode := NewNode("sublog", CommandNode, nil)
 	logNode.AddChild(sublogNode)
 
 	logNode.AddChild(NewNode("options", OptionsNode, []string{"--help"}))

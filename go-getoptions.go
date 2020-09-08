@@ -146,7 +146,7 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 
 	// Completion
 	node := cmd.completion
-	node.Kind = completion.StringNode
+	node.Kind = completion.CommandNode
 	node.Name = cmd.name
 	gopt.completion.AddChild(node)
 	gopt.commands[cmd.name] = cmd
