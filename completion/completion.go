@@ -261,7 +261,6 @@ func (n *Node) CompLineComplete(lastWasOption *Node, compLine string) []string {
 		}
 		// Check if the current fully matches an option
 		list = n.GetChildrenByKind(OptionsWithCompletion)
-		list = append(list, n.GetChildrenByKind(CustomNode)...)
 		for _, child := range list {
 			for _, e := range child.Entries {
 				if current == e {
