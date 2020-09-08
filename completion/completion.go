@@ -54,8 +54,8 @@ type kind int
 const (
 	// Root -
 	Root kind = iota
-	// StringNode -
-	StringNode
+	// CommandNode - Node used to complete the name of the command.
+	CommandNode
 	// FileListNode - Regular file completion you would expect.
 	// Name used as the dir to start completing results from.
 	// TODO: Allow ignore case.
@@ -89,7 +89,7 @@ func (n *Node) AddChild(node *Node) {
 // SelfCompletions -
 func (n *Node) SelfCompletions(prefix string) []string {
 	switch n.Kind {
-	case StringNode:
+	case CommandNode:
 		if strings.HasPrefix(n.Name, prefix) {
 			Debug.Printf("SelfCompletions - node: %s > %v\n", n.Name, []string{n.Name})
 			return []string{n.Name}
@@ -150,7 +150,7 @@ func (n *Node) Completions(lastWasOption *Node, prefix string) []string {
 	optionResults := []string{}
 	for _, child := range n.Children {
 		switch child.Kind {
-		case StringNode:
+		case CommandNode:
 			stringNodeResults = append(stringNodeResults, child.SelfCompletions(prefix)...)
 		case OptionsNode, OptionsWithCompletion:
 			optionResults = append(optionResults, child.SelfCompletions(prefix)...)
@@ -235,7 +235,7 @@ func (n *Node) CompLineComplete(lastWasOption *Node, compLine string) []string {
 		}
 		// Check if the current fully matches a command (child node)
 		child := n.GetChildByName(current)
-		if child.Kind == StringNode && child.Name == current {
+		if child.Kind == CommandNode && child.Name == current {
 			Debug.Printf("CompLineComplete - node: %s, compLine %s - Recursing into command %s\n", n.Name, compLine, current)
 			// Recurse into the child node's completion
 			return child.CompLineComplete(nil, strings.Join(compLineParts, " "))
