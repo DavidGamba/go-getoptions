@@ -1931,9 +1931,13 @@ OPTIONS:
 func TestCompletion(t *testing.T) {
 	called := false
 	exitFn = func(code int) { called = true }
-	opt := New()
-	opt.Bool("flag", false, opt.Alias("f"))
-	opt.NewCommand("help", "Show help").CustomCompletion([]string{"log", "show"})
+	newOpt := func() *GetOpt {
+		opt := New()
+		opt.Bool("flag", false, opt.Alias("f"))
+		opt.String("profile", "default", opt.ValidateArg("development", "production"))
+		opt.NewCommand("help", "Show help").CustomCompletion([]string{"log", "show"})
+		return opt
+	}
 
 	cleanup := func() {
 		os.Setenv("COMP_LINE", "")
@@ -1949,6 +1953,9 @@ func TestCompletion(t *testing.T) {
 		{"option", func() { os.Setenv("COMP_LINE", "test --f") }, "--flag\n"},
 		{"command", func() { os.Setenv("COMP_LINE", "test h") }, "help\n"},
 		{"command", func() { os.Setenv("COMP_LINE", "test help ") }, "log\nshow\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "test --profile ") }, "development\nproduction\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "test --profile d") }, "development\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "test --profile p") }, "production\n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1956,6 +1963,7 @@ func TestCompletion(t *testing.T) {
 			s := ""
 			buf := bytes.NewBufferString(s)
 			completionWriter = buf
+			opt := newOpt()
 			_, err := opt.Parse([]string{})
 			if err != nil {
 				t.Errorf("Unexpected error: %s", err)

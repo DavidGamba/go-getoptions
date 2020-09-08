@@ -26,7 +26,7 @@ func treeSetup() *Node {
 	rootNode := NewNode("executable", Root, nil)
 	rootNode.AddChild(NewNode("options", OptionsNode, []string{"--version", "--help", "-v", "-h"}))
 	optionWithCompletion := NewNode("profile", OptionsWithCompletion, []string{"--profile", "-p"})
-	optionWithCompletion.OptionCompletions = []string{"pA", "pB"}
+	optionWithCompletion.OptionCompletions = []string{"profileA", "profileB"}
 	rootNode.AddChild(optionWithCompletion)
 	rootNode.AddChild(NewNode("region", OptionsWithCompletion, []string{"--region", "-r"}))
 
@@ -158,9 +158,10 @@ func TestOptionsWithCompletion(t *testing.T) {
 		results  []string
 	}{
 		{"options", rootNode, "./executable  --region ", []string{}},
-		{"options", rootNode, "./executable  --profile ", []string{"pA", "pB"}},
-		{"options", rootNode, "./executable  --profile p", []string{"pA", "pB"}},
-		{"options", rootNode, "./executable  --profile pA", []string{"pA"}},
+		{"options", rootNode, "./executable  --profile ", []string{"profileA", "profileB"}},
+		{"options", rootNode, "./executable  --profile p", []string{"profileA", "profileB"}},
+		{"options", rootNode, "./executable  --profile pro", []string{"profileA", "profileB"}},
+		{"options", rootNode, "./executable  --profile profileA", []string{"profileA"}},
 		{"options", rootNode, "./executable  --profile  l", []string{"l"}},
 		{"options", rootNode, "./executable  --profile=dev  l", []string{"log", "logger"}},
 		{"options", rootNode, "./executable  --pro", []string{"--profile"}},
