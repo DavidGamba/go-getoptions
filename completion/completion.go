@@ -234,6 +234,10 @@ func (n *Node) CompLineComplete(lastWasOption *Node, compLine string) []string {
 			Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Multiple completions for this compLine\n", n.Name, compLine, cc)
 			return cc
 		}
+		if len(compLineParts) == 1 && len(cc) >= 1 && lastWasOption != nil {
+			Debug.Printf("CompLineComplete - node: %s, compLine %s > %v - Completion for option found\n", n.Name, compLine, cc)
+			return cc
+		}
 		// Check if the current fully matches a command (child node)
 		child, found := n.GetChildByName(current)
 		if found {
