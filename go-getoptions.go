@@ -722,7 +722,7 @@ func (gopt *GetOpt) StringVar(p *string, name, def string, fns ...ModifyFn) {
 	// Initialization code differs from non-Var version in the pointer assignment.
 	*p = def
 	opt.SetStringPtr(p)
-	gopt.completionAppendAliases(name, opt.Aliases)
+	gopt.completionWithArgAppendAliases(name, opt.Aliases)
 
 	for _, fn := range fns {
 		fn(opt)
@@ -774,7 +774,7 @@ func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(name, opt.Aliases)
+	gopt.completionWithArgAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &def
 }
@@ -831,7 +831,7 @@ func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(name, opt.Aliases)
+	gopt.completionWithArgAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &def
 }
@@ -878,7 +878,7 @@ func (gopt *GetOpt) StringSlice(name string, min, max int, fns ...ModifyFn) *[]s
 		fn(opt)
 	}
 	Debug.Printf("StringMulti return: %v\n", s)
-	gopt.completionAppendAliases(name, opt.Aliases)
+	gopt.completionWithArgAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &s
 }
@@ -941,7 +941,7 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int 
 		fn(opt)
 	}
 	Debug.Printf("IntMulti return: %v\n", s)
-	gopt.completionAppendAliases(name, opt.Aliases)
+	gopt.completionWithArgAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return &s
 }
@@ -1005,7 +1005,7 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 		fn(opt)
 	}
 	Debug.Printf("StringMulti return: %v\n", s)
-	gopt.completionAppendAliases(name, opt.Aliases)
+	gopt.completionWithArgAppendAliases(name, opt.Aliases)
 	gopt.setOption(opt)
 	return s
 }
