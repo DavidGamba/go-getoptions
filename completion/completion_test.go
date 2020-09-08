@@ -26,7 +26,7 @@ func treeSetup() *Node {
 	rootNode := NewNode("executable", Root, nil)
 	rootNode.AddChild(NewNode("options", OptionsNode, []string{"--version", "--help", "-v", "-h"}))
 	optionWithCompletion := NewNode("profile", OptionsWithCompletion, []string{"--profile", "-p"})
-	optionWithCompletion.OptionCompletions = []string{"profileA", "profileB"}
+	optionWithCompletion.OptionCompletions = []string{"development", "production"}
 	rootNode.AddChild(optionWithCompletion)
 	rootNode.AddChild(NewNode("region", OptionsWithCompletion, []string{"--region", "-r"}))
 
@@ -116,13 +116,13 @@ func TestGetChildNames(t *testing.T) {
 		{"options", rootNode, "./executable -h ", []string{"log", "logger", "show"}},
 		{"options", rootNode, "./executable  -h  l", []string{"log", "logger"}},
 		{"options", rootNode, "./executable  --help  l", []string{"log", "logger"}},
-		{"options", rootNode, "./executable  --profile=dev  l", []string{"log", "logger"}},
+		{"options", rootNode, "./executable  --profile=qa  l", []string{"log", "logger"}},
 		{"options", rootNode, "./executable  --pro", []string{"--profile"}},
 		{"options", rootNode, "./executable  --profile", []string{"--profile"}},
 		{"options", rootNode, "./executable  --profile=", []string{}},
-		{"options", rootNode, "./executable  --profile=dev", []string{}},
-		{"options", rootNode, "./executable  --profile dev", []string{"dev"}},
-		{"options", rootNode, "./executable  --profile dev  l", []string{"log", "logger"}},
+		{"options", rootNode, "./executable  --profile=qa", []string{}},
+		{"options", rootNode, "./executable  --profile qa", []string{"qa"}},
+		{"options", rootNode, "./executable  --profile qa  l", []string{"log", "logger"}},
 		{"command", rootNode, "./executable log ", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
 		{"command", rootNode, "./executable log bDir1/f", []string{"bDir1/file"}},
 		{"command", rootNode, "./executable log bDir1/file ", []string{"sublog", "aFile1", "aFile2", "bDir1/", "bDir2/", "cFile1", "cFile2"}},
@@ -158,18 +158,18 @@ func TestOptionsWithCompletion(t *testing.T) {
 		results  []string
 	}{
 		{"options", rootNode, "./executable  --region ", []string{}},
-		{"options", rootNode, "./executable  --profile ", []string{"profileA", "profileB"}},
-		{"options", rootNode, "./executable  --profile p", []string{"profileA", "profileB"}},
-		{"options", rootNode, "./executable  --profile pro", []string{"profileA", "profileB"}},
-		{"options", rootNode, "./executable  --profile profileA", []string{"profileA"}},
+		{"options", rootNode, "./executable  --profile ", []string{"development", "production"}},
+		{"options", rootNode, "./executable  --profile d", []string{"development"}},
+		{"options", rootNode, "./executable  --profile pro", []string{"production"}},
+		{"options", rootNode, "./executable  --profile profile", []string{"profile"}},
 		{"options", rootNode, "./executable  --profile  l", []string{"l"}},
-		{"options", rootNode, "./executable  --profile=dev  l", []string{"log", "logger"}},
+		{"options", rootNode, "./executable  --profile=qa  l", []string{"log", "logger"}},
 		{"options", rootNode, "./executable  --pro", []string{"--profile"}},
 		{"options", rootNode, "./executable  --profile", []string{"--profile"}},
 		{"options", rootNode, "./executable  --profile=", []string{}},
-		{"options", rootNode, "./executable  --profile=dev", []string{}},
-		{"options", rootNode, "./executable  --profile dev", []string{"dev"}},
-		{"options", rootNode, "./executable  --profile dev  l", []string{"log", "logger"}},
+		{"options", rootNode, "./executable  --profile=qa", []string{}},
+		{"options", rootNode, "./executable  --profile qa", []string{"qa"}},
+		{"options", rootNode, "./executable  --profile qa  l", []string{"log", "logger"}},
 	}
 	for _, tt := range compLineTests {
 		t.Run(tt.name, func(t *testing.T) {
