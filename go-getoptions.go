@@ -187,9 +187,6 @@ func (gopt *GetOpt) completionAddCompletionsToOption(name string, completions []
 	node, found := gopt.completion.GetChildByName(name)
 	if found {
 		node.OptionCompletions = append(node.OptionCompletions, completions...)
-	} else {
-		// TODO:
-		panic("FIX ME")
 	}
 }
 
