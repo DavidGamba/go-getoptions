@@ -1285,16 +1285,18 @@ func (gopt *GetOpt) passOptionsToChildren() error {
 		// pass options to child
 		for optName, opt := range gopt.obj {
 			commandOpt.obj[optName] = opt
+		}
 
-			parentRoot := gopt.completion
-			commandRoot := commandOpt.completion
-			for _, child := range parentRoot.Children {
-				// Don't pass Command completions down to the commands.
-				if child.Kind != completion.CommandNode {
-					commandRoot.AddChild(child)
-				}
+		// Pass completions to command
+		parentRoot := gopt.completion
+		commandRoot := commandOpt.completion
+		for _, child := range parentRoot.Children {
+			// Don't pass Command completions down to the commands.
+			if child.Kind != completion.CommandNode {
+				commandRoot.AddChild(child)
 			}
 		}
+
 		// Once we are done passing the options to the command, pass them along to its children.
 		commandOpt.passOptionsToChildren()
 	}
