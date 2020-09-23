@@ -1302,7 +1302,7 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 	// https://stackoverflow.com/a/33396628
 	if compLine != "" {
 		fmt.Fprintln(completionWriter, strings.Join(gopt.completion.CompLineComplete(false, compLine), "\n"))
-		exitFn(1)
+		exitFn(124) // programmable completion restarts from the beginning, with an attempt to find a new compspec for that command.
 	}
 	al := newArgList(args)
 	gopt.args = al
