@@ -1316,7 +1316,7 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 	// https://stackoverflow.com/a/33396628
 	if compLine != "" {
 		fmt.Fprintln(completionWriter, strings.Join(gopt.completion.CompLineComplete(nil, compLine), "\n"))
-		exitFn(1)
+		exitFn(124)
 	}
 	al := newArgList(args)
 	gopt.args = al
