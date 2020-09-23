@@ -64,6 +64,9 @@ const (
 	HelpOptionList
 )
 
+// ErrorHelpCalled - Indicates the help has been handled.
+var ErrorHelpCalled = fmt.Errorf("help called")
+
 // exitFn - This variable allows to test os.Exit calls
 var exitFn = os.Exit
 
@@ -238,6 +241,12 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args [
 					remaining, err := v.Parse(args[1:])
 					if err != nil {
 						return err
+					}
+					if len(v.commands) == 0 {
+						if v.Called(helpCommandName) {
+							fmt.Fprintf(gopt.Writer, v.Help())
+							return ErrorHelpCalled
+						}
 					}
 					err = v.CommandFn(ctx, v, remaining)
 					if err != nil {
@@ -1262,6 +1271,10 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 func (gopt *GetOpt) passOptionsToChildren() error {
 	Debug.Printf("passOptionsToChildren %s\n", gopt.name)
 	for _, commandOpt := range gopt.commands {
+		// pass writer to child
+		commandOpt.Writer = gopt.Writer
+
+		// pass options to child
 		for optName, opt := range gopt.obj {
 			commandOpt.obj[optName] = opt
 

@@ -2,6 +2,7 @@ package getoptions_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -23,8 +24,7 @@ func ExampleGetOpt_Dispatch() {
 	opt.Bool("debug", false)
 	opt.SetRequireOrder()
 	opt.SetUnknownMode(getoptions.Pass)
-	list := opt.NewCommand("list", "list stuff")
-	list.SetCommandFn(listRun)
+	list := opt.NewCommand("list", "list stuff").SetCommandFn(listRun)
 	list.Bool("list-opt", false)
 	opt.HelpCommand("")
 	remaining, err := opt.Parse([]string{"list"}) // <- argv set to call command
@@ -37,6 +37,9 @@ func ExampleGetOpt_Dispatch() {
 
 	err = opt.Dispatch(context.Background(), "help", remaining)
 	if err != nil {
+		if errors.Is(err, getoptions.ErrorHelpCalled) {
+			os.Exit(1)
+		}
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		os.Exit(1)
 	}

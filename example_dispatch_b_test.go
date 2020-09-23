@@ -2,6 +2,7 @@ package getoptions_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -36,6 +37,9 @@ func ExampleGetOpt_Dispatch_bHelp() {
 
 	err = opt.Dispatch(context.Background(), "help", remaining)
 	if err != nil {
+		if errors.Is(err, getoptions.ErrorHelpCalled) {
+			os.Exit(1)
+		}
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		os.Exit(1)
 	}

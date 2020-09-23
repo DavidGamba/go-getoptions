@@ -10,6 +10,7 @@ package getoptions
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -2487,23 +2488,15 @@ OPTIONS:
 	t.Run("help case sub-command", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		called := false
-		exitFn = func(code int) { called = true }
 		commandFn := func(ctx context.Context, opt *GetOpt, args []string) error {
-			remaining, err := opt.Parse(args)
+			err := opt.Dispatch(context.Background(), "help", args)
 			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
-			}
-			err = opt.Dispatch(context.Background(), "help", remaining)
-			if err != nil {
-				t.Errorf("Unexpected error: %s", err)
+				return err
 			}
 			return nil
 		}
 		fn := func(ctx context.Context, opt *GetOpt, args []string) error {
-			if opt.Called("help") {
-				fmt.Fprintf(helpBuf, opt.Help())
-				exitFn(1)
-			}
+			called = true
 			return nil
 		}
 		buf := setupLogging()
@@ -2519,11 +2512,11 @@ OPTIONS:
 			t.Errorf("Unexpected error: %s", err)
 		}
 		err = opt.Dispatch(context.Background(), "help", remaining)
-		if err != nil {
+		if err != nil && !errors.Is(err, ErrorHelpCalled) {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		if !called {
-			t.Errorf("Exit not called")
+		if called {
+			t.Errorf("Fn was called")
 		}
 		expected := `NAME:
     go-getoptions.test command sub-command

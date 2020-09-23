@@ -307,7 +307,7 @@ When mixed with Pass through, it also stops parsing arguments when the first unm
 
 == Dependencies
 
-Go 1.10+
+Go 1.14+
 
 == Introduction
 
@@ -904,6 +904,12 @@ Defaults to "--" and "-" but could include "/" to support Win32 style argument h
 For example: You could define ':' and use `--string=mystring`, `--string:mystring` and `--string mystring`.
 
 * All other Perl's Getopt::Long goodies that seem reasonable to add!
+
+* Remove need for `opt.HelpCommand("")` when dispatch is defined.
++
+Currently we have to define the `opt.Bool("help", false)` flag, then `opt.HelpCommand("")`, and finally `opt.Dispatch(ctx, "help", remaining)`.
+`opt.HelpCommand` is redundant.
+Additionally `opt.HelpCommand` has the `help` command name hardcoded in it.
 
 == License
 

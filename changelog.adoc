@@ -10,13 +10,54 @@ As the releases before, this release has 100% test coverage.
 Removing negatable flags `NBool` and `NBoolVar`.
 A feature that adds a bunch of complexity for very little value and prevents reading environment variables into booleans.
 
-=== New Feature
+=== New Features
 
-`opt.GetEnv` Is now supported when using `opt.Bool` and `opt.BoolVar`.
+* `opt.GetEnv` Is now supported when using `opt.Bool` and `opt.BoolVar`.
 Previously only `opt.String` and `opt.StringVar` were supported.
-
++
 When using `opt.GetEnv` with `opt.Bool` or `opt.BoolVar`, only the words "true" or "false" are valid.
 They can be provided in any casing, for example: "true", "True" or "TRUE".
+
+* `opt.Dispatch` now automatically handles the help flag.
+The help flag needs to be defined at the top level.
+When the help flag is called and handled by a command `opt.Dispatch` now returns an error of type `getoptions.ErrorHelpCalled`.
++
+For example:
++
+[source,go]
+----
+func main() {
+	os.Exit(program())
+}
+
+func program() int {
+	opt := getoptions.New()
+	opt.Bool("help", false, opt.Alias("?"))    // Define the help flag as "--help" with alias "-?"
+	list := opt.NewCommand("list", "list stuff").SetCommandFn(listRun)
+	list.Bool("list-opt", false)
+	opt.HelpCommand("")
+	remaining, err := opt.Parse(os.Args[1:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		os.Exit(1)
+	}
+
+	ctx, cancel, done := opt.InterruptContext()
+	defer func() { cancel(); <-done }()
+
+	err = opt.Dispatch(ctx, "help", remaining) // Use the same help flag "help".
+	if err != nil {
+		if errors.Is(err, getoptions.ErrorHelpCalled) {
+			return 1
+		}
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		return 1
+	}
+	return 0
+}
+----
++
+Now, calling `program list --help` or `program list -?` prints the help for the `list` command as well as calling `program help list`.
 
 == v0.21.0: Breaking Change
 

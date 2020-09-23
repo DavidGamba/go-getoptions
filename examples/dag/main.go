@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -51,6 +52,9 @@ func program() int {
 
 	err = opt.Dispatch(ctx, "help", remaining)
 	if err != nil {
+		if errors.Is(err, getoptions.ErrorHelpCalled) {
+			return 1
+		}
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
 	}
