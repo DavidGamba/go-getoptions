@@ -5,6 +5,13 @@
 
 As the releases before, this release has 100% test coverage.
 
+=== Bug fix
+
+Fix completion issues where a completion that works when starting to complete from scratch fails when some args are deleted.
+
+Fixed by changing the exit status when generating completions from 1 to 124.
+link:https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion.html[Exit 124] means programmable completion restarts from the beginning, with an attempt to find a new compspec for that command.
+
 === Feature Removal
 
 Removing negatable flags `NBool` and `NBoolVar`.
