@@ -240,14 +240,14 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args [
 			if commandName == name {
 				if v.CommandFn != nil {
 					remaining, err := v.Parse(args[1:])
-					if err != nil {
-						return err
-					}
 					if len(v.commands) == 0 {
 						if v.Called(helpCommandName) {
 							fmt.Fprintf(gopt.Writer, v.Help())
 							return ErrorHelpCalled
 						}
+					}
+					if err != nil {
+						return err
 					}
 					err = v.CommandFn(ctx, v, remaining)
 					if err != nil {
