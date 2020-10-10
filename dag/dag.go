@@ -175,7 +175,7 @@ func NewGraph(name string) *Graph {
 	return &Graph{
 		Name:           name,
 		TickerDuration: 1 * time.Millisecond,
-		Vertices:       make(map[ID]*Vertex, 0),
+		Vertices:       make(map[ID]*Vertex),
 		errs:           &Errors{name, make([]error, 0)},
 	}
 }
@@ -296,7 +296,6 @@ func (g *Graph) TaskDependensOn(t *Task, tDependencies ...*Task) {
 		vertex.Children = append(vertex.Children, vDependency)
 		vDependency.Parents = append(vDependency.Parents, vertex)
 	}
-	return
 }
 
 // Validate - Verifies that there are no errors in the Graph.

@@ -211,8 +211,8 @@ func (gopt *GetOpt) extraDetails() string {
 func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args []string) error {
 	Debug.Printf("Dispatch %v\n", args)
 	if len(args) == 0 {
-		fmt.Fprintf(gopt.Writer, gopt.Help())
-		fmt.Fprintf(gopt.Writer, gopt.extraDetails()+"\n")
+		fmt.Fprint(gopt.Writer, gopt.Help())
+		fmt.Fprint(gopt.Writer, gopt.extraDetails()+"\n")
 		exitFn(1)
 		return nil
 	}
@@ -222,16 +222,16 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args [
 			commandName := args[1]
 			for name, v := range gopt.commands {
 				if commandName == name {
-					fmt.Fprintf(gopt.Writer, v.Help())
+					fmt.Fprint(gopt.Writer, v.Help())
 					exitFn(1)
 					return nil
 				}
 			}
 			// TODO: Expose string as var?
-			return fmt.Errorf("Unkown help entry '%s'", commandName)
+			return fmt.Errorf("unkown help entry '%s'", commandName)
 		}
-		fmt.Fprintf(gopt.Writer, gopt.Help())
-		fmt.Fprintf(gopt.Writer, gopt.extraDetails()+"\n")
+		fmt.Fprint(gopt.Writer, gopt.Help())
+		fmt.Fprint(gopt.Writer, gopt.extraDetails()+"\n")
 		exitFn(1)
 		return nil
 	default:
@@ -242,7 +242,7 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args [
 					remaining, err := v.Parse(args[1:])
 					if len(v.commands) == 0 {
 						if v.Called(helpCommandName) {
-							fmt.Fprintf(gopt.Writer, v.Help())
+							fmt.Fprint(gopt.Writer, v.Help())
 							return ErrorHelpCalled
 						}
 					}
@@ -259,11 +259,11 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args [
 		}
 		if strings.HasPrefix(args[0], "-") {
 			// TODO: Expose string as var?
-			return fmt.Errorf(`Not a command or a valid option: '%s'
+			return fmt.Errorf(`not a command or a valid option: '%s'
        Did you mean to pass it after the command?`, args[0])
 		}
 		// TODO: Expose string as var?
-		return fmt.Errorf("Not a command: '%s'", args[0])
+		return fmt.Errorf("not a command: '%s'", args[0])
 	}
 }
 
@@ -334,7 +334,7 @@ func (gopt *GetOpt) Option(name string) *option.Option {
 	return nil
 }
 
-// Internal only
+// setOption - Internal only
 func (gopt *GetOpt) setOption(opts ...*option.Option) *GetOpt {
 	node := gopt.completion.GetChildByName("options")
 	nodeWithArg := gopt.completion.GetChildByName("options-with-arg")
@@ -1077,7 +1077,7 @@ func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAli
 		err := next(argCounter <= opt.MinArgs)
 		Debug.Printf("counter: %d, value: %v, err %v", argCounter, opt.Value(), err)
 		if err != nil {
-			if err.Error() == fmt.Sprintf("NoMoreArguments") {
+			if err.Error() == "NoMoreArguments" {
 				Debug.Printf("return value: %v", opt.Value())
 				return nil
 			}
@@ -1354,12 +1354,10 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 							return remaining, nil
 						}
 						remaining = append(remaining, arg)
-						break
 					case Warn:
 						// TODO: This WARNING can't be changed into another language. Hardcoded.
 						fmt.Fprintf(gopt.Writer, "WARNING: "+text.MessageOnUnknown+"\n", optElement)
 						remaining = append(remaining, arg)
-						break
 					default:
 						err := fmt.Errorf(text.MessageOnUnknown, optElement)
 						Debug.Printf("return %v, %v", nil, err)

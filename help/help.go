@@ -187,7 +187,7 @@ func OptionList(options []*option.Option) string {
 		txt += indent(pad(!opt.IsRequired || opt.Description != "" || opt.EnvVar != "", opt.HelpSynopsis, factor))
 		if opt.Description != "" {
 			description := strings.Replace(opt.Description, "\n", "\n    "+padding, -1)
-			txt += fmt.Sprintf("%s", description)
+			txt += description
 		}
 		if !opt.IsRequired {
 			if opt.Description != "" {
