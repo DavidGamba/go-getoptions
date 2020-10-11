@@ -309,6 +309,8 @@ When mixed with Pass through, it also stops parsing arguments when the first unm
 
 Go 1.14+
 
+Only the last two versions of Go will be supported.
+
 == Introduction
 
 NOTE: For a <<quick_overview>>, jump to that section in the TOC or review the http://godoc.org/github.com/DavidGamba/go-getoptions[GoDoc Documentation].

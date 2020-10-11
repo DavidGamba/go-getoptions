@@ -4,6 +4,7 @@
 == WIP v0.22.0: Breaking Change
 
 As the releases before, this release has 100% test coverage.
+Tested with Go 1.14 and Go 1.15.
 
 === Bug fix
 
