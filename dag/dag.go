@@ -13,6 +13,14 @@
 // TODO: Decide if t.Cleanup is reason to go 1.14+
 // Requires Go 1.13+
 
+/*
+Package dag - Lightweight Directed Acyclic Graph (DAG) Build System.
+
+It allows building a list of tasks and then running the tasks in different DAG trees.
+
+The tree dependencies are calculated and tasks that have met their dependencies are run in parallel.
+There is an option to run it serially for cases where user interaction is required.
+*/
 package dag
 
 import (
