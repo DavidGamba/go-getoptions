@@ -48,7 +48,7 @@ func Name(scriptName, name, description string) string {
 		out += name
 	}
 	if description != "" {
-		out += fmt.Sprintf(" - %s", description)
+		out += fmt.Sprintf(" - %s", strings.ReplaceAll(description, "\n", "\n"+strings.Repeat(" ", Indentation*2)))
 	}
 	return fmt.Sprintf("%s:\n%s\n", text.HelpNameHeader, indent(out))
 }
@@ -135,7 +135,7 @@ func CommandList(commandMap map[string]string) string {
 	factor := longestStringLen(names)
 	out := ""
 	for _, command := range names {
-		out += indent(fmt.Sprintf("%s    %s\n", pad(true, command, factor), strings.Replace(commandMap[command], "\n", "\n    "+indent(pad(true, "", factor)), -1)))
+		out += indent(fmt.Sprintf("%s    %s\n", pad(true, command, factor), strings.ReplaceAll(commandMap[command], "\n", "\n    "+indent(pad(true, "", factor)))))
 	}
 	return fmt.Sprintf("%s:\n%s", text.HelpCommandsHeader, out)
 }
@@ -186,7 +186,7 @@ func OptionList(options []*option.Option) string {
 		padding := strings.Repeat(" ", factor)
 		txt += indent(pad(!opt.IsRequired || opt.Description != "" || opt.EnvVar != "", opt.HelpSynopsis, factor))
 		if opt.Description != "" {
-			description := strings.Replace(opt.Description, "\n", "\n    "+padding, -1)
+			description := strings.ReplaceAll(opt.Description, "\n", "\n    "+padding)
 			txt += description
 		}
 		if !opt.IsRequired {

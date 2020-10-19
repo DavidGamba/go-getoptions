@@ -43,6 +43,11 @@ func TestHelp(t *testing.T) {
 		{"Name", Name(scriptName, "log", "logs output..."), `NAME:
     help.test log - logs output...
 `},
+		{"Name", Name(scriptName, "multiline", "multiline\ndescription\nthat is very long"), `NAME:
+    help.test multiline - multiline
+        description
+        that is very long
+`},
 		{"Synopsis", Synopsis("", scriptName, "", nil, []string{}), `SYNOPSIS:
     help.test [<args>]
 `},
