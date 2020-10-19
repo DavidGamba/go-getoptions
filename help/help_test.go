@@ -231,10 +231,13 @@ OPTIONS:
 		{"CommandList", CommandList(nil), ""},
 		{"CommandList", CommandList(map[string]string{}), ""},
 		{"CommandList", CommandList(
-			map[string]string{"log": "log output", "show": "show output"},
+			map[string]string{"log": "log output", "show": "show output", "multi": "multiline\ndescription\nthat is long"},
 		), `COMMANDS:
-    log     log output
-    show    show output
+    log      log output
+    multi    multiline
+             description
+             that is long
+    show     show output
 `},
 	}
 	for _, tt := range tests {

@@ -135,7 +135,7 @@ func CommandList(commandMap map[string]string) string {
 	factor := longestStringLen(names)
 	out := ""
 	for _, command := range names {
-		out += indent(fmt.Sprintf("%s    %s\n", pad(true, command, factor), commandMap[command]))
+		out += indent(fmt.Sprintf("%s    %s\n", pad(true, command, factor), strings.Replace(commandMap[command], "\n", "\n    "+indent(pad(true, "", factor)), -1)))
 	}
 	return fmt.Sprintf("%s:\n%s", text.HelpCommandsHeader, out)
 }
