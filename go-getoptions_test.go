@@ -3004,6 +3004,26 @@ func TestGetEnv(t *testing.T) {
 		t.Log(buf.String())
 		cleanup()
 	})
+	t.Run("string optional env", func(t *testing.T) {
+		setup("set-env")
+		buf := setupLogging()
+		var v1 string
+		opt := New()
+		opt.StringVarOptional(&v1, "opt1", "default1", opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.StringOptional("opt2", "default2", opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != "set-env" {
+			t.Errorf("Unexpected value: %s, %#v", v1, opt.Option("opt1"))
+		}
+		if *v2 != "set-env" {
+			t.Errorf("Unexpected value: %s, %#v", *v2, opt.Option("opt2"))
+		}
+		t.Log(buf.String())
+		cleanup()
+	})
 	t.Run("string env required", func(t *testing.T) {
 		setup("set-env")
 		buf := setupLogging()
@@ -3083,12 +3103,95 @@ func TestGetEnv(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		// Currently No-Op
+		if v1 != 456 {
+			t.Errorf("Unexpected value: %d, %#v", v1, opt.Option("opt1"))
+		}
+		if *v2 != 456 {
+			t.Errorf("Unexpected value: %d, %#v", *v2, opt.Option("opt2"))
+		}
+		t.Log(buf.String())
+		cleanup()
+	})
+	t.Run("int optional env", func(t *testing.T) {
+		setup("456")
+		buf := setupLogging()
+		var v1 int
+		opt := New()
+		opt.IntVarOptional(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.IntOptional("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != 456 {
+			t.Errorf("Unexpected value: %d, %#v", v1, opt.Option("opt1"))
+		}
+		if *v2 != 456 {
+			t.Errorf("Unexpected value: %d, %#v", *v2, opt.Option("opt2"))
+		}
+		t.Log(buf.String())
+		cleanup()
+	})
+	t.Run("int env error", func(t *testing.T) {
+		setup("abc")
+		buf := setupLogging()
+		var v1 int
+		opt := New()
+		opt.IntVar(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Int("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		// TODO: Handle errors when env vars don't have proper types
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
 		if v1 != 123 {
 			t.Errorf("Unexpected value: %d, %#v", v1, opt.Option("opt1"))
 		}
 		if *v2 != 123 {
 			t.Errorf("Unexpected value: %d, %#v", *v2, opt.Option("opt2"))
+		}
+		t.Log(buf.String())
+		cleanup()
+	})
+	/////////////////////////////////////////////////////////////////////////////
+	// Float64
+	/////////////////////////////////////////////////////////////////////////////
+	t.Run("float64 env", func(t *testing.T) {
+		setup("456.1")
+		buf := setupLogging()
+		var v1 float64
+		opt := New()
+		opt.Float64Var(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Float64("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != 456.1 {
+			t.Errorf("Unexpected value: %f, %#v", v1, opt.Option("opt1"))
+		}
+		if *v2 != 456.1 {
+			t.Errorf("Unexpected value: %f, %#v", *v2, opt.Option("opt2"))
+		}
+		t.Log(buf.String())
+		cleanup()
+	})
+	t.Run("float64 optional env", func(t *testing.T) {
+		setup("456.1")
+		buf := setupLogging()
+		var v1 float64
+		opt := New()
+		opt.Float64VarOptional(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Float64Optional("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != 456.1 {
+			t.Errorf("Unexpected value: %f, %#v", v1, opt.Option("opt1"))
+		}
+		if *v2 != 456.1 {
+			t.Errorf("Unexpected value: %f, %#v", *v2, opt.Option("opt2"))
 		}
 		t.Log(buf.String())
 		cleanup()

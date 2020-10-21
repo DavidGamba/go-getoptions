@@ -1,6 +1,22 @@
 = Changelog
 :toc:
 
+== WIP v0.23.0: Feature Updates
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.14 and Go 1.15.
+
+=== Feature Updates
+
+* Introduce `Float64Optional` and `Float64VarOptional` to have complete method parity for String, Int and Float64 types.
+
+* Support multi-line command descriptions.
+
+* Add `GetEnv` support for missing single option types:
+	- Int, IntVar, IntOptional, IntVarOptional
+  - StringOptional, StringVarOptional
+  - Float64, Float64Var, Float64Optional, Float64VarOptional
+
 == v0.22.0: Breaking Change
 
 As the releases before, this release has 100% test coverage.
