@@ -605,7 +605,7 @@ In `go-getoptions` this is accomplished with:
 
   - `ptr := opt.StringOptional(name, default_value)`.
   - `ptr := opt.IntOptional(name, default_value)`.
-  - Not yet implemented for `float64`.
+  - `ptr := opt.Float64Optional(name, default_value)`.
   - The above should be used in combination with `opt.Called(name)`.
 
 For example, for the following definition:
@@ -845,7 +845,11 @@ But the following one is incorrect:
 
 Initial support for environment variables has been added.
 
-Currently, only `opt.Bool`, `opt.BoolVar`, `opt.String`, and `opt.StringVar` are supported.
+Currently, only:
+- `opt.Bool` and `opt.BoolVar`
+- `opt.String`, `opt.StringVar`, `opt.StringOptional`, and `opt.StringVarOptional`
+- `opt.Int`, `opt.IntVar`, `opt.IntOptional`, and `opt.IntVarOptional`
+- `opt.Float64`, `opt.Float64Var`, `opt.Float64Optional`, and `opt.Float64VarOptional`
 
 To use it, set the option modify function to opt.GetEnv.
 For example:
@@ -868,15 +872,13 @@ NOTE: Non supported option types behave with a No-Op when `opt.GetEnv` is define
 When using `opt.GetEnv` with `opt.Bool` or `opt.BoolVar`, only the words "true" or "false" are valid.
 They can be provided in any casing, for example: "true", "True" or "TRUE".
 
+NOTE: For numeric values, `opt.Int` and `opt.Float64` and their derivatives, environment variable string conversion errors are ignored and the default value is assigned.
+
 === Possible Env Variable Roadmap
 
-The Roadmap isn't clear given that there might not be enough value in implementing all option types.
+The Roadmap isn't clear given that there might not be enough value in implementing all of them.
 
-Int and IntVar:: Any string is supported.
-Normal error when given string can't be converted.
-
-Float64 and Float64Var:: Any string is supported.
-Normal error when given string can't be converted.
+* Handle `opt.Int` and `opt.Float64` errors.
 
 StringSlice and StringSliceVar:: Comma separated? <- Most likely
 +

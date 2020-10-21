@@ -488,7 +488,7 @@ func (gopt *GetOpt) GetEnv(name string) ModifyFn {
 					opt.Save(v)
 					opt.SetCalled(name)
 				}
-			case option.StringType:
+			case option.StringType, option.IntType, option.Float64Type:
 				opt.Save(value)
 				opt.SetCalled(name)
 			}
@@ -728,10 +728,12 @@ func (gopt *GetOpt) StringOptional(name string, def string, fns ...ModifyFn) *st
 	gopt.failIfDefined([]string{name})
 	opt := option.New(name, option.StringType)
 	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
-	opt.SetStringPtr(&def)
-	opt.IsOptional = true
 	opt.Handler = gopt.handleSingleOption
 	opt.SetHelpArgName("string")
+
+	opt.SetStringPtr(&def)
+	opt.IsOptional = true
+
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -747,9 +749,22 @@ func (gopt *GetOpt) StringOptional(name string, def string, fns ...ModifyFn) *st
 // For example, when called with `--strOpt value`, the value is `value`.
 // when called with `--strOpt` the value is the given default.
 func (gopt *GetOpt) StringVarOptional(p *string, name, def string, fns ...ModifyFn) {
-	gopt.StringOptional(name, def, fns...)
+	gopt.failIfDefined([]string{name})
+	opt := option.New(name, option.StringType)
+	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
+	opt.Handler = gopt.handleSingleOption
+	opt.SetHelpArgName("string")
+
+	// Initialization code differs from non-Var version in the pointer assignment.
 	*p = def
-	gopt.Option(name).SetStringPtr(p)
+	opt.SetStringPtr(p)
+	opt.IsOptional = true
+
+	for _, fn := range fns {
+		fn(opt)
+	}
+	gopt.completionAppendAliases(opt.Aliases)
+	gopt.setOption(opt)
 }
 
 // Int - define an `int` option and its aliases.
@@ -757,9 +772,11 @@ func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
 	gopt.failIfDefined([]string{name})
 	opt := option.New(name, option.IntType)
 	opt.DefaultStr = fmt.Sprintf("%d", def)
-	opt.SetIntPtr(&def)
 	opt.Handler = gopt.handleSingleOption
 	opt.SetHelpArgName("int")
+
+	opt.SetIntPtr(&def)
+
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -771,9 +788,21 @@ func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
 // IntVar - define an `int` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
 func (gopt *GetOpt) IntVar(p *int, name string, def int, fns ...ModifyFn) {
-	gopt.Int(name, def, fns...)
+	gopt.failIfDefined([]string{name})
+	opt := option.New(name, option.IntType)
+	opt.DefaultStr = fmt.Sprintf("%d", def)
+	opt.Handler = gopt.handleSingleOption
+	opt.SetHelpArgName("int")
+
+	// Initialization code differs from non-Var version in the pointer assignment.
 	*p = def
-	gopt.Option(name).SetIntPtr(p)
+	opt.SetIntPtr(p)
+
+	for _, fn := range fns {
+		fn(opt)
+	}
+	gopt.completionAppendAliases(opt.Aliases)
+	gopt.setOption(opt)
 }
 
 // IntOptional - define a `int` option and its aliases.
@@ -785,10 +814,12 @@ func (gopt *GetOpt) IntOptional(name string, def int, fns ...ModifyFn) *int {
 	gopt.failIfDefined([]string{name})
 	opt := option.New(name, option.IntType)
 	opt.DefaultStr = fmt.Sprintf("%d", def)
-	opt.SetIntPtr(&def)
-	opt.IsOptional = true
 	opt.Handler = gopt.handleSingleOption
 	opt.SetHelpArgName("int")
+
+	opt.SetIntPtr(&def)
+	opt.IsOptional = true
+
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -804,9 +835,22 @@ func (gopt *GetOpt) IntOptional(name string, def int, fns ...ModifyFn) *int {
 // For example, when called with `--intOpt 123`, the value is `123`.
 // when called with `--intOpt` the value is the given default.
 func (gopt *GetOpt) IntVarOptional(p *int, name string, def int, fns ...ModifyFn) {
-	gopt.IntOptional(name, def, fns...)
+	gopt.failIfDefined([]string{name})
+	opt := option.New(name, option.IntType)
+	opt.DefaultStr = fmt.Sprintf("%d", def)
+	opt.Handler = gopt.handleSingleOption
+	opt.SetHelpArgName("int")
+
+	// Initialization code differs from non-Var version in the pointer assignment.
 	*p = def
-	gopt.Option(name).SetIntPtr(p)
+	opt.SetIntPtr(p)
+	opt.IsOptional = true
+
+	for _, fn := range fns {
+		fn(opt)
+	}
+	gopt.completionAppendAliases(opt.Aliases)
+	gopt.setOption(opt)
 }
 
 // Float64 - define an `float64` option and its aliases.
@@ -814,9 +858,11 @@ func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 
 	gopt.failIfDefined([]string{name})
 	opt := option.New(name, option.Float64Type)
 	opt.DefaultStr = fmt.Sprintf("%f", def)
-	opt.SetFloat64Ptr(&def)
 	opt.Handler = gopt.handleSingleOption
 	opt.SetHelpArgName("float64")
+
+	opt.SetFloat64Ptr(&def)
+
 	for _, fn := range fns {
 		fn(opt)
 	}
@@ -828,9 +874,61 @@ func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 
 // Float64Var - define an `float64` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
 func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, fns ...ModifyFn) {
-	gopt.Float64(name, def, fns...)
+	gopt.failIfDefined([]string{name})
+	opt := option.New(name, option.Float64Type)
+	opt.DefaultStr = fmt.Sprintf("%f", def)
+	opt.Handler = gopt.handleSingleOption
+	opt.SetHelpArgName("float64")
+
+	// Initialization code differs from non-Var version in the pointer assignment.
 	*p = def
-	gopt.Option(name).SetFloat64Ptr(p)
+	opt.SetFloat64Ptr(p)
+
+	for _, fn := range fns {
+		fn(opt)
+	}
+	gopt.completionAppendAliases(opt.Aliases)
+	gopt.setOption(opt)
+}
+
+// Float64Optional - define an `float64` option and its aliases.
+func (gopt *GetOpt) Float64Optional(name string, def float64, fns ...ModifyFn) *float64 {
+	gopt.failIfDefined([]string{name})
+	opt := option.New(name, option.Float64Type)
+	opt.DefaultStr = fmt.Sprintf("%f", def)
+	opt.Handler = gopt.handleSingleOption
+	opt.SetHelpArgName("float64")
+
+	opt.SetFloat64Ptr(&def)
+	opt.IsOptional = true
+
+	for _, fn := range fns {
+		fn(opt)
+	}
+	gopt.completionAppendAliases(opt.Aliases)
+	gopt.setOption(opt)
+	return &def
+}
+
+// Float64VarOptional - define an `float64` option and its aliases.
+// The result will be available through the variable marked by the given pointer.
+func (gopt *GetOpt) Float64VarOptional(p *float64, name string, def float64, fns ...ModifyFn) {
+	gopt.failIfDefined([]string{name})
+	opt := option.New(name, option.Float64Type)
+	opt.DefaultStr = fmt.Sprintf("%f", def)
+	opt.Handler = gopt.handleSingleOption
+	opt.SetHelpArgName("float64")
+
+	// Initialization code differs from non-Var version in the pointer assignment.
+	*p = def
+	opt.SetFloat64Ptr(p)
+	opt.IsOptional = true
+
+	for _, fn := range fns {
+		fn(opt)
+	}
+	gopt.completionAppendAliases(opt.Aliases)
+	gopt.setOption(opt)
 }
 
 // StringSlice - define a `[]string` option and its aliases.
