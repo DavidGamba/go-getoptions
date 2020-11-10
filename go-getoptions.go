@@ -669,7 +669,7 @@ func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias s
 		return fmt.Errorf(text.ErrorMissingArgument, usedAlias)
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
+	if optList, _, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 		if opt.IsOptional {
 			return nil
 		}
@@ -1148,7 +1148,7 @@ func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAli
 			return fmt.Errorf("NoMoreArguments")
 		}
 		// Check if next arg is option
-		if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
+		if optList, _, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
 			Debug.Printf("Next arg is option: %s\n", gopt.args.peekNextValue())
 			return fmt.Errorf(text.ErrorArgumentWithDash, name)
 		}
@@ -1412,7 +1412,7 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 	for gopt.args.next() {
 		arg := gopt.args.value()
 		Debug.Printf("Parse input arg: %s\n", arg)
-		if optList, argument := isOption(arg, gopt.mode); len(optList) > 0 {
+		if optList, argument, _ := isOption(arg, gopt.mode); len(optList) > 0 {
 			Debug.Printf("Parse opt_list: %v, argument: %v\n", optList, argument)
 			// Check for termination: '--'
 			if optList[0] == "--" {

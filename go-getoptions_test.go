@@ -81,7 +81,7 @@ func TestIsOption(t *testing.T) {
 		{"--", Normal, []string{"--"}, ""},
 	}
 	for _, c := range cases {
-		options, argument := isOption(c.in, c.mode)
+		options, argument, _ := isOption(c.in, c.mode)
 		if !reflect.DeepEqual(options, c.options) || argument != c.argument {
 			t.Errorf("isOption(%q, %q) == (%q, %q), want (%q, %q)",
 				c.in, c.mode, options, argument, c.options, c.argument)

@@ -17,17 +17,17 @@ var isOptionRegex = regexp.MustCompile(`^(--?)([^=]+)(.*?)$`)
 var isOptionRegexEquals = regexp.MustCompile(`^=`)
 
 /*
-func isOption - Check if the given string is an option (starts with - or --).
+isOption - Check if the given string is an option (starts with - or --).
 Return the option(s) without the starting dash and an argument if the string contained one.
 The behaviour changes depending on the mode: normal, bundling or singleDash.
 Also, handle the single dash '-' and double dash '--' especial options.
 */
-func isOption(s string, mode Mode) (options []string, argument string) {
+func isOption(s string, mode Mode) (options []string, argument string, is bool) {
 	// Handle especial cases
 	if s == "--" {
-		return []string{"--"}, ""
+		return []string{"--"}, "", false
 	} else if s == "-" {
-		return []string{"-"}, ""
+		return []string{"-"}, "", true
 	}
 
 	match := isOptionRegex.FindStringSubmatch(s)
@@ -36,20 +36,24 @@ func isOption(s string, mode Mode) (options []string, argument string) {
 		if match[1] == "--" {
 			options = []string{match[2]}
 			argument = isOptionRegexEquals.ReplaceAllString(match[3], "")
+			is = true
 			return
 		}
 		switch mode {
 		case Bundling:
 			options = strings.Split(match[2], "")
 			argument = isOptionRegexEquals.ReplaceAllString(match[3], "")
+			is = true
 		case SingleDash:
 			options = []string{strings.Split(match[2], "")[0]}
 			argument = strings.Join(strings.Split(match[2], "")[1:], "") + match[3]
+			is = true
 		default:
 			options = []string{match[2]}
 			argument = isOptionRegexEquals.ReplaceAllString(match[3], "")
+			is = true
 		}
 		return
 	}
-	return []string{}, ""
+	return []string{}, "", false
 }
