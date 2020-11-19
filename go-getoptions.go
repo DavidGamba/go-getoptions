@@ -42,6 +42,16 @@ const (
 	SingleDash
 )
 
+var operationModeString = [...]string{
+	"Normal",
+	"Bundling",
+	"SingleDash",
+}
+
+func (m Mode) String() string {
+	return operationModeString[m]
+}
+
 // UnknownMode - Unknown option mode
 type UnknownMode int
 
