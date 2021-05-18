@@ -1,5 +1,7 @@
 = Directed Acyclic Graph Build System
 
+image:https://pkg.go.dev/badge/github.com/DavidGamba/go-getoptions/dag.svg["Go Reference", link="https://pkg.go.dev/github.com/DavidGamba/go-getoptions/dag"]
+
 Lightweight Directed Acyclic Graph (DAG) Build System.
 
 It allows building a list of tasks and then running the tasks in different DAG trees.
