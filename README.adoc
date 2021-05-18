@@ -919,7 +919,7 @@ Additionally `opt.HelpCommand` has the `help` command name hardcoded in it.
 
 This file is part of go-getoptions.
 
-Copyright (C) 2015-2020  David Gamba Rios
+Copyright (C) 2015-2021  David Gamba Rios
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
