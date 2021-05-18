@@ -627,3 +627,99 @@ func TestTaskMapErrors(t *testing.T) {
 		t.Errorf("Wrong value: %s\n", tm.Get("t5").ID)
 	}
 }
+
+func TestMaxParallel(t *testing.T) {
+	buf := setupLogging()
+	t.Cleanup(func() { t.Log(buf.String()) })
+
+	var err error
+
+	peakConcurrency := 0
+	currentConcurrency := 0
+	generateFn := func(n int) getoptions.CommandFn {
+		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			time.Sleep(3 * time.Millisecond)
+			currentConcurrency += 1
+			if currentConcurrency > peakConcurrency {
+				peakConcurrency = currentConcurrency
+			}
+			time.Sleep(3 * time.Millisecond)
+			currentConcurrency -= 1
+			return nil
+		}
+	}
+
+	tm := NewTaskMap()
+	tm.Add("t1", generateFn(1))
+	tm.Add("t2", generateFn(2))
+	tm.Add("t3", generateFn(3))
+	tm.Add("t4", generateFn(4))
+	tm.Add("t5", generateFn(5))
+	tm.Add("t6", generateFn(6))
+	tm.Add("t7", generateFn(7))
+	tm.Add("t8", generateFn(8))
+	tm.Add("t9", generateFn(9))
+	tm.Add("t10", generateFn(10))
+	tm.Add("t11", generateFn(11))
+	tm.Add("t12", generateFn(12))
+	tm.Add("t13", generateFn(13))
+	tm.Add("t14", generateFn(14))
+	tm.Add("t15", generateFn(15))
+	tm.Add("t16", generateFn(16))
+
+	tests := []struct {
+		concurrency int
+		expected    int
+	}{
+		{0, 16},
+		{1, 1},
+		{2, 2},
+		{3, 3},
+		{4, 4},
+		{5, 5},
+		{6, 6},
+		{7, 7},
+		{8, 8},
+		{9, 9},
+		{10, 10},
+		{11, 11},
+		{12, 12},
+		{13, 13},
+		{14, 14},
+		{15, 15},
+		{16, 16},
+	}
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%d", test.concurrency), func(t *testing.T) {
+			peakConcurrency = 0
+			currentConcurrency = 0
+			g := NewGraph("test graph")
+			g.SetMaxParallel(test.concurrency)
+			g.AddTask(tm.Get("t1"))
+			g.AddTask(tm.Get("t2"))
+			g.AddTask(tm.Get("t3"))
+			g.AddTask(tm.Get("t4"))
+			g.AddTask(tm.Get("t5"))
+			g.AddTask(tm.Get("t6"))
+			g.AddTask(tm.Get("t7"))
+			g.AddTask(tm.Get("t8"))
+			g.AddTask(tm.Get("t9"))
+			g.AddTask(tm.Get("t10"))
+			g.AddTask(tm.Get("t11"))
+			g.AddTask(tm.Get("t12"))
+			g.AddTask(tm.Get("t13"))
+			g.AddTask(tm.Get("t14"))
+			g.AddTask(tm.Get("t15"))
+			g.AddTask(tm.Get("t16"))
+
+			err = g.Run(context.Background(), nil, nil)
+			if err != nil {
+				t.Errorf("Unexpected error: %s\n", err)
+			}
+			if peakConcurrency != test.expected {
+				t.Errorf("wrong peak concurrency %d", peakConcurrency)
+			}
+		})
+	}
+
+}

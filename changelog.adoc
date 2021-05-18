@@ -1,6 +1,13 @@
 = Changelog
 :toc:
 
+== WIP v0.24.0: New Feature
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.14, 1.15 and Go 1.16.
+
+* Add `SetMaxParallel` method to DAG graph to limit concurrency.
+
 == v0.23.0: Feature Updates
 
 As the releases before, this release has 100% test coverage.

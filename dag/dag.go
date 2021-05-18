@@ -10,8 +10,6 @@
 // Subgraph concept.
 // TODO: Aggregate logs into a buffer and print the logs when the task completes so they aren't merged together when running in parallel?
 // TODO: Pass context to subtask.
-// TODO: Decide if t.Cleanup is reason to go 1.14+
-// Requires Go 1.13+
 
 /*
 Package dag - Lightweight Directed Acyclic Graph (DAG) Build System.
@@ -71,6 +69,7 @@ type (
 		dotDiagram     string
 		errs           *Errors
 		serial         bool
+		maxParallel    int
 	}
 
 	runStatus int
@@ -185,6 +184,7 @@ func NewGraph(name string) *Graph {
 		TickerDuration: 1 * time.Millisecond,
 		Vertices:       make(map[ID]*Vertex),
 		errs:           &Errors{name, make([]error, 0)},
+		maxParallel:    1_000_000,
 	}
 }
 
@@ -192,6 +192,14 @@ func NewGraph(name string) *Graph {
 // Useful when the tasks require user input and the user needs to see logs in order to make a decision.
 func (g *Graph) SetSerial() *Graph {
 	g.serial = true
+	return g
+}
+
+// SetMaxParallel - Limit concurrency.
+func (g *Graph) SetMaxParallel(max int) *Graph {
+	if max > 0 {
+		g.maxParallel = max
+	}
 	return g
 }
 
@@ -347,6 +355,7 @@ func (g *Graph) Run(ctx context.Context, opt *getoptions.GetOpt, args []string) 
 		Error error
 	}
 	done := make(chan IDErr)
+	semaphore := make(chan struct{}, g.maxParallel)
 LOOP:
 	for {
 		select {
@@ -399,8 +408,10 @@ LOOP:
 				}(done, v)
 				continue
 			}
-			Logger.Printf("Running Task %s\n", v.ID)
 			go func(done chan IDErr, v *Vertex) {
+				semaphore <- struct{}{}
+				defer func() { <-semaphore }()
+				Logger.Printf("Running Task %s\n", v.ID)
 				start := time.Now()
 				v.Task.Lock()
 				defer v.Task.Unlock()
