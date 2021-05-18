@@ -89,6 +89,8 @@ In other words, if my sources have changed I need to rebuild my targets.
 This so you can run your build system tasks over and over without risk.
 This one is on you!
 
+Finally, having an easy to use `os/exec` wrapper also helps a lot: https://github.com/DavidGamba/dgtools/tree/master/run["github.com/DavidGamba/dgtools/run"]
+
 == License
 
 This file is part of go-getoptions.
