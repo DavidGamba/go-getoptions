@@ -1,12 +1,14 @@
 = Changelog
 :toc:
 
-== WIP v0.24.0: New Feature
+== WIP v0.24.0: New Features
 
 As the releases before, this release has 100% test coverage.
 Tested with Go 1.14, 1.15 and Go 1.16.
 
 * Add `SetMaxParallel` method to DAG graph to limit concurrency.
+
+* Add `SetOutputBuffer` method to DAG graph to allow buffering task output in memory and printing it at the end of the task execution for easier debugging.
 
 == v0.23.0: Feature Updates
 

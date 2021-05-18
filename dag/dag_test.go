@@ -13,6 +13,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -722,4 +724,83 @@ func TestMaxParallel(t *testing.T) {
 		})
 	}
 
+}
+
+func TestBufferedOutput(t *testing.T) {
+	buf := setupLogging()
+	t.Cleanup(func() { t.Log(buf.String()) })
+
+	var err error
+
+	generateFn := func(n int) getoptions.CommandFn {
+		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			stdout := Stdout(ctx)
+			stderr := Stderr(ctx)
+			for i := 0; i < 10; i++ {
+				fmt.Fprintf(stdout, "Running Fn %d\n", n)
+				fmt.Fprintf(stderr, "Running Fn %d\n", n)
+			}
+			return nil
+		}
+	}
+
+	tm := NewTaskMap()
+	tm.Add("t1", generateFn(1))
+	tm.Add("t2", generateFn(2))
+	tm.Add("t3", generateFn(3))
+	tm.Add("t4", generateFn(4))
+	tm.Add("t5", generateFn(5))
+
+	s := ""
+	outBuf := bytes.NewBufferString(s)
+	g := NewGraph("test graph")
+	g.SetOutputBuffer(outBuf)
+	g.AddTask(tm.Get("t1"))
+	g.AddTask(tm.Get("t2"))
+	g.AddTask(tm.Get("t3"))
+	g.AddTask(tm.Get("t4"))
+	g.AddTask(tm.Get("t5"))
+
+	err = g.Run(context.Background(), nil, nil)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+
+	// Even though things run in parallel the output needs to be the same in groups of 20 lines.
+	lines := strings.Split(outBuf.String(), "\n")
+	for i := range lines {
+		if i+1 == len(lines) {
+			break
+		}
+		if (i+1)%20 != 0 && lines[i] != lines[i+1] {
+			t.Errorf("wrong output idx %d: %s != %s\n", i, lines[i], lines[i+1])
+		}
+	}
+
+	generateTestFn := func(t *testing.T, n int) getoptions.CommandFn {
+		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			stdout := Stdout(ctx)
+			stderr := Stderr(ctx)
+			if stdout != os.Stdout {
+				t.Errorf("Invalid stdout\n")
+			}
+			if stderr != os.Stderr {
+				t.Errorf("Invalid stdout\n")
+			}
+			return nil
+		}
+	}
+
+	tm = NewTaskMap()
+	tm.Add("t1", generateTestFn(t, 1))
+	tm.Add("t2", generateTestFn(t, 2))
+
+	g = NewGraph("test graph")
+	g.AddTask(tm.Get("t1"))
+	g.AddTask(tm.Get("t2"))
+
+	err = g.Run(context.Background(), nil, nil)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
 }

@@ -6,9 +6,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// TODO: Allow defining an Entrypoint into the graph and operate from that point.
+// TODO: Allow defining an Entry point into the graph and operate from that point.
 // Subgraph concept.
+//
 // TODO: Aggregate logs into a buffer and print the logs when the task completes so they aren't merged together when running in parallel?
+//   This one is not possible since Go's stdout and stderr are a single global variable and we can't redirect it per Fn call unless the function was running in some sort of sandbox which it is not.
+//
 // TODO: Pass context to subtask.
 
 /*
@@ -17,14 +20,16 @@ Package dag - Lightweight Directed Acyclic Graph (DAG) Build System.
 It allows building a list of tasks and then running the tasks in different DAG trees.
 
 The tree dependencies are calculated and tasks that have met their dependencies are run in parallel.
-There is an option to run it serially for cases where user interaction is required.
+Max parallelism can be set and there is an option to run it serially for cases where user interaction is required.
 */
 package dag
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"sync"
@@ -70,6 +75,8 @@ type (
 		errs           *Errors
 		serial         bool
 		maxParallel    int
+		bufferOutput   bool
+		bufferWriter   io.Writer
 	}
 
 	runStatus int
@@ -201,6 +208,45 @@ func (g *Graph) SetMaxParallel(max int) *Graph {
 		g.maxParallel = max
 	}
 	return g
+}
+
+// SetOutputBuffer - Adds a buffer in the context passed to the task that allows the task logging to be sent to that buffer.
+// At the end of the task, the in memory buffered output will be written to the given io.Writer.
+//
+// The context keys are 'StdoutBuffer' and 'StderrBuffer' which can be retrieved with the helper functions.
+// The helper functions default to os.Stdout and os.Stderr when no buffering is defined.
+//
+//   g.SetOutputBuffer(os.Stdout)
+//   stdout := dag.Stdout(ctx)
+//   stderr := dag.Stderr(ctx)
+//   fmt.Fprintf(stdout, "Output")
+//   fmt.Fprintf(stderr, "Error")
+//
+// NOTE: Even though both stdout and stderr contex keys are provided, currently both are combined into a single output and written into the given io.Writer.
+func (g *Graph) SetOutputBuffer(w io.Writer) *Graph {
+	g.bufferOutput = true
+	g.bufferWriter = w
+	return g
+}
+
+type ContextKey string
+
+func Stdout(ctx context.Context) io.Writer {
+	if v := ctx.Value(ContextKey("StdoutBuffer")); v != nil {
+		if writer, ok := v.(io.Writer); ok {
+			return writer
+		}
+	}
+	return os.Stdout
+}
+
+func Stderr(ctx context.Context) io.Writer {
+	if v := ctx.Value(ContextKey("StderrBuffer")); v != nil {
+		if writer, ok := v.(io.Writer); ok {
+			return writer
+		}
+	}
+	return os.Stderr
 }
 
 // String - Returns a dot diagram of the graph.
@@ -415,7 +461,18 @@ LOOP:
 				start := time.Now()
 				v.Task.Lock()
 				defer v.Task.Unlock()
+				combinedBuffer := bytes.Buffer{}
+				// TODO: It would be great to be able to color the output independently here
+				stdoutBuffer := &combinedBuffer
+				stderrBuffer := &combinedBuffer
+				if g.bufferOutput {
+					ctx = context.WithValue(ctx, ContextKey("StdoutBuffer"), stdoutBuffer)
+					ctx = context.WithValue(ctx, ContextKey("StderrBuffer"), stderrBuffer)
+				}
 				err := v.Task.Fn(ctx, opt, args)
+				if g.bufferOutput {
+					_, _ = combinedBuffer.WriteTo(g.bufferWriter)
+				}
 				Logger.Printf("Completed Task %s in %s\n", v.ID, durationStr(time.Since(start)))
 				done <- IDErr{v.ID, err}
 			}(done, v)
