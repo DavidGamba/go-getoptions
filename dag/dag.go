@@ -77,6 +77,7 @@ type (
 		maxParallel    int
 		bufferOutput   bool
 		bufferWriter   io.Writer
+		bufferMutex    sync.Mutex
 	}
 
 	runStatus int
@@ -226,6 +227,7 @@ func (g *Graph) SetMaxParallel(max int) *Graph {
 func (g *Graph) SetOutputBuffer(w io.Writer) *Graph {
 	g.bufferOutput = true
 	g.bufferWriter = w
+	g.bufferMutex = sync.Mutex{}
 	return g
 }
 
@@ -454,7 +456,7 @@ LOOP:
 				}(done, v)
 				continue
 			}
-			go func(done chan IDErr, v *Vertex) {
+			go func(ctx context.Context, done chan IDErr, v *Vertex) {
 				semaphore <- struct{}{}
 				defer func() { <-semaphore }()
 				Logger.Printf("Running Task %s\n", v.ID)
@@ -471,11 +473,13 @@ LOOP:
 				}
 				err := v.Task.Fn(ctx, opt, args)
 				if g.bufferOutput {
+					g.bufferMutex.Lock()
 					_, _ = combinedBuffer.WriteTo(g.bufferWriter)
+					g.bufferMutex.Unlock()
 				}
 				Logger.Printf("Completed Task %s in %s\n", v.ID, durationStr(time.Since(start)))
 				done <- IDErr{v.ID, err}
-			}(done, v)
+			}(ctx, done, v)
 		}
 	}
 	Logger.Printf("Completed Run in %s\n", durationStr(time.Since(runStart)))

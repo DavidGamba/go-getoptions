@@ -636,17 +636,22 @@ func TestMaxParallel(t *testing.T) {
 
 	var err error
 
+	sm := sync.Mutex{}
 	peakConcurrency := 0
 	currentConcurrency := 0
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			time.Sleep(3 * time.Millisecond)
+			sm.Lock()
 			currentConcurrency += 1
 			if currentConcurrency > peakConcurrency {
 				peakConcurrency = currentConcurrency
 			}
+			sm.Unlock()
 			time.Sleep(3 * time.Millisecond)
+			sm.Lock()
 			currentConcurrency -= 1
+			sm.Unlock()
 			return nil
 		}
 	}
