@@ -276,7 +276,7 @@ func (gopt *GetOpt) failIfDefined(aliases []string) {
 		for _, option := range gopt.obj {
 			for _, v := range option.Aliases {
 				if v == a {
-					panic(fmt.Sprintf("Option/Alias '%s' is already defined", a))
+					panic(fmt.Sprintf("Option/Alias '%s' is already defined in option '%s'", a, option.Name))
 				}
 			}
 		}
