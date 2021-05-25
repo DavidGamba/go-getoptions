@@ -67,7 +67,6 @@ type Option struct {
 	boolDefault bool // copy of bool default value
 
 	// Pointer receivers:
-	value    interface{}        // Value without type safety
 	pBool    *bool              // receiver for bool pointer
 	pString  *string            // receiver for string pointer
 	pInt     *int               // receiver for int pointer
@@ -75,24 +74,40 @@ type Option struct {
 	pStringS *[]string          // receiver for string slice pointer
 	pIntS    *[]int             // receiver for int slice pointer
 	pStringM *map[string]string // receiver for string map pointer
+
+	Unknown bool // Temporary marker used during parsing
 }
 
 // New - Returns a new option object
-func New(name string, optType Type) *Option {
+func New(name string, optType Type, data interface{}) *Option {
 	opt := &Option{
 		Name:    name,
 		OptType: optType,
 		Aliases: []string{name},
 	}
 	switch optType {
-	case StringType, StringRepeatType:
+	case StringType:
 		opt.HelpArgName = "string"
-	case IntType, IntRepeatType:
+		opt.pString = data.(*string)
+		opt.DefaultStr = *data.(*string)
+	case StringRepeatType:
+		opt.HelpArgName = "string"
+		opt.pStringS = data.(*[]string)
+	case IntType:
 		opt.HelpArgName = "int"
+		opt.pInt = data.(*int)
+	case IntRepeatType:
+		opt.HelpArgName = "int"
+		opt.pIntS = data.(*[]int)
 	case Float64Type:
 		opt.HelpArgName = "float64"
+		opt.pFloat64 = data.(*float64)
 	case StringMapType:
 		opt.HelpArgName = "key=value"
+		opt.pStringM = data.(*map[string]string)
+	case BoolType:
+		opt.pBool = data.(*bool)
+		opt.boolDefault = *data.(*bool)
 	}
 	opt.synopsis()
 	return opt
@@ -119,7 +134,22 @@ func (opt *Option) synopsis() {
 
 // Value - Get untyped option value
 func (opt *Option) Value() interface{} {
-	return opt.value
+	switch opt.OptType {
+	case StringType:
+		return *opt.pString
+	case StringRepeatType:
+		return *opt.pStringS
+	case IntType:
+		return *opt.pInt
+	case IntRepeatType:
+		return *opt.pIntS
+	case Float64Type:
+		return *opt.pFloat64
+	case StringMapType:
+		return *opt.pStringM
+	default: // BoolType:
+		return *opt.pBool
+	}
 }
 
 // SetAlias - Adds aliases to an option.
@@ -181,50 +211,26 @@ func (opt *Option) SetCalled(usedAlias string) *Option {
 	return opt
 }
 
-func (opt *Option) SetBoolDefault(b bool) *Option {
-	opt.boolDefault = b
-	return opt
-}
-
 // SetBool - Set the option's data.
 func (opt *Option) SetBool(b bool) *Option {
-	opt.value = b
 	*opt.pBool = b
 	return opt
 }
 
-// SetBoolPtr - Set the option's data.
-func (opt *Option) SetBoolPtr(b *bool) *Option {
-	opt.value = *b
-	opt.pBool = b
+func (opt *Option) SetBoolAsOppositeToDefault() *Option {
+	*opt.pBool = !opt.boolDefault
 	return opt
 }
 
 // SetString - Set the option's data.
 func (opt *Option) SetString(s string) *Option {
-	opt.value = s
 	*opt.pString = s
-	return opt
-}
-
-// SetStringPtr - Set the option's data.
-func (opt *Option) SetStringPtr(s *string) *Option {
-	opt.value = *s
-	opt.pString = s
 	return opt
 }
 
 // SetInt - Set the option's data.
 func (opt *Option) SetInt(i int) *Option {
-	opt.value = i
 	*opt.pInt = i
-	return opt
-}
-
-// SetIntPtr - Set the option's data.
-func (opt *Option) SetIntPtr(i *int) *Option {
-	opt.value = *i
-	opt.pInt = i
 	return opt
 }
 
@@ -236,50 +242,19 @@ func (opt *Option) Int() int {
 
 // SetFloat64 - Set the option's data.
 func (opt *Option) SetFloat64(f float64) *Option {
-	opt.value = f
 	*opt.pFloat64 = f
-	return opt
-}
-
-// SetFloat64Ptr - Set the option's data.
-func (opt *Option) SetFloat64Ptr(f *float64) *Option {
-	opt.value = *f
-	opt.pFloat64 = f
 	return opt
 }
 
 // SetStringSlice - Set the option's data.
 func (opt *Option) SetStringSlice(s []string) *Option {
-	opt.value = s
 	*opt.pStringS = s
-	return opt
-}
-
-// SetStringSlicePtr - Set the option's data.
-func (opt *Option) SetStringSlicePtr(s *[]string) *Option {
-	opt.value = *s
-	opt.pStringS = s
 	return opt
 }
 
 // SetIntSlice - Set the option's data.
 func (opt *Option) SetIntSlice(s []int) *Option {
-	opt.value = s
 	*opt.pIntS = s
-	return opt
-}
-
-// SetIntSlicePtr - Set the option's data.
-func (opt *Option) SetIntSlicePtr(s *[]int) *Option {
-	opt.value = *s
-	opt.pIntS = s
-	return opt
-}
-
-// SetStringMapPtr - Set the option's data.
-func (opt *Option) SetStringMapPtr(m *map[string]string) *Option {
-	opt.value = *m
-	opt.pStringM = m
 	return opt
 }
 
@@ -290,12 +265,14 @@ func (opt *Option) SetKeyValueToStringMap(k, v string) *Option {
 	} else {
 		(*opt.pStringM)[k] = v
 	}
-	opt.value = *opt.pStringM
 	return opt
 }
 
 // Save - Saves the data provided into the option
 func (opt *Option) Save(a ...string) error {
+	if len(a) < 1 {
+		return nil
+	}
 	Debug.Printf("name: %s, optType: %d\n", opt.Name, opt.OptType)
 	switch opt.OptType {
 	case StringType:
@@ -362,13 +339,13 @@ func (opt *Option) Save(a ...string) error {
 		}
 		opt.SetKeyValueToStringMap(keyValue[0], keyValue[1])
 		return nil
-	default: // BoolType
+	default: // BoolType:
 		if len(a) > 0 && a[0] == "true" {
 			opt.SetBool(true)
 		} else if len(a) > 0 && a[0] == "false" {
 			opt.SetBool(false)
 		} else {
-			opt.SetBool(!opt.boolDefault)
+			opt.SetBoolAsOppositeToDefault()
 		}
 		return nil
 	}

@@ -610,48 +610,36 @@ func (gopt *GetOpt) CustomCompletion(list []string) *GetOpt {
 	return gopt
 }
 
-// Bool - define a `bool` option and its aliases.
-// It returns a `*bool` pointing to the variable holding the result.
-// If the option is found, the result will be the opposite of the provided default.
-func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
-	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.BoolType)
-	opt.DefaultStr = fmt.Sprintf("%t", def)
-	opt.SetBoolPtr(&def)
-	opt.SetBoolDefault(def)
-	opt.Handler = gopt.handleBool
-	for _, fn := range fns {
-		fn(opt)
-	}
-	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(opt)
-	return &def
-}
-
 // BoolVar - define a `bool` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
 // If the option is found, the result will be the opposite of the provided default.
 func (gopt *GetOpt) BoolVar(p *bool, name string, def bool, fns ...ModifyFn) {
 	gopt.failIfDefined([]string{name})
 	*p = def
-	opt := option.New(name, option.BoolType)
+	opt := option.New(name, option.BoolType, p)
 	opt.DefaultStr = fmt.Sprintf("%t", def)
-	opt.SetBoolPtr(p)
-	opt.SetBoolDefault(def)
 	opt.Handler = gopt.handleBool
 	for _, fn := range fns {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
+}
 
+// Bool - define a `bool` option and its aliases.
+// It returns a `*bool` pointing to the variable holding the result.
+// If the option is found, the result will be the opposite of the provided default.
+func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
+	gopt.BoolVar(&def, name, def, fns...)
+	return &def
 }
 
 func (gopt *GetOpt) handleBool(name string, argument string, usedAlias string) error {
 	Debug.Println("handleBool")
 	opt := gopt.Option(name)
 	opt.SetCalled(usedAlias)
-	return opt.Save()
+	opt.SetBoolAsOppositeToDefault()
+	return nil
 }
 
 func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias string) error {
@@ -679,38 +667,47 @@ func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias s
 	return opt.Save(gopt.args.value())
 }
 
-// String - define a `string` option and its aliases.
-// If not called, the return value will be that of the given default `def`.
-func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
-	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.StringType)
-	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
-	opt.Handler = gopt.handleSingleOption
-	opt.SetHelpArgName("string")
-
-	opt.SetStringPtr(&def)
-
-	for _, fn := range fns {
-		fn(opt)
-	}
-	gopt.completionWithArgAppendAliases(opt.Aliases)
-	gopt.setOption(opt)
-	return &def
-}
-
 // StringVar - define a `string` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
 // If not called, the return value will be that of the given default `def`.
 func (gopt *GetOpt) StringVar(p *string, name, def string, fns ...ModifyFn) {
 	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.StringType)
+	opt := option.New(name, option.StringType, p)
+	opt.SetString(def)
 	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
 	opt.Handler = gopt.handleSingleOption
 	opt.SetHelpArgName("string")
 
-	// Initialization code differs from non-Var version in the pointer assignment.
-	*p = def
-	opt.SetStringPtr(p)
+	for _, fn := range fns {
+		fn(opt)
+	}
+	gopt.completionAppendAliases(opt.Aliases)
+	gopt.setOption(opt)
+}
+
+// String - define a `string` option and its aliases.
+// If not called, the return value will be that of the given default `def`.
+func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
+	gopt.StringVar(&def, name, def, fns...)
+	return &def
+}
+
+// StringVarOptional - define a `string` option and its aliases.
+// The result will be available through the variable marked by the given pointer.
+//
+// StringVarOptional will set the string to the provided default value when no value is given.
+// For example, when called with `--strOpt value`, the value is `value`.
+// when called with `--strOpt` the value is the given default.
+func (gopt *GetOpt) StringVarOptional(p *string, name, def string, fns ...ModifyFn) {
+	gopt.failIfDefined([]string{name})
+	opt := option.New(name, option.StringType, p)
+	opt.SetString(def)
+	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
+	opt.Handler = gopt.handleSingleOption
+	opt.SetHelpArgName("string")
+
+	// TODO: The only  difference with StringVar is this line
+	opt.IsOptional = true
 
 	for _, fn := range fns {
 		fn(opt)
@@ -725,40 +722,19 @@ func (gopt *GetOpt) StringVar(p *string, name, def string, fns ...ModifyFn) {
 // For example, when called with `--strOpt value`, the value is `value`.
 // when called with `--strOpt` the value is the given default.
 func (gopt *GetOpt) StringOptional(name string, def string, fns ...ModifyFn) *string {
-	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.StringType)
-	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
-	opt.Handler = gopt.handleSingleOption
-	opt.SetHelpArgName("string")
-
-	opt.SetStringPtr(&def)
-	opt.IsOptional = true
-
-	for _, fn := range fns {
-		fn(opt)
-	}
-	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(opt)
+	gopt.StringVarOptional(&def, name, def, fns...)
 	return &def
 }
 
-// StringVarOptional - define a `string` option and its aliases.
+// IntVar - define an `int` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
-//
-// StringVarOptional will set the string to the provided default value when no value is given.
-// For example, when called with `--strOpt value`, the value is `value`.
-// when called with `--strOpt` the value is the given default.
-func (gopt *GetOpt) StringVarOptional(p *string, name, def string, fns ...ModifyFn) {
+func (gopt *GetOpt) IntVar(p *int, name string, def int, fns ...ModifyFn) {
 	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.StringType)
-	opt.DefaultStr = fmt.Sprintf(`"%s"`, def)
+	opt := option.New(name, option.IntType, p)
+	opt.SetInt(def)
+	opt.DefaultStr = fmt.Sprintf("%d", def)
 	opt.Handler = gopt.handleSingleOption
-	opt.SetHelpArgName("string")
-
-	// Initialization code differs from non-Var version in the pointer assignment.
-	*p = def
-	opt.SetStringPtr(p)
-	opt.IsOptional = true
+	opt.SetHelpArgName("int")
 
 	for _, fn := range fns {
 		fn(opt)
@@ -769,34 +745,26 @@ func (gopt *GetOpt) StringVarOptional(p *string, name, def string, fns ...Modify
 
 // Int - define an `int` option and its aliases.
 func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
-	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.IntType)
-	opt.DefaultStr = fmt.Sprintf("%d", def)
-	opt.Handler = gopt.handleSingleOption
-	opt.SetHelpArgName("int")
-
-	opt.SetIntPtr(&def)
-
-	for _, fn := range fns {
-		fn(opt)
-	}
-	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(opt)
+	gopt.IntVar(&def, name, def, fns...)
 	return &def
 }
 
-// IntVar - define an `int` option and its aliases.
+// IntVarOptional - define a `int` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
-func (gopt *GetOpt) IntVar(p *int, name string, def int, fns ...ModifyFn) {
+//
+// IntOptional will set the int to the provided default value when no value is given.
+// For example, when called with `--intOpt 123`, the value is `123`.
+// when called with `--intOpt` the value is the given default.
+func (gopt *GetOpt) IntVarOptional(p *int, name string, def int, fns ...ModifyFn) {
 	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.IntType)
+	opt := option.New(name, option.IntType, p)
+	opt.SetInt(def)
 	opt.DefaultStr = fmt.Sprintf("%d", def)
 	opt.Handler = gopt.handleSingleOption
 	opt.SetHelpArgName("int")
 
-	// Initialization code differs from non-Var version in the pointer assignment.
-	*p = def
-	opt.SetIntPtr(p)
+	// TODO: The only  difference with IntVar is this line
+	opt.IsOptional = true
 
 	for _, fn := range fns {
 		fn(opt)
@@ -811,40 +779,19 @@ func (gopt *GetOpt) IntVar(p *int, name string, def int, fns ...ModifyFn) {
 // For example, when called with `--intOpt 123`, the value is `123`.
 // when called with `--intOpt` the value is the given default.
 func (gopt *GetOpt) IntOptional(name string, def int, fns ...ModifyFn) *int {
-	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.IntType)
-	opt.DefaultStr = fmt.Sprintf("%d", def)
-	opt.Handler = gopt.handleSingleOption
-	opt.SetHelpArgName("int")
-
-	opt.SetIntPtr(&def)
-	opt.IsOptional = true
-
-	for _, fn := range fns {
-		fn(opt)
-	}
-	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(opt)
+	gopt.IntVarOptional(&def, name, def, fns...)
 	return &def
 }
 
-// IntVarOptional - define a `int` option and its aliases.
+// Float64Var - define an `float64` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
-//
-// IntOptional will set the int to the provided default value when no value is given.
-// For example, when called with `--intOpt 123`, the value is `123`.
-// when called with `--intOpt` the value is the given default.
-func (gopt *GetOpt) IntVarOptional(p *int, name string, def int, fns ...ModifyFn) {
+func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, fns ...ModifyFn) {
 	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.IntType)
-	opt.DefaultStr = fmt.Sprintf("%d", def)
+	opt := option.New(name, option.Float64Type, p)
+	opt.SetFloat64(def)
+	opt.DefaultStr = fmt.Sprintf("%f", def)
 	opt.Handler = gopt.handleSingleOption
-	opt.SetHelpArgName("int")
-
-	// Initialization code differs from non-Var version in the pointer assignment.
-	*p = def
-	opt.SetIntPtr(p)
-	opt.IsOptional = true
+	opt.SetHelpArgName("float64")
 
 	for _, fn := range fns {
 		fn(opt)
@@ -855,34 +802,22 @@ func (gopt *GetOpt) IntVarOptional(p *int, name string, def int, fns ...ModifyFn
 
 // Float64 - define an `float64` option and its aliases.
 func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 {
-	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.Float64Type)
-	opt.DefaultStr = fmt.Sprintf("%f", def)
-	opt.Handler = gopt.handleSingleOption
-	opt.SetHelpArgName("float64")
-
-	opt.SetFloat64Ptr(&def)
-
-	for _, fn := range fns {
-		fn(opt)
-	}
-	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(opt)
+	gopt.Float64Var(&def, name, def, fns...)
 	return &def
 }
 
-// Float64Var - define an `float64` option and its aliases.
+// Float64VarOptional - define an `float64` option and its aliases.
 // The result will be available through the variable marked by the given pointer.
-func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, fns ...ModifyFn) {
+func (gopt *GetOpt) Float64VarOptional(p *float64, name string, def float64, fns ...ModifyFn) {
 	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.Float64Type)
+	opt := option.New(name, option.Float64Type, p)
+	opt.SetFloat64(def)
 	opt.DefaultStr = fmt.Sprintf("%f", def)
 	opt.Handler = gopt.handleSingleOption
 	opt.SetHelpArgName("float64")
 
-	// Initialization code differs from non-Var version in the pointer assignment.
-	*p = def
-	opt.SetFloat64Ptr(p)
+	// TODO: The only  difference with Float64Var is this line
+	opt.IsOptional = true
 
 	for _, fn := range fns {
 		fn(opt)
@@ -893,40 +828,42 @@ func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, fns ...Modi
 
 // Float64Optional - define an `float64` option and its aliases.
 func (gopt *GetOpt) Float64Optional(name string, def float64, fns ...ModifyFn) *float64 {
-	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.Float64Type)
-	opt.DefaultStr = fmt.Sprintf("%f", def)
-	opt.Handler = gopt.handleSingleOption
-	opt.SetHelpArgName("float64")
-
-	opt.SetFloat64Ptr(&def)
-	opt.IsOptional = true
-
-	for _, fn := range fns {
-		fn(opt)
-	}
-	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(opt)
+	gopt.Float64VarOptional(&def, name, def, fns...)
 	return &def
 }
 
-// Float64VarOptional - define an `float64` option and its aliases.
-// The result will be available through the variable marked by the given pointer.
-func (gopt *GetOpt) Float64VarOptional(p *float64, name string, def float64, fns ...ModifyFn) {
+// StringSliceVar - define a `[]string` option and its aliases.
+//
+// StringSliceVar will accept multiple calls to the same option and append them
+// to the `[]string`.
+// For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
+//
+// Additionally, StringSliceVar will allow to define a min and max amount of
+// arguments to be passed at once.
+// For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
+// the value is `[]string{"1", "2", "3"}`.
+// It could also be called with `--strRpt 1 --strRpt 2 --strRpt 3` for the same result.
+//
+// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
+// For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
+func (gopt *GetOpt) StringSliceVar(p *[]string, name string, min, max int, fns ...ModifyFn) {
 	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.Float64Type)
-	opt.DefaultStr = fmt.Sprintf("%f", def)
-	opt.Handler = gopt.handleSingleOption
-	opt.SetHelpArgName("float64")
-
-	// Initialization code differs from non-Var version in the pointer assignment.
-	*p = def
-	opt.SetFloat64Ptr(p)
-	opt.IsOptional = true
-
+	opt := option.New(name, option.StringRepeatType, p)
+	opt.DefaultStr = "[]"
+	opt.Handler = gopt.handleSliceMultiOption
+	opt.MinArgs = min
+	opt.MaxArgs = max
+	opt.SetHelpArgName("string")
+	if min <= 0 {
+		panic(fmt.Sprintf("%s min should be > 0", name))
+	}
+	if max <= 0 || max < min {
+		panic(fmt.Sprintf("%s max should be > 0 and > min", name))
+	}
 	for _, fn := range fns {
 		fn(opt)
 	}
+	Debug.Printf("StringMulti return: %v\n", *p)
 	gopt.completionAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 }
@@ -947,89 +884,7 @@ func (gopt *GetOpt) Float64VarOptional(p *float64, name string, def float64, fns
 // For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
 func (gopt *GetOpt) StringSlice(name string, min, max int, fns ...ModifyFn) *[]string {
 	s := []string{}
-	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.StringRepeatType)
-	opt.DefaultStr = "[]"
-	opt.SetStringSlicePtr(&s)
-	opt.Handler = gopt.handleSliceMultiOption
-	opt.MinArgs = min
-	opt.MaxArgs = max
-	opt.SetHelpArgName("string")
-	if min <= 0 {
-		panic(fmt.Sprintf("%s min should be > 0", name))
-	}
-	if max <= 0 || max < min {
-		panic(fmt.Sprintf("%s max should be > 0 and > min", name))
-	}
-	for _, fn := range fns {
-		fn(opt)
-	}
-	Debug.Printf("StringMulti return: %v\n", s)
-	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(opt)
-	return &s
-}
-
-// StringSliceVar - define a `[]string` option and its aliases.
-//
-// StringSliceVar will accept multiple calls to the same option and append them
-// to the `[]string`.
-// For example, when called with `--strRpt 1 --strRpt 2`, the value is `[]string{"1", "2"}`.
-//
-// Additionally, StringSliceVar will allow to define a min and max amount of
-// arguments to be passed at once.
-// For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
-// the value is `[]string{"1", "2", "3"}`.
-// It could also be called with `--strRpt 1 --strRpt 2 --strRpt 3` for the same result.
-//
-// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
-// For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
-func (gopt *GetOpt) StringSliceVar(p *[]string, name string, min, max int, fns ...ModifyFn) {
-	gopt.StringSlice(name, min, max, fns...)
-	gopt.Option(name).SetStringSlicePtr(p)
-}
-
-// IntSlice - define a `[]int` option and its aliases.
-//
-// IntSlice will accept multiple calls to the same option and append them
-// to the `[]int`.
-// For example, when called with `--intRpt 1 --intRpt 2`, the value is `[]int{1, 2}`.
-//
-// Additionally, IntSlice will allow to define a min and max amount of
-// arguments to be passed at once.
-// For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
-// the value is `[]int{1, 2, 3}`.
-// It could also be called with `--strRpt 1 --strRpt 2 --strRpt 3` for the same result.
-//
-// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
-// For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
-//
-// Finally, positive integer ranges are allowed.
-// For example, Instead of writing: `csv --columns 1 2 3` or
-// `csv --columns 1 --columns 2 --columns 3`
-// The input could be: `csv --columns 1..3`.
-func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int {
-	s := []int{}
-	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.IntRepeatType)
-	opt.DefaultStr = "[]"
-	opt.SetIntSlicePtr(&s)
-	opt.Handler = gopt.handleSliceMultiOption
-	opt.MinArgs = min
-	opt.MaxArgs = max
-	opt.SetHelpArgName("int")
-	if min <= 0 {
-		panic(fmt.Sprintf("%s min should be > 0", name))
-	}
-	if max <= 0 || max < min {
-		panic(fmt.Sprintf("%s max should be > 0 and > min", name))
-	}
-	for _, fn := range fns {
-		fn(opt)
-	}
-	Debug.Printf("IntMulti return: %v\n", s)
-	gopt.completionAppendAliases(opt.Aliases)
-	gopt.setOption(opt)
+	gopt.StringSliceVar(&s, name, min, max, fns...)
 	return &s
 }
 
@@ -1053,35 +908,13 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int 
 // `csv --columns 1 --columns 2 --columns 3`
 // The input could be: `csv --columns 1..3`.
 func (gopt *GetOpt) IntSliceVar(p *[]int, name string, min, max int, fns ...ModifyFn) {
-	gopt.IntSlice(name, min, max, fns...)
-	gopt.Option(name).SetIntSlicePtr(p)
-}
-
-// StringMap - define a `map[string]string` option and its aliases.
-//
-// StringMap will accept multiple calls of `key=value` type to the same option
-// and add them to the `map[string]string` result.
-// For example, when called with `--strMap k=v --strMap k2=v2`, the value is
-// `map[string]string{"k":"v", "k2": "v2"}`.
-//
-// Additionally, StringMap will allow to define a min and max amount of
-// arguments to be passed at once.
-// For example, when min is 1 and max is 3 and called with `--strMap k=v k2=v2 k3=v3`,
-// the value is `map[string]string{"k":"v", "k2": "v2", "k3": "v3"}`.
-// It could also be called with `--strMap k=v --strMap k2=v2 --strMap k3=v3` for the same result.
-//
-// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
-// For example: with `min = 2`, you at least require `--strMap k=v k2=v2 --strMap k3=v3`
-func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[string]string {
-	s := make(map[string]string)
 	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.StringMapType)
-	opt.DefaultStr = "{}"
-	opt.SetStringMapPtr(&s)
+	opt := option.New(name, option.IntRepeatType, p)
+	opt.DefaultStr = "[]"
 	opt.Handler = gopt.handleSliceMultiOption
 	opt.MinArgs = min
 	opt.MaxArgs = max
-	opt.SetHelpArgName("key=value")
+	opt.SetHelpArgName("int")
 	if min <= 0 {
 		panic(fmt.Sprintf("%s min should be > 0", name))
 	}
@@ -1091,10 +924,34 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 	for _, fn := range fns {
 		fn(opt)
 	}
-	Debug.Printf("StringMulti return: %v\n", s)
+	Debug.Printf("IntMulti return: %v\n", *p)
 	gopt.completionAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
-	return s
+}
+
+// IntSlice - define a `[]int` option and its aliases.
+//
+// IntSlice will accept multiple calls to the same option and append them
+// to the `[]int`.
+// For example, when called with `--intRpt 1 --intRpt 2`, the value is `[]int{1, 2}`.
+//
+// Additionally, IntSlice will allow to define a min and max amount of
+// arguments to be passed at once.
+// For example, when min is 1 and max is 3 and called with `--strRpt 1 2 3`,
+// the value is `[]int{1, 2, 3}`.
+// It could also be called with `--strRpt 1 --strRpt 2 --strRpt 3` for the same result.
+//
+// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
+// For example: with `min = 2`, you at least require `--strRpt 1 2 --strRpt 3`
+//
+// Finally, positive integer ranges are allowed.
+// For example, Instead of writing: `csv --columns 1 2 3` or
+// `csv --columns 1 --columns 2 --columns 3`
+// The input could be: `csv --columns 1..3`.
+func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int {
+	s := []int{}
+	gopt.IntSliceVar(&s, name, min, max, fns...)
+	return &s
 }
 
 // StringMapVar - define a `map[string]string` option and its aliases.
@@ -1113,11 +970,52 @@ func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[st
 // When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
 // For example: with `min = 2`, you at least require `--strMap k=v k2=v2 --strMap k3=v3`
 func (gopt *GetOpt) StringMapVar(m *map[string]string, name string, min, max int, fns ...ModifyFn) {
+	// TODO: panic if m is nil
+
+	// check that the map has been initialized
 	if *m == nil {
 		*m = make(map[string]string)
 	}
-	gopt.StringMap(name, min, max, fns...)
-	gopt.Option(name).SetStringMapPtr(m)
+	gopt.failIfDefined([]string{name})
+	opt := option.New(name, option.StringMapType, m)
+	opt.DefaultStr = "{}"
+	opt.Handler = gopt.handleSliceMultiOption
+	opt.MinArgs = min
+	opt.MaxArgs = max
+	opt.SetHelpArgName("key=value")
+	if min <= 0 {
+		panic(fmt.Sprintf("%s min should be > 0", name))
+	}
+	if max <= 0 || max < min {
+		panic(fmt.Sprintf("%s max should be > 0 and > min", name))
+	}
+	for _, fn := range fns {
+		fn(opt)
+	}
+	Debug.Printf("StringMulti return: %v\n", *m)
+	gopt.completionAppendAliases(opt.Aliases)
+	gopt.setOption(opt)
+}
+
+// StringMap - define a `map[string]string` option and its aliases.
+//
+// StringMap will accept multiple calls of `key=value` type to the same option
+// and add them to the `map[string]string` result.
+// For example, when called with `--strMap k=v --strMap k2=v2`, the value is
+// `map[string]string{"k":"v", "k2": "v2"}`.
+//
+// Additionally, StringMap will allow to define a min and max amount of
+// arguments to be passed at once.
+// For example, when min is 1 and max is 3 and called with `--strMap k=v k2=v2 k3=v3`,
+// the value is `map[string]string{"k":"v", "k2": "v2", "k3": "v3"}`.
+// It could also be called with `--strMap k=v --strMap k2=v2 --strMap k3=v3` for the same result.
+//
+// When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
+// For example: with `min = 2`, you at least require `--strMap k=v k2=v2 --strMap k3=v3`
+func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[string]string {
+	m := map[string]string{}
+	gopt.StringMapVar(&m, name, min, max, fns...)
+	return m
 }
 
 // NOTE: Options that can be called multiple times and thus modify the used
@@ -1195,26 +1093,24 @@ func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAli
 	return nil
 }
 
-// Increment - When called multiple times it increments the int counter defined by this option.
-func (gopt *GetOpt) Increment(name string, def int, fns ...ModifyFn) *int {
+// IncrementVar - When called multiple times it increments the provided int.
+func (gopt *GetOpt) IncrementVar(p *int, name string, def int, fns ...ModifyFn) {
 	gopt.failIfDefined([]string{name})
-	opt := option.New(name, option.IntType)
+	opt := option.New(name, option.IntType, p)
+	opt.SetInt(def)
 	opt.DefaultStr = fmt.Sprintf("%d", def)
-	opt.SetIntPtr(&def)
 	opt.Handler = gopt.handleIncrement
 	for _, fn := range fns {
 		fn(opt)
 	}
 	gopt.completionAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
-	return &def
 }
 
-// IncrementVar - When called multiple times it increments the provided int.
-func (gopt *GetOpt) IncrementVar(p *int, name string, def int, fns ...ModifyFn) {
-	gopt.Increment(name, def, fns...)
-	*p = def
-	gopt.Option(name).SetIntPtr(p)
+// Increment - When called multiple times it increments the int counter defined by this option.
+func (gopt *GetOpt) Increment(name string, def int, fns ...ModifyFn) *int {
+	gopt.IncrementVar(&def, name, def, fns...)
+	return &def
 }
 
 func (gopt *GetOpt) handleIncrement(name string, argument string, usedAlias string) error {

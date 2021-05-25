@@ -24,132 +24,140 @@ func TestOption(t *testing.T) {
 		output interface{}
 		err    error
 	}{
+		{"empty", func() *Option {
+			b := false
+			return New("help", BoolType, &b)
+		}(), []string{}, false, nil},
+		{"empty", func() *Option {
+			b := true
+			return New("help", BoolType, &b)
+		}(), []string{}, true, nil},
 		{"bool", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+			return New("help", BoolType, &b)
 		}(), []string{""}, true, nil},
 		{"bool", func() *Option {
 			b := true
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+			return New("help", BoolType, &b)
 		}(), []string{""}, false, nil},
 		{"bool setbool", func() *Option {
 			b := true
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b).SetBool(b)
+			return New("help", BoolType, &b).SetBool(b)
 		}(), []string{""}, false, nil},
 		{"bool setbool", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b).SetBool(b)
+			return New("help", BoolType, &b).SetBool(b)
 		}(), []string{""}, true, nil},
 		{"bool env", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+			return New("help", BoolType, &b)
 		}(), []string{"true"}, true, nil},
 		{"bool env", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+			return New("help", BoolType, &b)
 		}(), []string{"false"}, false, nil},
 		{"bool env", func() *Option {
 			b := true
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+			return New("help", BoolType, &b)
 		}(), []string{"true"}, true, nil},
 		{"bool env", func() *Option {
 			b := true
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+			return New("help", BoolType, &b)
 		}(), []string{"false"}, false, nil},
 
 		{"string", func() *Option {
 			s := ""
-			return New("help", StringType).SetStringPtr(&s)
+			return New("help", StringType, &s)
 		}(), []string{""}, "", nil},
 		{"string", func() *Option {
 			s := ""
-			return New("help", StringType).SetStringPtr(&s)
+			return New("help", StringType, &s)
 		}(), []string{"hola"}, "hola", nil},
 		{"string", func() *Option {
 			s := ""
-			return New("help", StringType).SetStringPtr(&s).SetString("xxx")
+			return New("help", StringType, &s).SetString("xxx")
 		}(), []string{""}, "", nil},
 		{"string", func() *Option {
 			s := ""
-			return New("help", StringType).SetStringPtr(&s).SetString("xxx")
+			return New("help", StringType, &s).SetString("xxx")
 		}(), []string{"hola"}, "hola", nil},
 
 		{"int", func() *Option {
 			i := 0
-			return New("help", IntType).SetIntPtr(&i)
+			return New("help", IntType, &i)
 		}(), []string{"123"}, 123, nil},
 		{"int", func() *Option {
 			i := 0
-			return New("help", IntType).SetIntPtr(&i).SetInt(456)
+			return New("help", IntType, &i).SetInt(456)
 		}(), []string{"123"}, 123, nil},
 		{"int error", func() *Option {
 			i := 0
-			return New("help", IntType).SetIntPtr(&i)
+			return New("help", IntType, &i)
 		}(), []string{"123x"}, 0,
 			fmt.Errorf(text.ErrorConvertToInt, "", "123x")},
 		{"int error alias", func() *Option {
 			i := 0
-			return New("help", IntType).SetIntPtr(&i).SetCalled("int")
+			return New("help", IntType, &i).SetCalled("int")
 		}(), []string{"123x"}, 0,
 			fmt.Errorf(text.ErrorConvertToInt, "int", "123x")},
 
 		{"float64", func() *Option {
 			f := 0.0
-			return New("help", Float64Type).SetFloat64Ptr(&f)
+			return New("help", Float64Type, &f)
 		}(), []string{"123.123"}, 123.123, nil},
 		{"float64 error", func() *Option {
 			f := 0.0
-			return New("help", Float64Type).SetFloat64Ptr(&f)
+			return New("help", Float64Type, &f)
 		}(), []string{"123x"}, 0.0,
 			fmt.Errorf(text.ErrorConvertToFloat64, "", "123x")},
 		{"float64 error alias", func() *Option {
 			f := 0.0
-			return New("help", Float64Type).SetFloat64Ptr(&f).SetCalled("float")
+			return New("help", Float64Type, &f).SetCalled("float")
 		}(), []string{"123x"}, 0.0,
 			fmt.Errorf(text.ErrorConvertToFloat64, "float", "123x")},
 
 		{"string slice", func() *Option {
 			ss := []string{}
-			return New("help", StringRepeatType).SetStringSlicePtr(&ss)
+			return New("help", StringRepeatType, &ss)
 		}(), []string{"hola", "mundo"}, []string{"hola", "mundo"}, nil},
 
 		{"int slice", func() *Option {
 			ii := []int{}
-			return New("help", IntRepeatType).SetIntSlicePtr(&ii)
+			return New("help", IntRepeatType, &ii)
 		}(), []string{"123", "456"}, []int{123, 456}, nil},
 		{"int slice error", func() *Option {
 			ii := []int{}
-			return New("help", IntRepeatType).SetIntSlicePtr(&ii)
+			return New("help", IntRepeatType, &ii)
 		}(), []string{"x"}, []int{},
 			fmt.Errorf(text.ErrorConvertToInt, "", "x")},
 
 		{"int slice range", func() *Option {
 			ii := []int{}
-			return New("help", IntRepeatType).SetIntSlicePtr(&ii)
+			return New("help", IntRepeatType, &ii)
 		}(), []string{"1..5"}, []int{1, 2, 3, 4, 5}, nil},
 		{"int slice range error", func() *Option {
 			ii := []int{}
-			return New("help", IntRepeatType).SetIntSlicePtr(&ii)
+			return New("help", IntRepeatType, &ii)
 		}(), []string{"x..5"}, []int{},
 			fmt.Errorf(text.ErrorConvertToInt, "", "x..5")},
 		{"int slice range error", func() *Option {
 			ii := []int{}
-			return New("help", IntRepeatType).SetIntSlicePtr(&ii)
+			return New("help", IntRepeatType, &ii)
 		}(), []string{"1..x"}, []int{},
 			fmt.Errorf(text.ErrorConvertToInt, "", "1..x")},
 		{"int slice range error", func() *Option {
 			ii := []int{}
-			return New("help", IntRepeatType).SetIntSlicePtr(&ii)
+			return New("help", IntRepeatType, &ii)
 		}(), []string{"5..1"}, []int{},
 			fmt.Errorf(text.ErrorConvertToInt, "", "5..1")},
 
 		{"map", func() *Option {
 			m := make(map[string]string)
-			return New("help", StringMapType).SetStringMapPtr(&m)
+			return New("help", StringMapType, &m)
 		}(), []string{"hola=mundo"}, map[string]string{"hola": "mundo"}, nil},
 		{"map", func() *Option {
 			m := make(map[string]string)
-			opt := New("help", StringMapType).SetStringMapPtr(&m)
+			opt := New("help", StringMapType, &m)
 			opt.MapKeysToLower = true
 			return opt
 		}(), []string{"Hola=Mundo"}, map[string]string{"hola": "Mundo"}, nil},
@@ -157,11 +165,11 @@ func TestOption(t *testing.T) {
 		//	It seems like the caller is handling this properly so I don't really know if this is needed here.
 		// {"map", func() *Option {
 		// 	m := make(map[string]string)
-		// 	return New("help", StringMapType).SetStringMapPtr(&m)
+		// 	return New("help", StringMapType, &m)
 		// }(), []string{"hola=mundo", "hello=world"}, map[string]string{"hola": "mundo", "hello": "world"}, nil},
 		{"map error", func() *Option {
 			m := make(map[string]string)
-			return New("help", StringMapType).SetStringMapPtr(&m)
+			return New("help", StringMapType, &m)
 		}(), []string{"hola"}, map[string]string{},
 			fmt.Errorf(text.ErrorArgumentIsNotKeyValue, "")},
 	}
@@ -196,15 +204,15 @@ func TestRequired(t *testing.T) {
 	}{
 		{"bool", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b)
+			return New("help", BoolType, &b)
 		}(), []string{""}, true, nil, nil},
 		{"bool", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b).SetRequired("")
+			return New("help", BoolType, &b).SetRequired("")
 		}(), []string{""}, true, nil, fmt.Errorf(text.ErrorMissingRequiredOption, "help")},
 		{"bool", func() *Option {
 			b := false
-			return New("help", BoolType).SetBoolDefault(b).SetBoolPtr(&b).SetRequired("err")
+			return New("help", BoolType, &b).SetRequired("err")
 		}(), []string{""}, true, nil, fmt.Errorf("err")},
 	}
 	for _, tt := range tests {
@@ -239,7 +247,7 @@ func TestRequired(t *testing.T) {
 
 func TestOther(t *testing.T) {
 	i := 0
-	opt := New("help", IntType).SetIntPtr(&i).SetAlias("?", "h").SetDescription("int help").SetHelpArgName("myint").SetDefaultStr("5").SetEnvVar("ENV_VAR")
+	opt := New("help", IntType, &i).SetAlias("?", "h").SetDescription("int help").SetHelpArgName("myint").SetDefaultStr("5").SetEnvVar("ENV_VAR")
 	got := opt.Aliases
 	expected := []string{"help", "?", "h"}
 	if !reflect.DeepEqual(got, expected) {
@@ -265,14 +273,16 @@ func TestOther(t *testing.T) {
 		t.Errorf("got = '%#v', want '%#v'", opt.EnvVar, "ENV_VAR")
 	}
 
-	list := []*Option{New("b", BoolType), New("a", BoolType), New("c", BoolType)}
-	expectedList := []*Option{New("a", BoolType), New("b", BoolType), New("c", BoolType)}
+	b := true
+	list := []*Option{New("b", BoolType, &b), New("a", BoolType, &b), New("c", BoolType, &b)}
+	expectedList := []*Option{New("a", BoolType, &b), New("b", BoolType, &b), New("c", BoolType, &b)}
 	Sort(list)
 	if !reflect.DeepEqual(list, expectedList) {
 		t.Errorf("got = '%#v', want '%#v'", list, expectedList)
 	}
 
-	opt = New("help", IntRepeatType)
+	ii := []int{}
+	opt = New("help", IntRepeatType, &ii)
 	opt.MaxArgs = 2
 	opt.synopsis()
 	if opt.HelpSynopsis != "--help <int>..." {
