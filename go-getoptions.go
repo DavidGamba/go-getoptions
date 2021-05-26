@@ -681,7 +681,7 @@ func (gopt *GetOpt) StringVar(p *string, name, def string, fns ...ModifyFn) {
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionWithArgAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 }
 
@@ -739,7 +739,7 @@ func (gopt *GetOpt) IntVar(p *int, name string, def int, fns ...ModifyFn) {
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionWithArgAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 }
 
@@ -796,7 +796,7 @@ func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, fns ...Modi
 	for _, fn := range fns {
 		fn(opt)
 	}
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionWithArgAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 }
 
@@ -864,7 +864,7 @@ func (gopt *GetOpt) StringSliceVar(p *[]string, name string, min, max int, fns .
 		fn(opt)
 	}
 	Debug.Printf("StringMulti return: %v\n", *p)
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionWithArgAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 }
 
@@ -925,7 +925,7 @@ func (gopt *GetOpt) IntSliceVar(p *[]int, name string, min, max int, fns ...Modi
 		fn(opt)
 	}
 	Debug.Printf("IntMulti return: %v\n", *p)
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionWithArgAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 }
 
@@ -993,7 +993,7 @@ func (gopt *GetOpt) StringMapVar(m *map[string]string, name string, min, max int
 		fn(opt)
 	}
 	Debug.Printf("StringMulti return: %v\n", *m)
-	gopt.completionAppendAliases(opt.Aliases)
+	gopt.completionWithArgAppendAliases(opt.Aliases)
 	gopt.setOption(opt)
 }
 

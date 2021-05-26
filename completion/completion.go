@@ -52,16 +52,21 @@ type kind int
 const (
 	// Root -
 	Root kind = iota
+
 	// CommandNode - Node used to complete the name of the command.
 	CommandNode
+
 	// FileListNode - Regular file completion you would expect.
 	// Name used as the dir to start completing results from.
 	// TODO: Allow ignore case.
 	FileListNode
+
 	// OptionsNode - Only enabled if prefix starts with -
 	OptionsNode
+
 	// OptionsWithCompletion - Only enabled if prefix starts with -
 	OptionsWithCompletion
+
 	// CustomNode -
 	CustomNode
 )
