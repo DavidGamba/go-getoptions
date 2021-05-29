@@ -392,7 +392,7 @@ func (g *Graph) Run(ctx context.Context, opt *getoptions.GetOpt, args []string) 
 	}
 
 	// Check for cycles
-	_, err := g.DephFirstSort()
+	_, err := g.DepthFirstSort()
 	if err != nil {
 		return err
 	}
@@ -552,10 +552,10 @@ func skipParents(v *Vertex) {
 	}
 }
 
-// DephFirstSort - Returns a sorted list with the Vertices
+// DepthFirstSort - Returns a sorted list with the Vertices
 // https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
 // It returns ErrorGraphHasCycle is there are cycles.
-func (g *Graph) DephFirstSort() ([]*Vertex, error) {
+func (g *Graph) DepthFirstSort() ([]*Vertex, error) {
 	var err error
 
 	sorted := []*Vertex{}

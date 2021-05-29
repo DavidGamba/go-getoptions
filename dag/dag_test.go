@@ -72,7 +72,7 @@ func TestDag(t *testing.T) {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
 
-	_, err = g.DephFirstSort()
+	_, err = g.DepthFirstSort()
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
@@ -245,7 +245,7 @@ func TestCycle(t *testing.T) {
 
 	g.TaskDependensOn(g.Task("t1"), g.Task("t2"))
 	g.TaskDependensOn(g.Task("t2"), g.Task("t1"))
-	_, err := g.DephFirstSort()
+	_, err := g.DepthFirstSort()
 	if err == nil || !errors.Is(err, ErrorGraphHasCycle) {
 		t.Errorf("Wrong error: %s\n", err)
 	}
