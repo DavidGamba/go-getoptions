@@ -898,16 +898,12 @@ StringMap and StringMapVar:: Comma separated key=value?
 
 * Case insensitive matching.
 
-* Option values in the bundle: `-h1024w800` -> `-h 1024 -w 800`
-
 * prefix and prefix_pattern.
 The string that starts options.
 Defaults to "--" and "-" but could include "/" to support Win32 style argument handling.
 
 * Supports argument dividers other than '='.
 For example: You could define ':' and use `--string=mystring`, `--string:mystring` and `--string mystring`.
-
-* All other Perl's Getopt::Long goodies that seem reasonable to add!
 
 * Remove need for `opt.HelpCommand("")` when dispatch is defined.
 +
