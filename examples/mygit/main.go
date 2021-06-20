@@ -37,6 +37,9 @@ func program() int {
 	if opt.Called("debug") {
 		logger.SetOutput(os.Stderr)
 	}
+	if opt.Called("profile") {
+		logger.Printf("profile: %s\n", opt.Value("profile"))
+	}
 	logger.Printf("Remaning cli args: %v", remaining)
 
 	ctx, cancel, done := opt.InterruptContext()
