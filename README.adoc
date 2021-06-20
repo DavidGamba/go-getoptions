@@ -911,6 +911,8 @@ Currently we have to define the `opt.Bool("help", false)` flag, then `opt.HelpCo
 `opt.HelpCommand` is redundant.
 Additionally `opt.HelpCommand` has the `help` command name hardcoded in it.
 
+* Allow grouping commands so they can have a different order other than alphabetical
+
 == License
 
 This file is part of go-getoptions.
