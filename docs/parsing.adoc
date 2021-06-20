@@ -1,0 +1,260 @@
+= Parsing CLI Args
+
+The core of the option parser is how CLI Arguments are parsed and how they are mapped to the expected program structure.
+
+The program structure is defined by:
+* The options the program expects.
+* The commands and sub commands the program can have.
+* The options the commands and subcommands expect.
+* The arguments or text input that the program or commands/subcommands expect.
+
+A proper data structure enables the option parser to easily map CLI Arguments into the items mentioned above.
+The wrong data structure will lead to convoluted APIs.
+
+One unexplored aspect of a proper data structure is built-in auto-completion of commands, subcommands, options and even in some cases arguments.
+In this regard most tools generate a very large bash completion side tool.
+go-getoptions in contrast only requires a single line of bash to generate all possible completions.
+
+This documents reflects the data structure used by go-getoptions that enables trees of commands/subcommands, options, arguments and built-in completion.
+
+== Parsing approach
+
+You cannot parse the CLI Args in isolation, to parse CLI Arguments you require the program data structure, or at the very least, the option definition in advanced.
+
+The following example will help explain:
+
+    $ ./programname --option some text
+
+When looking at the ambiguous input above you can have the following possibilities (just to name a few):
+
+. Option `--option` with argument `some` plus text input `text`.
+. Option `--option` with argument `some` plus command call `text`.
+. Option `--option` with command call `some` and argument `text`.
+. Option `--option` with arguments `some` and `text` (some CLI parsers allow more than one argument per option).
+
+Now, some option parsers ignore this complexity by forcing ordering.
+In other words, no options are allowed before calling a command.
+However, even in that case, you can't tell if `--option` expects an argument or not.
+
+=== Program Tree
+
+With the above in mind, the first step before being able to parse CLI Arguments is to build the program's data structure.
+For go-getoptions that data structure is defined as a double linked tree with a root node.
+
+[source, go]
+----
+type programTree struct {
+	Type          argType
+	Name          string
+	ChildCommands map[string]*programTree
+	ChildOptions  map[string]*option.Option
+	ChildText     []*string
+	Parent        *programTree
+	Level         int
+	command
+}
+
+type argType int
+
+const (
+	argTypeProgname   argType = iota // The root node type
+	argTypeCommand                   // The node type used for commands and subcommands
+	argTypeOption                    // The node type used for options
+	argTypeText                      // The node type used for regular cli arguments
+	argTypeTerminator                // --
+)
+
+type command struct {
+	CommandFn CommandFn
+}
+----
+
+There are multiple types of arguments, of particular interest there are:
+
+* argTypeProgname: The root node type.
+Holds os.Args[0] as its name.
+
+* argTypeCommand: The node type used for commands and subcommands.
+
+* argTypeOption: The node type used for options.
+
+*	argTypeText: The node type used for regular CLI arguments.
+
+
+Once the tree is built, the parser can walk through the tree as it walks through each of the passed in CLI arguments to determine if the argument is an expected option, a command or just a text argument.
+
+Additionally, since there is a data structure that is walked at the same time as CLI arguments are parsed, the parser can suggest next level completions (by listing the children) to the shell completion system.
+
+An example tree can be found in the tests.
+
+The building of the tree is located in `user.go` because the tree definition is directly created by the user defining commands and options.
+This is the user facing entry point.
+
+=== CLI Arguments Tree
+
+The workflow of parsing the given CLI Arguments goes as follows:
+
+. Handle special cases.
+Currently only `--` as the terminator.
+If found, any remaining arguments are considered to be text arguments.
+
+. Check if the argument is an option, in other words, it starts with `-` or `--`.
+The lonesome dash `-` is a valid option used in many programs to signal STDIN input.
++
+Knowing the program data structure is of particular importance at this stage to know if the option expects the following CLI argument(s) as arguments to the option.
+
+. Check if the argument is a command or a subcommand.
+This is done by comparing the program data structure to validate that the input is a valid command at any given depth.
+
+=== Error handling during parsing
+
+TODO: this section needs to be filled after validating the tool UX if presenting errors during completions.
+
+
+=== Auto-completion support
+
+
+First read the CLI line and the use isOptionV2 on each element to get a list of option pairs.
+
+isOptionV2 - Enhanced version of isOption, this one returns pairs of options and arguments
+At this level we don't agregate results in case we have -- and then other options, basically we can parse one option at a time.
+
+type optionPair struct {
+	Option string
+	// We allow multiple args in case of splitting on comma.
+	Args []string
+}
+
+== Current parsing
+
+Currently options are parsed in the call to `Parse` and commands are handled in the call to `Dispatch`.
+All CLI arguments are parsed and options are matched regardless of order (unless `SetRequireOrder`).
+Unmatched options and commands are kept in the remaining array (Set `opt.SetUnknownMode(Pass)`) and they are parsed on the call to `Dispatch` or a subsequent `Parse` call.
+This is a very flexible approach but it breaks with completion.
+
+While option parsing can be done at stages with correct results and great flexibility, completions need to know the entire tree for them to suggest the correct subset of valid options.
+Not maintaining two tree walking solutions is the motivation for this refactor.
+
+The new parsing procedure works like this:
+
+On setup, when setting options and commands (calls to opt.String, opt.StringVar and opt.NewCommand for example), the ProgramTree is built.
+
+The ProgramTree build copies the options set at the current level into its children.
+In that way, each child has a complete set of options it supports at every level.
+The copy is done by passing a pointer so if an option is set at a higher level the results will trickle down to the children.
+
+
+== Edge cases
+
+=== Passing options out of order
+
+For a definition like the following:
+
+[source, yaml]
+----
+program:
+	- --opt1
+	- cmd1:
+		- --cmd1opt1
+	- cmd2:
+		- --cmd2opt1
+----
+
+Caling the program as: `program --cmd1opt1 cmd1 --opt1`
+Has the options out of order.
+This should be allowed by default and only be disallowed when `SetRequireOrder` is set.
+
+One way to accomplish this is to pass the options to the child when calling `NewCommand`, in this way the actual validation of options can happen at a single level.
+
+=== Non inmediate argument to slice options that matches command
+
+* minimun has higher precedence, for example, if option has a minimun of 3 then this results in all args to opt: `program --opt arg1 command arg3`
+
+* command has the next highest precedence, for example, if option has a maximun of 2 or more, the following results in a call to command, not the word command as an argument to opt:
+`program 
+
+use `program --opt arg1 --opt command --opt arg3` instead.
+
+* optionals have lower precedence than command.
+
+=== Text input before command
+
+Not allowed, too ambiguous and it can mask errors that lead to just bad UI.
+
+
+== What I want
+
+AST that looks like this:
+
+NOTE: I could start at this level and have an array or CLIargs as a parse result or I could do one level up and have a root CLIarg type with the name of the program.
+Having the root level might be helpful with help generation.
+
+CLIarg{
+	Type: 0, # 0 - program name, 1 - text, 2 - option, 3 - command, 4 - terminator (--)
+	Name: os.Args[0],
+	Children: [
+		CLIarg{
+			Type: 1, # 0 - text, 1 - option, 2 - command, 3 - terminator (--)
+			Name: "force",
+			Args: [],
+			Children: nil,
+		},
+		CLIarg{
+			Type: 1,
+			Name: "verbosity",
+			Args: [2],
+			Children: nil,
+		},
+		CLIarg{
+			Type: 0,
+			Name: "sometext_dirname", # Text allowed anywhere, should there be an option for it?
+			Args: [],
+			Children: nil,
+		}
+		CLIarg{
+			Type: 1,
+			Name: "profile",
+			Args: ["dev"],
+			Children: nil,
+		}
+		CLIarg{
+			Type: 2,
+			Name: "command1",
+			Args: [],
+			Children: [
+				CLIarg{
+					Type: 2,
+					Name: "subcommand1",
+					Args: [],
+					Children: [
+						CLIarg{
+							Type: 1,
+							Name: "opt1",
+							Args: ["hello", "hola,adios"], # split on comma is not done at this level
+							Children: nil,
+						},
+						CLIarg{
+							Type: 1,
+							Name: "opt2",
+							Args: ["lang=en", "def=hello"],
+							Children: nil,
+						},
+						CLIarg{
+							Type: 3,
+							Name: "--",
+							Args: [],
+							Children: [
+								CLIarg{
+									Type: 0,
+									Name: "command1", # shouldn't match anything
+									Args: [],
+									Children, nil,
+								},
+							],
+						},
+					],
+				},
+			],
+		},
+	],
+}

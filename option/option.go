@@ -33,11 +33,15 @@ type Type int
 // Option Types
 const (
 	BoolType Type = iota
+
 	StringType
 	IntType
 	Float64Type
+
 	StringRepeatType
 	IntRepeatType
+	Float64RepeatType
+
 	StringMapType
 )
 
@@ -67,13 +71,14 @@ type Option struct {
 	boolDefault bool // copy of bool default value
 
 	// Pointer receivers:
-	pBool    *bool              // receiver for bool pointer
-	pString  *string            // receiver for string pointer
-	pInt     *int               // receiver for int pointer
-	pFloat64 *float64           // receiver for float64 pointer
-	pStringS *[]string          // receiver for string slice pointer
-	pIntS    *[]int             // receiver for int slice pointer
-	pStringM *map[string]string // receiver for string map pointer
+	pBool     *bool              // receiver for bool pointer
+	pString   *string            // receiver for string pointer
+	pInt      *int               // receiver for int pointer
+	pFloat64  *float64           // receiver for float64 pointer
+	pStringS  *[]string          // receiver for string slice pointer
+	pIntS     *[]int             // receiver for int slice pointer
+	pFloat64S *[]float64         // receiver for float64 slice pointer
+	pStringM  *map[string]string // receiver for string map pointer
 
 	Unknown bool // Temporary marker used during parsing
 }
@@ -112,6 +117,11 @@ func New(name string, optType Type, data interface{}) *Option {
 		opt.pFloat64 = data.(*float64)
 		opt.MinArgs = 1
 		opt.MaxArgs = 1
+	case Float64RepeatType:
+		opt.HelpArgName = "float64"
+		opt.pFloat64S = data.(*[]float64)
+		opt.MinArgs = 1
+		opt.MaxArgs = 1 // By default we only allow one argument at a time
 	case StringMapType:
 		opt.HelpArgName = "key=value"
 		opt.pStringM = data.(*map[string]string)
@@ -125,6 +135,19 @@ func New(name string, optType Type, data interface{}) *Option {
 	}
 	opt.synopsis()
 	return opt
+}
+
+// ValidateMinMaxArgs - validates that the min and max make sense.
+//
+// NOTE: This should only be called to validate Repeat types.
+func (opt *Option) ValidateMinMaxArgs() error {
+	if opt.MinArgs <= 0 {
+		return fmt.Errorf("min should be > 0")
+	}
+	if opt.MaxArgs <= 0 || opt.MaxArgs < opt.MinArgs {
+		return fmt.Errorf("max should be > 0 and > min")
+	}
+	return nil
 }
 
 func (opt *Option) synopsis() {

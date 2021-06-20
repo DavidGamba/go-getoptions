@@ -17,3 +17,10 @@ rule-check:
 		ruleguard -c=0 -rules ../semgrep-go/ruleguard.rules.go $$dir ; \
 	done
 
+
+lint:
+	golangci-lint run --enable-all \
+		-D funlen \
+		-D dupl \
+		-D lll \
+		-D gocognit
