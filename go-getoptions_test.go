@@ -12,7 +12,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
@@ -45,48 +44,6 @@ func setupLogging() *bytes.Buffer {
 	Debug.SetOutput(buf)
 	option.Debug.SetOutput(buf)
 	return buf
-}
-
-func TestIsOption(t *testing.T) {
-	Debug.SetOutput(os.Stderr)
-	Debug.SetOutput(ioutil.Discard)
-
-	cases := []struct {
-		in       string
-		mode     Mode
-		options  []string
-		argument string
-	}{
-		{"opt", Bundling, []string{}, ""},
-		{"--opt", Bundling, []string{"opt"}, ""},
-		{"--opt=arg", Bundling, []string{"opt"}, "arg"},
-		{"-opt", Bundling, []string{"o", "p", "t"}, ""},
-		{"-opt=arg", Bundling, []string{"o", "p", "t"}, "arg"},
-		{"-", Bundling, []string{"-"}, ""},
-		{"--", Bundling, []string{"--"}, ""},
-
-		{"opt", SingleDash, []string{}, ""},
-		{"--opt", SingleDash, []string{"opt"}, ""},
-		{"--opt=arg", SingleDash, []string{"opt"}, "arg"},
-		{"-opt", SingleDash, []string{"o"}, "pt"},
-		{"-opt=arg", SingleDash, []string{"o"}, "pt=arg"},
-		{"-", SingleDash, []string{"-"}, ""},
-		{"--", SingleDash, []string{"--"}, ""},
-
-		{"opt", Normal, []string{}, ""},
-		{"--opt", Normal, []string{"opt"}, ""},
-		{"--opt=arg", Normal, []string{"opt"}, "arg"},
-		{"-opt", Normal, []string{"opt"}, ""},
-		{"-", Normal, []string{"-"}, ""},
-		{"--", Normal, []string{"--"}, ""},
-	}
-	for _, c := range cases {
-		options, argument := isOption(c.in, c.mode)
-		if !reflect.DeepEqual(options, c.options) || argument != c.argument {
-			t.Errorf("isOption(%q, %q) == (%q, %q), want (%q, %q)",
-				c.in, c.mode, options, argument, c.options, c.argument)
-		}
-	}
 }
 
 // Verifies that a panic is reached when the same option is defined twice.
@@ -163,7 +120,7 @@ func TestUnknownOptionModes(t *testing.T) {
 		t.Errorf("Unknown option 'flags' didn't raise error")
 	}
 	if err != nil && err.Error() != "Unknown option 'flags'" {
-		t.Errorf("Error string didn't match expected value")
+		t.Errorf("Error string didn't match expected value: %s\n", err)
 	}
 
 	opt = New()
@@ -1631,6 +1588,7 @@ func TestDefaultValues(t *testing.T) {
 }
 
 func TestBundling(t *testing.T) {
+	buf := setupLogging()
 	var o, p bool
 	var s string
 	opt := New()
@@ -1653,6 +1611,7 @@ func TestBundling(t *testing.T) {
 	if s != "arg" {
 		t.Errorf("t didn't have expected value: %v != %v", s, "arg")
 	}
+	t.Log(buf.String())
 }
 
 func TestSingleDash(t *testing.T) {

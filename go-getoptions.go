@@ -657,7 +657,7 @@ func (gopt *GetOpt) handleSingleOption(name string, argument string, usedAlias s
 		return fmt.Errorf(text.ErrorMissingArgument, usedAlias)
 	}
 	// Check if next arg is option
-	if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
+	if optPair, _ := isOption(gopt.args.peekNextValue(), gopt.mode, false); len(optPair) > 0 {
 		if opt.IsOptional {
 			return nil
 		}
@@ -1046,7 +1046,7 @@ func (gopt *GetOpt) handleSliceMultiOption(name string, argument string, usedAli
 			return fmt.Errorf("NoMoreArguments")
 		}
 		// Check if next arg is option
-		if optList, _ := isOption(gopt.args.peekNextValue(), gopt.mode); len(optList) > 0 {
+		if optPair, _ := isOption(gopt.args.peekNextValue(), gopt.mode, false); len(optPair) > 0 {
 			Debug.Printf("Next arg is option: %s\n", gopt.args.peekNextValue())
 			return fmt.Errorf(text.ErrorArgumentWithDash, name)
 		}
@@ -1308,10 +1308,10 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 	for gopt.args.next() {
 		arg := gopt.args.value()
 		Debug.Printf("Parse input arg: %s\n", arg)
-		if optList, argument := isOption(arg, gopt.mode); len(optList) > 0 {
-			Debug.Printf("Parse opt_list: %v, argument: %v\n", optList, argument)
+		if optPair, _ := isOption(arg, gopt.mode, false); len(optPair) > 0 {
+			Debug.Printf("Parse optPair: %v\n", optPair)
 			// Check for termination: '--'
-			if optList[0] == "--" {
+			if optPair[0].Option == "--" {
 				Debug.Printf("Parse -- found\n")
 				// move index to next position (to not include '--') and return remaining.
 				gopt.args.next()
@@ -1320,25 +1320,30 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 				return remaining, nil
 			}
 			Debug.Printf("Parse continue\n")
-			for _, optElement := range optList {
+			for _, optElement := range optPair {
 				Debug.Printf("Parse optElement: %s\n", optElement)
-				optName, usedAlias, ok, err := gopt.getOptionFromAliases(optElement)
+				optName, usedAlias, ok, err := gopt.getOptionFromAliases(optElement.Option)
 				if err != nil {
 					return nil, err
 				}
 				if ok {
-					Debug.Printf("Parse found opt_list %s\n", optName)
+					Debug.Printf("Parse found optPair %s\n", optName)
 					gopt.passArgsToParent()
 					opt := gopt.Option(optName)
 					handler := opt.Handler
-					Debug.Printf("handler found: name %s, argument %s, index %d, list %s, args %v\n", optName, argument, gopt.args.index(), optList[0], gopt.args.remaining())
+					Debug.Printf("handler found: name %s, arguments %v, index %d, list %s, args %v\n", optName, optElement.Args, gopt.args.index(), optElement.Option, gopt.args.remaining())
+					// TODO: Currently we handle at most 1 arg, but if we were to split on comma there could be multiple.
+					var argument string
+					if len(optElement.Args) > 0 {
+						argument = optElement.Args[0]
+					}
 					err := handler(optName, argument, usedAlias)
 					if err != nil {
 						Debug.Printf("handler return: value %v, return %v, %v", opt.Value(), nil, err)
 						return nil, err
 					}
 				} else {
-					Debug.Printf("opt_list not found for '%s'\n", optElement)
+					Debug.Printf("optPair not found for '%s'\n", optElement.Option)
 					switch gopt.unknownMode {
 					case Pass:
 						if gopt.requireOrder {
@@ -1350,10 +1355,10 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 						remaining = append(remaining, arg)
 					case Warn:
 						// TODO: This WARNING can't be changed into another language. Hardcoded.
-						fmt.Fprintf(gopt.Writer, "WARNING: "+text.MessageOnUnknown+"\n", optElement)
+						fmt.Fprintf(gopt.Writer, "WARNING: "+text.MessageOnUnknown+"\n", optElement.Option)
 						remaining = append(remaining, arg)
 					default:
-						err := fmt.Errorf(text.MessageOnUnknown, optElement)
+						err := fmt.Errorf(text.MessageOnUnknown, optElement.Option)
 						Debug.Printf("return %v, %v", nil, err)
 						return nil, err
 					}
