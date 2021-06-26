@@ -90,24 +90,38 @@ func New(name string, optType Type, data interface{}) *Option {
 		opt.HelpArgName = "string"
 		opt.pString = data.(*string)
 		opt.DefaultStr = *data.(*string)
+		opt.MinArgs = 1
+		opt.MaxArgs = 1
 	case StringRepeatType:
 		opt.HelpArgName = "string"
 		opt.pStringS = data.(*[]string)
+		opt.MinArgs = 1
+		opt.MaxArgs = 1 // By default we only allow one argument at a time
 	case IntType:
 		opt.HelpArgName = "int"
 		opt.pInt = data.(*int)
+		opt.MinArgs = 1
+		opt.MaxArgs = 1
 	case IntRepeatType:
 		opt.HelpArgName = "int"
 		opt.pIntS = data.(*[]int)
+		opt.MinArgs = 1
+		opt.MaxArgs = 1 // By default we only allow one argument at a time
 	case Float64Type:
 		opt.HelpArgName = "float64"
 		opt.pFloat64 = data.(*float64)
+		opt.MinArgs = 1
+		opt.MaxArgs = 1
 	case StringMapType:
 		opt.HelpArgName = "key=value"
 		opt.pStringM = data.(*map[string]string)
+		opt.MinArgs = 1
+		opt.MaxArgs = 1 // By default we only allow one argument at a time
 	case BoolType:
 		opt.pBool = data.(*bool)
 		opt.boolDefault = *data.(*bool)
+		opt.MinArgs = 0
+		opt.MaxArgs = 0
 	}
 	opt.synopsis()
 	return opt
