@@ -1,7 +1,7 @@
 .PHONY: test
 
 test:
-	go test -race ./dag
+	go test -race ./dag -count=1
 	go test -coverprofile=coverage.txt -covermode=atomic ./ ./completion/ ./option ./help ./dag
 
 view: test
