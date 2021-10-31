@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== WIP v0.24.0: New Features
+== v0.24.0: New Features
 
 As the releases before, this release has 100% test coverage.
 Tested with Go 1.14, 1.15, 1.16 and Go 1.17.
