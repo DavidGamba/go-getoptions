@@ -208,10 +208,6 @@ A single line of bash is all it takes.
 
 • Boolean, String, Int, Float64, Slice and Map type options.
 
-• Negatable Boolean options.
-+
-For example: `--verbose`, `--no-verbose` or `--noverbose`.
-
 • Options with Array arguments.
 The same option can be used multiple times with different arguments.
 The list of arguments will be saved into an Slice.

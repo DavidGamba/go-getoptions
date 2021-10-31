@@ -37,9 +37,6 @@ Features
 
 • Boolean, String, Int and Float64 type options.
 
-• Negatable Boolean options.
-For example: `--verbose`, `--no-verbose` or `--noverbose`.
-
 • Options with Array arguments.
 The same option can be used multiple times with different arguments.
 The list of arguments will be saved into an Array like structure inside the program.
