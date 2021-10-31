@@ -8,7 +8,7 @@ David Gamba, https://github.com/DavidGamba
 Go option parser inspired on the flexibility of Perl’s GetOpt::Long.
 
 image:https://pkg.go.dev/badge/github.com/DavidGamba/go-getoptions.svg["Go Reference", link="https://pkg.go.dev/github.com/DavidGamba/go-getoptions"]
-image:https://travis-ci.org/DavidGamba/go-getoptions.svg?branch=master["Build Status", link="https://travis-ci.org/DavidGamba/go-getoptions"]
+image:https://github.com/DavidGamba/go-getoptions/actions/workflows/test.yml/badge.svg?branch=master["Build Status", link="https://github.com/DavidGamba/go-getoptions/actions/workflows/test.yml?query=branch:master"]
 image:https://codecov.io/github/DavidGamba/go-getoptions/coverage.svg?branch=master["Coverage via Codecov", link="https://codecov.io/github/DavidGamba/go-getoptions?branch=release"]
 
 toc::[]
