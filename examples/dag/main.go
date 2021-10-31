@@ -18,19 +18,18 @@ var TM *dag.TaskMap
 var Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 func main() {
-	os.Exit(program())
+	os.Exit(program(os.Args))
 }
 
-func program() int {
+func program(args []string) int {
 	opt := getoptions.New()
-	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("quiet", false)
 	opt.Bool("dot", false, opt.Description("Generate graphviz dot diagram"))
 	opt.SetUnknownMode(getoptions.Pass)
 	opt.NewCommand("build", "build project artifacts").SetCommandFn(Build)
 	opt.NewCommand("clean", "clean project artifacts").SetCommandFn(Clean)
-	opt.HelpCommand("")
-	remaining, err := opt.Parse(os.Args[1:])
+	opt.HelpCommand("help", opt.Alias("?"))
+	remaining, err := opt.Parse(args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
@@ -39,7 +38,7 @@ func program() int {
 		Logger.SetOutput(ioutil.Discard)
 	}
 
-	ctx, cancel, done := opt.InterruptContext()
+	ctx, cancel, done := getoptions.InterruptContext()
 	defer func() { cancel(); <-done }()
 
 	TM = dag.NewTaskMap()
@@ -50,7 +49,7 @@ func program() int {
 	TM.Add("ct2", cleanTask2)
 	TM.Add("ct3", cleanTask3)
 
-	err = opt.Dispatch(ctx, "help", remaining)
+	err = opt.Dispatch(ctx, remaining)
 	if err != nil {
 		if errors.Is(err, getoptions.ErrorHelpCalled) {
 			return 1

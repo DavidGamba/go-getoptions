@@ -1,6 +1,6 @@
 // This file is part of go-getoptions.
 //
-// Copyright (C) 2015-2021  David Gamba Rios
+// Copyright (C) 2015-2022  David Gamba Rios
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -46,11 +46,12 @@ For example: /baudrate:115200 /baudrate=115200 --baudrate=115200 --baudrate:1152
 */
 func isOption(s string, mode Mode, windows bool) ([]optionPair, bool) {
 	// Handle especial cases
-	if s == "--" {
+	switch s {
+	case "--":
 		// Option parsing termination (--) is not identified by isOption as an option.
 		// It is the caller's responsibility.
 		return []optionPair{{Option: "--"}}, false
-	} else if s == "-" {
+	case "-":
 		return []optionPair{{Option: "-"}}, true
 	}
 

@@ -1,6 +1,78 @@
 = Changelog
 :toc:
 
+== v0.25.0-alpha.1: Major Refactor
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.14, 1.15, 1.16 and Go 1.17.
+
+=== Goal
+
+This refactor brings major benefits in both parsing and autocompletion.
+In the initial implementation, completion was added as side logic to the existing parser code.
+In this implementation, completions are a first class citizen and share the same parsing tree structure that the rest of the library is using.
+
+The parsing tree was refactored from the ground up to better accommodate commands and subcommands and also the extra use cases that have been popping up ever since autocompletion support was added.
+
+The major user facing change is that instead of providing building blocks to build a command and subcommand experience, a single `opt.Parse` and `opt.Dispatch` call is required to handle options for commands and subcommands at all levels.
+
+=== Breaking changes
+
+* The HelpCommand signature has changed.
+The name of the "help" command is configurable.
+Additionally, when defining `opt.HelpCommand` there is no need to define a help option as it also declares one.
++
+----
+- opt.Bool("help", false, opt.Alias("?"))
+- opt.HelpCommand("")
++ opt.HelpCommand("help", opt.Alias("?"))
+----
+
+* The Dispatch signature has changed.
+There is no need to define the name of the help command at this level anymore since it has been moved to the `HelpCommand` declaration.
++
+[source,diff]
+----
+- err = opt.Dispatch(ctx, "help", remaining)
++ err = opt.Dispatch(ctx, remaining)
+----
+
+* Move `InterruptContext` into a package level function and not a method of GetOpt.
++
+[source,diff]
+----
+- ctx, cancel, done := opt.InterruptContext()
++ ctx, cancel, done := getoptions.InterruptContext()
+----
+
+* `Write` io.Writer used to write warnings and errors (which defaults to os.Stderr) has been made into a package level variable and not a method of GetOpt.
+
+* `CommandFn` is no longer an exported field of `GetOpt`.
+If this was ever used, now the canonical way to execute a command function is through `opt.Dispatch`.
+
+* Remove `opt.Option`, this was used in test code to return the internal representation of an option and shouldn't be accessed directly by an end user.
+
+* Remove `opt.Stringer`, this was used to print a text representation of the parsed structure but other than in test code there is little value for it.
+
+* Moved exported packages that this library uses into the `internal` directory so they can't be imported by other projects by mistake.
+
+* Change `opt.CustomCompletion` signature:
++
+[source,diff]
+----
+- func (gopt *GetOpt) CustomCompletion(list []string) *GetOpt
++ func (gopt *GetOpt) CustomCompletion(list ...string) *GetOpt
+----
+
+=== New Features
+
+Autocompletion is super useful now.
+
+* New setting: `opt.UnsetOptions`
++
+Since options are automatically inherited to commands and subcommands, in cases where you want to override that inheritance and delete the inherited options use this.
+This is useful for wrapper commands.
+
 == v0.24.0: New Features
 
 As the releases before, this release has 100% test coverage.

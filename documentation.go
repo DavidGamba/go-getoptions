@@ -1,6 +1,6 @@
 // This file is part of go-getoptions.
 //
-// Copyright (C) 2015-2021  David Gamba Rios
+// Copyright (C) 2015-2022  David Gamba Rios
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -36,9 +36,6 @@ Features
 • Simple synopsis and option list automated help.
 
 • Boolean, String, Int and Float64 type options.
-
-• Negatable Boolean options.
-For example: `--verbose`, `--no-verbose` or `--noverbose`.
 
 • Options with Array arguments.
 The same option can be used multiple times with different arguments.

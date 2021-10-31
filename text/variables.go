@@ -1,6 +1,6 @@
 // This file is part of go-getoptions.
 //
-// Copyright (C) 2015-2021  David Gamba Rios
+// Copyright (C) 2015-2022  David Gamba Rios
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,7 +19,7 @@ var ErrorAmbiguousArgument = "Ambiguous option '%s', matches %v!"
 
 // ErrorMissingRequiredOption holds the text for missing required option error.
 // It has a string placeholder '%s' for the name of the missing option.
-var ErrorMissingRequiredOption = "Missing required option '%s'!"
+var ErrorMissingRequiredOption = "Missing required parameter '%s'"
 
 // ErrorArgumentIsNotKeyValue holds the text for Map type options where the argument is not of key=value type.
 // It has a string placeholder '%s' for the name of the option missing the argument.
@@ -38,8 +38,11 @@ var ErrorConvertToInt = "Argument error for option '%s': Can't convert string to
 // It has two string placeholders ('%s'). The first one for the name of the option with the wrong argument and the second one for the argument that could not be converted.
 var ErrorConvertToFloat64 = "Argument error for option '%s': Can't convert string to float64: '%s'"
 
-// MessageOnUnknown holds the text for the unknown option message.
+// WarningOnUnknown holds the text for the unknown option message.
 // It has a string placeholder '%s' for the name of the option missing the argument.
+// This one includes the WARNING prefix because it is printed directly to the Writer output.
+var WarningOnUnknown = "WARNING: Unknown option '%s'"
+
 var MessageOnUnknown = "Unknown option '%s'"
 
 // MessageOnInterrupt holds the text for the message to be printed when an interrupt is received.

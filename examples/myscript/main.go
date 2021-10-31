@@ -9,13 +9,18 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var logger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
+var Logger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
 
 func main() {
+	os.Exit(program(os.Args))
+}
+
+func program(args []string) int {
 	var debug bool
 	var greetCount int
 	var list map[string]string
 	opt := getoptions.New()
+	opt.Self("myscript", "Simple demo script")
 	opt.Bool("help", false, opt.Alias("h", "?"))
 	opt.BoolVar(&debug, "debug", false, opt.GetEnv("DEBUG"))
 	opt.IntVar(&greetCount, "greet", 0,
@@ -23,22 +28,22 @@ func main() {
 		opt.Description("Number of times to greet."))
 	opt.StringMapVar(&list, "list", 1, 99,
 		opt.Description("Greeting list by language."))
-	remaining, err := opt.Parse(os.Args[1:])
+	remaining, err := opt.Parse(args[1:])
 	if opt.Called("help") {
-		fmt.Fprintf(os.Stderr, opt.Help())
-		os.Exit(1)
+		fmt.Fprint(os.Stderr, opt.Help())
+		return 1
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
-		fmt.Fprintf(os.Stderr, opt.Help(getoptions.HelpSynopsis))
-		os.Exit(1)
+		fmt.Fprint(os.Stderr, opt.Help(getoptions.HelpSynopsis))
+		return 1
 	}
 
 	// Use the passed command line options... Enjoy!
 	if debug {
-		logger.SetOutput(os.Stderr)
+		Logger.SetOutput(os.Stderr)
 	}
-	logger.Printf("Unhandled CLI args: %v\n", remaining)
+	Logger.Printf("Unhandled CLI args: %v\n", remaining)
 
 	// Use the int variable
 	for i := 0; i < greetCount; i++ {
@@ -52,4 +57,5 @@ func main() {
 			fmt.Printf("\t%s=%s\n", k, v)
 		}
 	}
+	return 0
 }

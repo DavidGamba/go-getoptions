@@ -138,6 +138,8 @@ Greeting List:
         es=Hola Mundo
 ----
 
+NOTE: If you are starting a new project, instead of copying the example code from above, use the code from the link:./docs/new-project-templates.adoc[New Project Templates].
+
 == Examples
 
 === Simple script
@@ -153,22 +155,25 @@ Tab completion for this script is triggered for options only, so you need to hav
 
 This is the other extreme, a large program that can separate each command in a separate go package.
 
-The base is located at link:./examples/mygit/main.go[]
+The base is located at link:./examples/complex/main.go[]
 
 The commands are located at:
 
-* link:./examples/mygit/log/log.go[]
-* link:./examples/mygit/show/show.go[]
-* link:./examples/mygit/slow/slow.go[]
+* link:./examples/complex/greet/greet.go[]
+* link:./examples/complex/log/log.go[]
+* link:./examples/complex/show/show.go[]
+* link:./examples/complex/slow/slow.go[]
 
-To use the autocompletion, cd to the link:./examples/mygit[] dir and run: `source sourceme.bash`
-The run `go build` and `./mygit`.
+To use the autocompletion, cd to the link:./examples/complex[] dir and run: `source sourceme.bash`
+The run `go build` and `./complex`.
 
-Tab completion without arguments triggers completion for commands, for option completion add a dash `-` and trigger it: `./mygit -<tab><tab>`
+Tab completion without arguments triggers completion for commands, for option completion add a dash `-` and trigger it: `./complex -<tab><tab>`
 
-The link:./examples/mygit/slow/slow.go[slow] command shows an example of an slow command that can be cancelled with `Ctrl+C`.
+The link:./examples/complex/slow/slow.go[slow] command shows an example of an slow command that can be cancelled with `Ctrl+C`.
 The cancellation is passed to the command through `context.Context` and it is handled at the command to stop taking new work and trigger a cleanup routine.
 Running `Ctrl+C` twice cancels the cancellation routine and fully cancels the program.
+
+The link:./examples/complex/greet/greet.go[greet] command shows an example of using commands and subcommands.
 
 === Directed Acyclic Graph Build System
 
@@ -207,10 +212,6 @@ A single line of bash is all it takes.
 • Simple synopsis and option list automated help.
 
 • Boolean, String, Int, Float64, Slice and Map type options.
-
-• Negatable Boolean options.
-+
-For example: `--verbose`, `--no-verbose` or `--noverbose`.
 
 • Options with Array arguments.
 The same option can be used multiple times with different arguments.
@@ -892,9 +893,9 @@ StringMap and StringMapVar:: Comma separated key=value?
 [[roadmap]]
 == ROADMAP
 
-* Create new error description for errors when parsing integer ranges (`1..3`).
+* Generate compilation errors for commands without a defined `CommandFn`.
 
-* Option that runs a function?
+* Create new error description for errors when parsing integer ranges (`1..3`).
 
 * Case insensitive matching.
 
@@ -902,22 +903,19 @@ StringMap and StringMapVar:: Comma separated key=value?
 The string that starts options.
 Defaults to "--" and "-" but could include "/" to support Win32 style argument handling.
 
-* Supports argument dividers other than '='.
-For example: You could define ':' and use `--string=mystring`, `--string:mystring` and `--string mystring`.
+* Allow grouping commands so they can have a different order other than alphabetical in the help output.
 
-* Remove need for `opt.HelpCommand("")` when dispatch is defined.
-+
-Currently we have to define the `opt.Bool("help", false)` flag, then `opt.HelpCommand("")`, and finally `opt.Dispatch(ctx, "help", remaining)`.
-`opt.HelpCommand` is redundant.
-Additionally `opt.HelpCommand` has the `help` command name hardcoded in it.
+* DAG concurrency tests sporadically fail in macos when testing for race conditions.
+Testing concurrency and completion order is very difficult in Go.
 
-* Allow grouping commands so they can have a different order other than alphabetical
+* Some Windows tests fail because the binary name includes .exe at the end.
+Update test suite to accommodate for Windows.
 
 == License
 
 This file is part of go-getoptions.
 
-Copyright (C) 2015-2021  David Gamba Rios
+Copyright (C) 2015-2022  David Gamba Rios
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this

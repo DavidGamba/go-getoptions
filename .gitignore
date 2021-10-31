@@ -1,4 +1,5 @@
-examples/mygit/mygit
+examples/complex/complex
 examples/myscript/myscript
+examples/dag/dag
 coverage.txt
 coverage.html

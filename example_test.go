@@ -38,14 +38,14 @@ func Example() {
 
 	// Handle help before handling user errors
 	if opt.Called("help") {
-		fmt.Fprintf(os.Stderr, opt.Help())
+		fmt.Fprint(os.Stderr, opt.Help())
 		os.Exit(1)
 	}
 
 	// Handle user errors
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
-		fmt.Fprintf(os.Stderr, opt.Help(getoptions.HelpSynopsis))
+		fmt.Fprint(os.Stderr, opt.Help(getoptions.HelpSynopsis))
 		os.Exit(1)
 	}
 
