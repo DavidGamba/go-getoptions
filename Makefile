@@ -1,8 +1,10 @@
 .PHONY: test
 
 test:
-	go test -race ./dag -count=1
 	go test -coverprofile=coverage.txt -covermode=atomic ./ ./completion/ ./option ./help ./dag
+
+race:
+	go test -race ./dag -count=1
 
 view: test
 	go tool cover -html=coverage.txt -o coverage.html
