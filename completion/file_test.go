@@ -31,7 +31,7 @@ func TestListDir(t *testing.T) {
 		{"dir", "test/test_tree/bDir1", "../", []string{"../aFile1", "../aFile2", "../.aFile2", "../..aFile2", "../...aFile2", "../bDir1/", "../bDir2/", "../cFile1", "../cFile2"}, ""},
 		{"dir", "test/test_tree/bDir1", "../.", []string{".././", "../../", "../.aFile2", "../..aFile2", "../...aFile2"}, ""},
 		{"error", "x", "", []string{}, "open x: no such file or directory"},
-		{"error", "test/test_tree/aFile1", "", []string{}, "readdirent[^:]*: not a directory"},
+		{"error", "test/test_tree/aFile1", "", []string{}, "not a directory"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

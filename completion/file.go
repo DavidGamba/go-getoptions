@@ -124,10 +124,11 @@ func listDir(dirname string, prefix string) ([]string, error) {
 		prefix = strings.TrimPrefix(prefix, dir)
 		usedDirname = filepath.Join(dirname, dir) + string(os.PathSeparator)
 	}
-	if prefix == "." {
+	switch prefix {
+	case ".":
 		filenames = append(filenames, dir+"./")
 		filenames = append(filenames, dir+"../")
-	} else if prefix == ".." {
+	case "..":
 		filenames = append(filenames, dir+"../")
 	}
 	fileInfoList, err := readDirNoSort(usedDirname)
