@@ -1,0 +1,33 @@
+= New Project Templates
+
+== Single Purpose Script
+
+When creating a new single purpose script (in other words, with no sub-commands) use the template below:
+
+include::script.go[]
+
+The template has a single `os.Exit`.
+`os.Exit` shouldn't be used anywhere else on your script (otherwise defer statements will not run).
+
+The template ensures your script exits with 0 for success, 1 for error.
+If there is a need for a custom exit status code, the error returned from `realMain` should be checked and the logic implemented there.
+
+The template also creates a default context that captures `os.Interrupt`, `syscall.SIGHUP` and `syscall.SIGTERM`.
+
+== Complex Script
+
+When creating a complex tool (in other words, one that implements sub-commands) use the template below:
+
+include::complex.go[]
+
+The template has a single `os.Exit`.
+`os.Exit` shouldn't be used anywhere else on your script (otherwise defer statements will not run).
+
+The template ensures your script exits with 0 for success, 1 for error.
+If there is a need for a custom exit status code, the error returned from `realMain` should be checked and the logic implemented there.
+
+The template also creates a default context that captures `os.Interrupt`, `syscall.SIGHUP` and `syscall.SIGTERM`.
+
+The template doesn't run any code at the top level command other than displaying the help.
+
+Finally, the template has an example command (`cmd`) with an example implementation (`Run`).

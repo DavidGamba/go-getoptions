@@ -138,6 +138,8 @@ Greeting List:
         es=Hola Mundo
 ----
 
+NOTE: If you are starting a new project, instead of copying the example code from above, use the code from the link:./docs/new-project-templates.adoc[New Project Templates].
+
 == Examples
 
 === Simple script
