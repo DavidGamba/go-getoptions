@@ -141,6 +141,12 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 		exitFn(124) // programmable completion restarts from the beginning, with an attempt to find a new compspec for that command.
 	}
 
+	// WIP:
+	// After we are done parsing, we know what node in the tree we are.
+	// I could easily dispatch from here.
+	// Think about whether or not there is value in dispatching directly from parse or if it is better to call the dispatch function.
+	// node, _, err := parseCLIArgs(false, gopt.programTree, args, Normal)
+
 	_, _, err := parseCLIArgs(false, gopt.programTree, args, Normal)
 	if err != nil {
 		return nil, err
