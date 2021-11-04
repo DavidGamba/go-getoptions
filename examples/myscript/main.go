@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/DavidGamba/go-getoptions"
+	"github.com/DavidGamba/go-getoptions/go-getoptions"
 )
 
 var logger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
@@ -25,12 +25,12 @@ func main() {
 		opt.Description("Greeting list by language."))
 	remaining, err := opt.Parse(os.Args[1:])
 	if opt.Called("help") {
-		fmt.Fprintf(os.Stderr, opt.Help())
+		fmt.Fprint(os.Stderr, opt.Help())
 		os.Exit(1)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
-		fmt.Fprintf(os.Stderr, opt.Help(getoptions.HelpSynopsis))
+		fmt.Fprint(os.Stderr, opt.Help(getoptions.HelpSynopsis))
 		os.Exit(1)
 	}
 
