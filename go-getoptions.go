@@ -970,8 +970,6 @@ func (gopt *GetOpt) IntSlice(name string, min, max int, fns ...ModifyFn) *[]int 
 // When min is bigger than 1, it is required to pass the amount of arguments defined by min at once.
 // For example: with `min = 2`, you at least require `--strMap k=v k2=v2 --strMap k3=v3`
 func (gopt *GetOpt) StringMapVar(m *map[string]string, name string, min, max int, fns ...ModifyFn) {
-	// TODO: panic if m is nil
-
 	// check that the map has been initialized
 	if *m == nil {
 		*m = make(map[string]string)
