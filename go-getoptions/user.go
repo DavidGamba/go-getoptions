@@ -113,6 +113,12 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	return cmd
 }
 
+// SetCommandFn - Defines the command entry point function.
+func (gopt *GetOpt) SetCommandFn(fn CommandFn) *GetOpt {
+	gopt.programTree.CommandFn = fn
+	return gopt
+}
+
 func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	compLine := os.Getenv("COMP_LINE")
 	if compLine != "" {
@@ -145,11 +151,21 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	// After we are done parsing, we know what node in the tree we are.
 	// I could easily dispatch from here.
 	// Think about whether or not there is value in dispatching directly from parse or if it is better to call the dispatch function.
-	// node, _, err := parseCLIArgs(false, gopt.programTree, args, Normal)
 
-	_, _, err := parseCLIArgs(false, gopt.programTree, args, Normal)
+	// TODO: parseCLIArgs needs to return the remaining array
+	node, _, err := parseCLIArgs(false, gopt.programTree, args, Normal)
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+
+	remaining := node.ChildText
+
+	if node.CommandFn != nil {
+		err = node.CommandFn(context.Background(), &GetOpt{node}, remaining)
+		if err != nil {
+			return remaining, err
+		}
+	}
+
+	return remaining, nil
 }

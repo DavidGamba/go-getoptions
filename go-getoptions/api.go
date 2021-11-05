@@ -18,9 +18,10 @@ type programTree struct {
 	Name          string
 	ChildCommands map[string]*programTree
 	ChildOptions  map[string]*option.Option
-	ChildText     []*string
+	ChildText     []string
 	Parent        *programTree
 	Level         int
+	CommandFn     CommandFn
 	command
 }
 
@@ -277,7 +278,7 @@ ARGS_LOOP:
 		if iterator.Value() == "--" {
 			for iterator.Next() {
 				value := iterator.Value()
-				currentProgramNode.ChildText = append(currentProgramNode.ChildText, &value)
+				currentProgramNode.ChildText = append(currentProgramNode.ChildText, value)
 			}
 			break ARGS_LOOP
 		}
@@ -400,7 +401,7 @@ ARGS_LOOP:
 
 		// handle text
 		value := iterator.Value()
-		currentProgramNode.ChildText = append(currentProgramNode.ChildText, &value)
+		currentProgramNode.ChildText = append(currentProgramNode.ChildText, value)
 	}
 
 	// TODO: Before returning the current node, parse EnvVars and update the values.

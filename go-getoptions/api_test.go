@@ -19,11 +19,11 @@ func TestParseCLIArgs(t *testing.T) {
 
 		{"empty", []string{}, Normal, setupOpt().programTree, &[]string{}, nil},
 
-		{"text", []string{"txt"}, Normal, func() *programTree {
-			tree := setupOpt().programTree
-			value := "txt"
-			tree.ChildText = append(tree.ChildText, &value)
-			return tree
+		{"text", []string{"txt", "txt2"}, Normal, func() *programTree {
+			n := setupOpt().programTree
+			n.ChildText = append(n.ChildText, "txt")
+			n.ChildText = append(n.ChildText, "txt2")
+			return n
 		}(), &[]string{}, nil},
 
 		{"command", []string{"cmd1"}, Normal, func() *programTree {
@@ -34,29 +34,29 @@ func TestParseCLIArgs(t *testing.T) {
 			return n
 		}(), &[]string{}, nil},
 
-		{"text to command", []string{"cmd1", "txt"}, Normal, func() *programTree {
+		{"text to command", []string{"cmd1", "txt", "txt2"}, Normal, func() *programTree {
 			n, err := getNode(setupOpt().programTree, "cmd1")
 			if err != nil {
 				panic(err)
 			}
-			value := "txt"
-			n.ChildText = append(n.ChildText, &value)
+			n.ChildText = append(n.ChildText, "txt")
+			n.ChildText = append(n.ChildText, "txt2")
 			return n
 		}(), &[]string{}, nil},
 
-		{"text to sub command", []string{"cmd1", "sub1cmd1", "txt"}, Normal, func() *programTree {
+		{"text to sub command", []string{"cmd1", "sub1cmd1", "txt", "txt2"}, Normal, func() *programTree {
 			n, err := getNode(setupOpt().programTree, "cmd1", "sub1cmd1")
 			if err != nil {
 				panic(err)
 			}
-			value := "txt"
-			n.ChildText = append(n.ChildText, &value)
+			n.ChildText = append(n.ChildText, "txt")
+			n.ChildText = append(n.ChildText, "txt2")
 			return n
 		}(), &[]string{}, nil},
 
-		{"option with arg", []string{"--rootopt1=hello"}, Normal, func() *programTree {
-			tree := setupOpt().programTree
-			opt, ok := tree.ChildOptions["rootopt1"]
+		{"option with arg", []string{"--rootopt1=hello", "txt", "txt2"}, Normal, func() *programTree {
+			n := setupOpt().programTree
+			opt, ok := n.ChildOptions["rootopt1"]
 			if !ok {
 				t.Fatalf("not found")
 			}
@@ -66,12 +66,14 @@ func TestParseCLIArgs(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
-			return tree
+			n.ChildText = append(n.ChildText, "txt")
+			n.ChildText = append(n.ChildText, "txt2")
+			return n
 		}(), &[]string{}, nil},
 
-		{"option", []string{"--rootopt1", "hello"}, Normal, func() *programTree {
-			tree := setupOpt().programTree
-			opt, ok := tree.ChildOptions["rootopt1"]
+		{"option", []string{"--rootopt1", "hello", "txt", "txt2"}, Normal, func() *programTree {
+			n := setupOpt().programTree
+			opt, ok := n.ChildOptions["rootopt1"]
 			if !ok {
 				t.Fatalf("not found")
 			}
@@ -81,28 +83,31 @@ func TestParseCLIArgs(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
-			return tree
+			n.ChildText = append(n.ChildText, "txt")
+			n.ChildText = append(n.ChildText, "txt2")
+			return n
 		}(), &[]string{}, nil},
 
 		{"option error missing argument", []string{"--rootopt1"}, Normal, func() *programTree {
-			tree := setupOpt().programTree
-			opt, ok := tree.ChildOptions["rootopt1"]
+			n := setupOpt().programTree
+			opt, ok := n.ChildOptions["rootopt1"]
 			if !ok {
 				t.Fatalf("not found")
 			}
 			opt.Called = true
 			opt.UsedAlias = "rootopt1"
-			return tree
+			return n
 		}(), &[]string{}, ErrorMissingArgument},
 
-		{"terminator", []string{"--", "--opt1"}, Normal, func() *programTree {
-			tree := setupOpt().programTree
-			value := "--opt1"
-			tree.ChildText = append(tree.ChildText, &value)
-			return tree
+		{"terminator", []string{"--", "--opt1", "txt", "txt2"}, Normal, func() *programTree {
+			n := setupOpt().programTree
+			n.ChildText = append(n.ChildText, "--opt1")
+			n.ChildText = append(n.ChildText, "txt")
+			n.ChildText = append(n.ChildText, "txt2")
+			return n
 		}(), &[]string{}, nil},
 
-		{"lonesome dash", []string{"cmd1", "sub2cmd1", "-"}, Normal, func() *programTree {
+		{"lonesome dash", []string{"cmd1", "sub2cmd1", "-", "txt", "txt2"}, Normal, func() *programTree {
 			tree := setupOpt().programTree
 			n, err := getNode(tree, "cmd1", "sub2cmd1")
 			if err != nil {
@@ -114,6 +119,8 @@ func TestParseCLIArgs(t *testing.T) {
 			}
 			opt.Called = true
 			opt.UsedAlias = "-"
+			n.ChildText = append(n.ChildText, "txt")
+			n.ChildText = append(n.ChildText, "txt2")
 			return n
 		}(), &[]string{"-", "--cmd1opt1", "--rootopt1"}, nil},
 
