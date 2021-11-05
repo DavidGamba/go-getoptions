@@ -12,13 +12,13 @@ import (
 	"github.com/DavidGamba/go-getoptions/go-getoptions"
 )
 
-var logger = log.New(ioutil.Discard, "", log.LstdFlags)
+var Logger = log.New(ioutil.Discard, "", log.LstdFlags)
 
 func main() {
-	os.Exit(program())
+	os.Exit(program(os.Args))
 }
 
-func program() int {
+func program(args []string) int {
 	opt := getoptions.New()
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false, opt.GetEnv("DEBUG"))
@@ -28,18 +28,21 @@ func program() int {
 	gitshow.New(opt).SetCommandFn(gitshow.Run)
 	gitslow.New(opt).SetCommandFn(gitslow.Run)
 	opt.HelpCommand("")
-	remaining, err := opt.Parse(os.Args[1:])
+	remaining, err := opt.Parse(args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		os.Exit(1)
 	}
 	if opt.Called("debug") {
-		logger.SetOutput(os.Stderr)
+		Logger.SetOutput(os.Stderr)
+		gitlog.Logger.SetOutput(os.Stderr)
+		gitshow.Logger.SetOutput(os.Stderr)
+		gitslow.Logger.SetOutput(os.Stderr)
 	}
 	if opt.Called("profile") {
-		logger.Printf("profile: %s\n", opt.Value("profile"))
+		Logger.Printf("profile: %s\n", opt.Value("profile"))
 	}
-	logger.Printf("Remaning cli args: %v", remaining)
+	Logger.Printf("Remaning cli args: %v", remaining)
 
 	ctx, cancel, done := getoptions.InterruptContext()
 	defer func() { cancel(); <-done }()
