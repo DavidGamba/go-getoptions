@@ -62,6 +62,7 @@ func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {
 }
 
 func (gopt *GetOpt) BoolVar(p *bool, name string, def bool, fns ...ModifyFn) {
+	*p = def
 	n := option.New(name, option.BoolType, p)
 	gopt.programTree.AddChildOption(name, n)
 	for _, fn := range fns {
@@ -75,6 +76,7 @@ func (gopt *GetOpt) String(name, def string, fns ...ModifyFn) *string {
 }
 
 func (gopt *GetOpt) StringVar(p *string, name, def string, fns ...ModifyFn) {
+	*p = def
 	n := option.New(name, option.StringType, p)
 	gopt.programTree.AddChildOption(name, n)
 }
@@ -85,6 +87,7 @@ func (gopt *GetOpt) StringOptional(name, def string, fns ...ModifyFn) *string {
 }
 
 func (gopt *GetOpt) StringVarOptional(p *string, name, def string, fns ...ModifyFn) {
+	*p = def
 	n := option.New(name, option.StringType, p)
 	gopt.programTree.AddChildOption(name, n)
 }
@@ -108,6 +111,7 @@ func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
 }
 
 func (gopt *GetOpt) IntVar(p *int, name string, def int, fns ...ModifyFn) {
+	*p = def
 	n := option.New(name, option.IntType, p)
 	gopt.programTree.AddChildOption(name, n)
 }
@@ -118,6 +122,7 @@ func (gopt *GetOpt) IntOptional(name string, def int, fns ...ModifyFn) *int {
 }
 
 func (gopt *GetOpt) IntVarOptional(p *int, name string, def int, fns ...ModifyFn) {
+	*p = def
 	n := option.New(name, option.IntType, p)
 	gopt.programTree.AddChildOption(name, n)
 }
@@ -141,6 +146,7 @@ func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 
 }
 
 func (gopt *GetOpt) Float64Var(p *float64, name string, def float64, fns ...ModifyFn) {
+	*p = def
 	n := option.New(name, option.Float64Type, p)
 	gopt.programTree.AddChildOption(name, n)
 }
@@ -151,6 +157,7 @@ func (gopt *GetOpt) Float64Optional(name string, def float64, fns ...ModifyFn) *
 }
 
 func (gopt *GetOpt) Float64VarOptional(p *float64, name string, def float64, fns ...ModifyFn) {
+	*p = def
 	n := option.New(name, option.Float64Type, p)
 	gopt.programTree.AddChildOption(name, n)
 }
