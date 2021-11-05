@@ -1,6 +1,31 @@
 = Changelog
 :toc:
 
+== WIP: v0.25.0-alpha: Major Refactor
+
+As the releases before, this release has 100% test coverage.
+Tested with ?
+
+=== Goal
+
+This refactor brings major benefits in both parsing and autocompletion.
+In the initial implementation, completion was added to the existing code.
+In this implementation, completions are a first class citizen and share the same parsing tree structure that the rest of the library is using.
+
+The parsing tree was refactored from the ground up to better accommodate commands and subcommands and also the extra use cases that have been popping up ever since autocompletion support was added.
+
+=== Breaking changes
+
+* The Dispatch signature might change.
+
+* Move `InterruptContext` into a package level function and not a method of GetOpt.
+
+* `Write` io.Writer used to write warnings and errors (which defaults to os.Stderr) has been made into a package level variable and not a method of GetOpt.
+
+=== New Features
+
+Autocompletion is super useful now.
+
 == v0.24.0: New Features
 
 As the releases before, this release has 100% test coverage.
