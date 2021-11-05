@@ -9,7 +9,7 @@ import (
 	"github.com/DavidGamba/go-getoptions/go-getoptions"
 )
 
-var logger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
+var Logger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
 
 func main() {
 	var debug bool
@@ -36,9 +36,9 @@ func main() {
 
 	// Use the passed command line options... Enjoy!
 	if debug {
-		logger.SetOutput(os.Stderr)
+		Logger.SetOutput(os.Stderr)
 	}
-	logger.Printf("Unhandled CLI args: %v\n", remaining)
+	Logger.Printf("Unhandled CLI args: %v\n", remaining)
 
 	// Use the int variable
 	for i := 0; i < greetCount; i++ {

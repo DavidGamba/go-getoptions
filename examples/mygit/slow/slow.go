@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 	"time"
 
-	"github.com/DavidGamba/go-getoptions"
+	"github.com/DavidGamba/go-getoptions/go-getoptions"
 )
 
-var logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
+var Logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
 
 var iterations int
 
@@ -24,14 +23,10 @@ func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
 
 // Run - Command entry point
 func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-	if opt.Called("help") {
-		fmt.Fprintf(os.Stderr, opt.Help())
-		os.Exit(1)
+	Logger.Printf("args to slow: %v\n", args)
+	if opt.Called("iterations") {
+		fmt.Printf("iterations overriden with: %d\n", opt.Value("iterations"))
 	}
-	if opt.Called("debug") {
-		logger.SetOutput(os.Stderr)
-	}
-	logger.Println(args)
 	for i := 0; i < iterations; i++ {
 		select {
 		case <-ctx.Done():

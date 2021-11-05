@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 
-	"github.com/DavidGamba/go-getoptions"
+	"github.com/DavidGamba/go-getoptions/go-getoptions"
 )
 
-var logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
+var Logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
 
 // New - Populate Options definition
 func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
@@ -22,14 +21,13 @@ func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
 
 // Run - Command entry point
 func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-	if opt.Called("help") {
-		fmt.Fprintf(os.Stderr, opt.Help())
-		os.Exit(1)
-	}
-	if opt.Called("debug") {
-		logger.SetOutput(os.Stderr)
-	}
-	logger.Println(args)
+	Logger.Printf("args to show: %v\n", args)
 	fmt.Printf("show output... %v\n", args)
+	if opt.Called("show-option") {
+		fmt.Printf("show option was called...\n")
+	}
+	if opt.Called("password") {
+		fmt.Printf("The secret was... %s\n", opt.Value("password"))
+	}
 	return nil
 }

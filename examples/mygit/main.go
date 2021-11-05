@@ -1,16 +1,15 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 
-	"github.com/DavidGamba/go-getoptions"
 	gitlog "github.com/DavidGamba/go-getoptions/examples/mygit/log"
 	gitshow "github.com/DavidGamba/go-getoptions/examples/mygit/show"
 	gitslow "github.com/DavidGamba/go-getoptions/examples/mygit/slow"
+	"github.com/DavidGamba/go-getoptions/go-getoptions"
 )
 
 var logger = log.New(ioutil.Discard, "", log.LstdFlags)
@@ -42,14 +41,14 @@ func program() int {
 	}
 	logger.Printf("Remaning cli args: %v", remaining)
 
-	ctx, cancel, done := opt.InterruptContext()
+	ctx, cancel, done := getoptions.InterruptContext()
 	defer func() { cancel(); <-done }()
 
-	err = opt.Dispatch(ctx, "help", remaining)
+	err = opt.Dispatch(ctx, remaining)
 	if err != nil {
-		if errors.Is(err, getoptions.ErrorHelpCalled) {
-			return 1
-		}
+		// if errors.Is(err, getoptions.ErrorHelpCalled) {
+		// 	return 1
+		// }
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
 	}

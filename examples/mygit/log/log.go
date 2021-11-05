@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 
-	"github.com/DavidGamba/go-getoptions"
+	"github.com/DavidGamba/go-getoptions/go-getoptions"
 )
 
-var logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
+var Logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
 
 // New - Populate Options definition
 func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
@@ -21,14 +20,10 @@ func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
 
 // Run - Command entry point
 func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-	if opt.Called("help") {
-		fmt.Fprintf(os.Stderr, opt.Help())
-		os.Exit(1)
-	}
-	if opt.Called("debug") {
-		logger.SetOutput(os.Stderr)
-	}
-	logger.Println(args)
+	Logger.Printf("args to log: %v\n", args)
 	fmt.Printf("log output...\n")
+	if opt.Called("log-option") {
+		fmt.Printf("log option was called...\n")
+	}
 	return nil
 }
