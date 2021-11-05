@@ -31,7 +31,14 @@ var exitFn = os.Exit
 var completionWriter io.Writer = os.Stdout
 
 type GetOpt struct {
+	// This is the main tree structure that gets build during the option and command definition
 	programTree *programTree
+
+	// This is the node that gets selected after parsing the CLI args.
+	//
+	// NOTE: When calling dispatch the programTree above is overwritten to be finalNode.
+	//       This finalNode shouldn't be used downstream.
+	finalNode *programTree
 }
 
 // Mode - Operation mode for short options
@@ -82,6 +89,26 @@ func New() *GetOpt {
 		ChildOptions:  map[string]*option.Option{},
 		Level:         0,
 	}
+	return gopt
+}
+
+// SetUnknownMode - Determines how to behave when encountering an unknown option.
+//
+// • 'fail' (default) will make 'Parse' return an error with the unknown option information.
+//
+// • 'warn' will make 'Parse' print a user warning indicating there was an unknown option.
+// The unknown option will be left in the remaining array.
+//
+// • 'pass' will make 'Parse' ignore any unknown options and they will be passed onto the 'remaining' slice.
+// This allows for subcommands.
+// TODO: Add aliases
+func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) *GetOpt {
+	// TODO:
+	return gopt
+}
+
+func (gopt *GetOpt) HelpCommand(description string) *GetOpt {
+	// TODO:
 	return gopt
 }
 
@@ -157,15 +184,24 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	gopt.finalNode = node
 
-	remaining := node.ChildText
+	return node.ChildText, nil
+}
 
-	if node.CommandFn != nil {
-		err = node.CommandFn(context.Background(), &GetOpt{node}, remaining)
-		if err != nil {
-			return remaining, err
-		}
+func (gopt *GetOpt) Value(name string) interface{} {
+	if v, ok := gopt.programTree.ChildOptions[name]; ok {
+		return v.Value()
 	}
+	return nil
+}
 
-	return remaining, nil
+func (gopt *GetOpt) Dispatch(ctx context.Context, remaining []string) error {
+	if gopt.finalNode.CommandFn != nil {
+		return gopt.finalNode.CommandFn(ctx, &GetOpt{gopt.finalNode, gopt.finalNode}, remaining)
+	}
+	if gopt.finalNode.Parent != nil {
+		return fmt.Errorf("command %s has no defined CommandFn", gopt.finalNode.Name)
+	}
+	return nil
 }
