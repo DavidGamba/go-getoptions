@@ -62,6 +62,9 @@ type Option struct {
 	IsRequired    bool   // Indicates if the option is required
 	IsRequiredErr string // Error message for the required option
 
+	SuggestedValues []string // SuggestedValues used for completions
+	ValidValues     []string // ValidValues that can be passed to Save
+
 	// Help
 	DefaultStr   string // String representation of default value
 	Description  string // Optional description used for help

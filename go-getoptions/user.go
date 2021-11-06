@@ -6,6 +6,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// TODO: Handle uncomplete options
+
 package getoptions
 
 import (
@@ -21,6 +23,8 @@ import (
 	"github.com/DavidGamba/go-getoptions/option"
 )
 
+// Logger instance set to `ioutil.Discard` by default.
+// Enable debug logging by setting: `Logger.SetOutput(os.Stderr)`.
 var Logger = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 // exitFn - This variable allows to test os.Exit calls
@@ -30,6 +34,7 @@ var exitFn = os.Exit
 // Set as a variable to allow for easy testing.
 var completionWriter io.Writer = os.Stdout
 
+// GetOpt - main object.
 type GetOpt struct {
 	// This is the main tree structure that gets build during the option and command definition
 	programTree *programTree
@@ -64,22 +69,11 @@ const (
 // CommandFn - Function signature for commands
 type CommandFn func(context.Context, *GetOpt, []string) error
 
-// ModifyFn - Function signature for functions that modify an option.
-type ModifyFn func(parent *GetOpt, option *option.Option)
-
-// ModifyFn has to include the parent information because We want alias to be a
-// global option. That is, that the user can call the top level opt.Alias from
-// an option that belongs to a command or a subcommand. The problem with that
-// is that if the ModifyFn signature doesn't provide information about the
-// current parent we loose information about where the alias belongs to.
+// New returns an empty object of type GetOpt.
+// This is the starting point when using go-getoptions.
+// For example:
 //
-// The other complication with aliases becomes validation. Ideally, due to the
-// tree nature of the command/option definition, you might want to define the
-// same option with the same alias for two commands and they could do different
-// things. That means that, without parent information, to write validation for
-// aliases one has to navigate all leafs of the tree and validate that
-// duplicates don't exist and limit functionality.
-
+//   opt := getoptions.New()
 func New() *GetOpt {
 	gopt := &GetOpt{}
 	gopt.programTree = &programTree{
@@ -112,6 +106,7 @@ func (gopt *GetOpt) HelpCommand(description string) *GetOpt {
 	return gopt
 }
 
+// NewCommand - Returns a new GetOpt object representing a new command.
 func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	cmd := &GetOpt{}
 	command := &programTree{
