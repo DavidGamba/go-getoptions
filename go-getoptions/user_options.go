@@ -60,6 +60,13 @@ func (gopt *GetOpt) ArgName(name string) ModifyFn {
 	}
 }
 
+func (gopt *GetOpt) ValidValues(values ...string) ModifyFn {
+	return func(parent *GetOpt, opt *option.Option) {
+		opt.ValidValues = append(opt.ValidValues, values...)
+		opt.SuggestedValues = opt.ValidValues
+	}
+}
+
 func (gopt *GetOpt) Called(name string) bool {
 	if name == "" {
 		// Don't panic at this point since the user can only reproduce this by

@@ -3,6 +3,7 @@ package getoptions
 import (
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -242,11 +243,17 @@ ARGS_LOOP:
 					// inserted by bash.
 					// This extra completion has nice documentation on what the option expects.
 					if len(*comps) == 1 && strings.HasSuffix((*comps)[0], "=") {
-						valueStr := "<value>"
-						if lastOpt.HelpArgName != "" {
-							valueStr = "<" + lastOpt.HelpArgName + ">"
+						if lastOpt.SuggestedValues != nil && len(lastOpt.SuggestedValues) > 0 {
+							for _, e := range lastOpt.SuggestedValues {
+								*comps = append(*comps, (*comps)[0]+e)
+							}
+						} else {
+							valueStr := "<value>"
+							if lastOpt.HelpArgName != "" {
+								valueStr = "<" + lastOpt.HelpArgName + ">"
+							}
+							*comps = append(*comps, (*comps)[0]+valueStr)
 						}
-						*comps = append(*comps, (*comps)[0]+valueStr)
 					}
 					return currentProgramNode, comps, nil
 				}

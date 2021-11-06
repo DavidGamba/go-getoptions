@@ -62,7 +62,9 @@ type Option struct {
 	IsRequired    bool   // Indicates if the option is required
 	IsRequiredErr string // Error message for the required option
 
-	SuggestedValues []string // SuggestedValues used for completions
+	// SuggestedValues used for completions, suggestions don't necessarily limit
+	// the values you are able to use
+	SuggestedValues []string
 	ValidValues     []string // ValidValues that can be passed to Save
 
 	// Help
@@ -308,11 +310,28 @@ func (opt *Option) SetKeyValueToStringMap(k, v string) *Option {
 	return opt
 }
 
+// stringSliceIndex - indicates if an element is found in the slice and what its index is
+func stringSliceIndex(ss []string, e string) (int, bool) {
+	for i, s := range ss {
+		if s == e {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
 // Save - Saves the data provided into the option
 func (opt *Option) Save(a ...string) error {
 	if len(a) < 1 {
 		return nil
 	}
+	for _, e := range a {
+		_, ok := stringSliceIndex(opt.ValidValues, e)
+		if !ok {
+			return fmt.Errorf("wrong value for option '%s', valid values are %#v", opt.Name, opt.ValidValues)
+		}
+	}
+
 	Debug.Printf("name: %s, optType: %d\n", opt.Name, opt.OptType)
 	switch opt.OptType {
 	case StringType:
