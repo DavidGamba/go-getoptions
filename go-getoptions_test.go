@@ -46,6 +46,7 @@ func setupLogging() *bytes.Buffer {
 	return buf
 }
 
+// DONE
 // Verifies that a panic is reached when the same option is defined twice.
 func TestDuplicateDefinition(t *testing.T) {
 	defer func() {
@@ -58,6 +59,7 @@ func TestDuplicateDefinition(t *testing.T) {
 	opt.Bool("flag", false)
 }
 
+// DONE
 // Verifies that a panic is reached when the same alias is defined twice.
 func TestDuplicateAlias(t *testing.T) {
 	defer func() {
@@ -70,6 +72,7 @@ func TestDuplicateAlias(t *testing.T) {
 	opt.Bool("bool", false, opt.Alias("t"))
 }
 
+// DONE
 // Verifies that a panic is reached when an alias is named after an option.
 func TestAliasMatchesOption(t *testing.T) {
 	defer func() {

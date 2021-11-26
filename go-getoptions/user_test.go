@@ -193,6 +193,12 @@ func TestDefinitionPanics(t *testing.T) {
 		opt.Bool("flag", false)
 		opt.Bool("fleg", false, opt.Alias("flag"))
 	})
+	t.Run("Alias double defined", func(t *testing.T) {
+		defer recoverFn()
+		opt := New()
+		opt.Bool("flag", false, opt.Alias("f"))
+		opt.Bool("fleg", false, opt.Alias("f"))
+	})
 	t.Run("Option double defined across commands", func(t *testing.T) {
 		defer recoverFn()
 		opt := New()
@@ -206,6 +212,13 @@ func TestDefinitionPanics(t *testing.T) {
 		opt.Bool("flag", false)
 		cmd := opt.NewCommand("cmd", "")
 		cmd.Bool("fleg", false, opt.Alias("flag"))
+	})
+	t.Run("Alias double defined across commands", func(t *testing.T) {
+		defer recoverFn()
+		opt := New()
+		opt.Bool("flag", false, opt.Alias("f"))
+		cmd := opt.NewCommand("cmd", "")
+		cmd.Bool("fleg", false, opt.Alias("f"))
 	})
 	t.Run("Command double defined", func(t *testing.T) {
 		defer recoverFn()
