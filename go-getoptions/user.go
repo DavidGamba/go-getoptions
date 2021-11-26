@@ -86,6 +86,13 @@ func New() *GetOpt {
 	return gopt
 }
 
+func (gopt *GetOpt) Self(name string, description string) *GetOpt {
+	// TODO: Should this only be allowed at the root node level
+	gopt.programTree.Name = name
+	gopt.programTree.Description = description
+	return gopt
+}
+
 // SetUnknownMode - Determines how to behave when encountering an unknown option.
 //
 // • 'fail' (default) will make 'Parse' return an error with the unknown option information.
@@ -97,11 +104,6 @@ func New() *GetOpt {
 // This allows for subcommands.
 // TODO: Add aliases
 func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) *GetOpt {
-	// TODO:
-	return gopt
-}
-
-func (gopt *GetOpt) HelpCommand(description string) *GetOpt {
 	// TODO:
 	return gopt
 }

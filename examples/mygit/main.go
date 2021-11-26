@@ -27,7 +27,7 @@ func program(args []string) int {
 	gitlog.New(opt).SetCommandFn(gitlog.Run)
 	gitshow.New(opt).SetCommandFn(gitshow.Run)
 	gitslow.New(opt).SetCommandFn(gitslow.Run)
-	opt.HelpCommand("")
+	opt.HelpCommand("help", "")
 	remaining, err := opt.Parse(args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)

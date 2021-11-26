@@ -16,6 +16,7 @@ func main() {
 	var greetCount int
 	var list map[string]string
 	opt := getoptions.New()
+	opt.Self("myscript", "Simple demo script")
 	opt.Bool("help", false, opt.Alias("h", "?"))
 	opt.BoolVar(&debug, "debug", false, opt.GetEnv("DEBUG"))
 	opt.IntVar(&greetCount, "greet", 0,
