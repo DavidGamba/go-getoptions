@@ -326,9 +326,11 @@ func (opt *Option) Save(a ...string) error {
 		return nil
 	}
 	for _, e := range a {
-		_, ok := stringSliceIndex(opt.ValidValues, e)
-		if !ok {
-			return fmt.Errorf("wrong value for option '%s', valid values are %#v", opt.Name, opt.ValidValues)
+		if len(opt.ValidValues) > 0 {
+			_, ok := stringSliceIndex(opt.ValidValues, e)
+			if !ok {
+				return fmt.Errorf("wrong value for option '%s', valid values are %#v", opt.Name, opt.ValidValues)
+			}
 		}
 	}
 

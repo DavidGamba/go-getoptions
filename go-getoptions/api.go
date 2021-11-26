@@ -3,7 +3,6 @@ package getoptions
 import (
 	"errors"
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
