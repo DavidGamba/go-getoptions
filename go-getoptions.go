@@ -192,6 +192,7 @@ func (gopt *GetOpt) completionWithArgAppendAliases(aliases []string) {
 	}
 }
 
+// TODO: Get rid of self and instead have a NewDetailed(name, description)
 // Self - Set a custom name and description that will show in the automated help.
 // If name is an empty string, it will only use the description and use the name as the executable name.
 func (gopt *GetOpt) Self(name string, description string) *GetOpt {
