@@ -9,16 +9,37 @@ Tested with ?
 === Goal
 
 This refactor brings major benefits in both parsing and autocompletion.
-In the initial implementation, completion was added to the existing code.
+In the initial implementation, completion was added as side logic to the existing parser code.
 In this implementation, completions are a first class citizen and share the same parsing tree structure that the rest of the library is using.
 
 The parsing tree was refactored from the ground up to better accommodate commands and subcommands and also the extra use cases that have been popping up ever since autocompletion support was added.
 
 === Breaking changes
 
-* The Dispatch signature might change.
+* The HelpCommand signature has changed.
+The name of the "help" command is configurable.
++
+----
+- opt.HelpCommand("")
++ opt.HelpCommand("help", "")
+----
+
+* The Dispatch signature has changed.
+There is no need to define the name of the help command at this level anymore since it has been moved to the `HelpCommand` declaration.
++
+[source,diff]
+----
+- err = opt.Dispatch(ctx, "help", remaining)
++ err = opt.Dispatch(ctx, remaining)
+----
 
 * Move `InterruptContext` into a package level function and not a method of GetOpt.
++
+[source,diff]
+----
+- ctx, cancel, done := opt.InterruptContext()
++ ctx, cancel, done := getoptions.InterruptContext()
+----
 
 * `Write` io.Writer used to write warnings and errors (which defaults to os.Stderr) has been made into a package level variable and not a method of GetOpt.
 
