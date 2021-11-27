@@ -17,6 +17,7 @@ type programTree struct {
 	Type            argType
 	Name            string
 	Description     string
+	SynopsisArgs    string
 	ChildCommands   map[string]*programTree
 	ChildOptions    map[string]*option.Option
 	ChildText       []string

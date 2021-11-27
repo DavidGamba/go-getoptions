@@ -108,6 +108,13 @@ func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) *GetOpt {
 	return gopt
 }
 
+// HelpSynopsisArgs - Defines the help synopsis args description.
+// Defaults to: [<args>]
+func (gopt *GetOpt) HelpSynopsisArgs(args string) *GetOpt {
+	gopt.programTree.SynopsisArgs = args
+	return gopt
+}
+
 // NewCommand - Returns a new GetOpt object representing a new command.
 func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	cmd := &GetOpt{}

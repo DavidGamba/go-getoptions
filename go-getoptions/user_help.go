@@ -75,7 +75,7 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 			for _, command := range node.ChildCommands {
 				commands = append(commands, command.Name)
 			}
-			helpTxt += help.Synopsis("", scriptName, "", options, commands)
+			helpTxt += help.Synopsis("", scriptName, node.SynopsisArgs, options, commands)
 			helpTxt += "\n"
 		case HelpCommandList:
 			m := make(map[string]string)
@@ -93,7 +93,7 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 		case HelpOptionList:
 			helpTxt += help.OptionList(options)
 		case HelpCommandInfo:
-			if node.HelpCommandName != "" {
+			if node.HelpCommandName != "" && len(node.ChildCommands) > 0 {
 				helpTxt += fmt.Sprintf("Use '%s help <command>' for extra details.\n", scriptName)
 			}
 		}
@@ -136,11 +136,22 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 	cmd.programTree = command
 	gopt.programTree.AddChildCommand(name, command)
 	cmd.SetCommandFn(runHelp)
+	cmd.HelpSynopsisArgs("<topic>")
 	copyOptionsFromParent(gopt.programTree, false)
 	return cmd
 }
 
 func runHelp(ctx context.Context, opt *GetOpt, args []string) error {
+	if len(args) > 0 {
+		for _, command := range opt.programTree.Parent.ChildCommands {
+			fmt.Printf("command: %s\n", command.Name)
+			if command.Name == args[0] {
+				fmt.Fprint(Writer, helpOutput(command))
+				return ErrorHelpCalled
+			}
+		}
+		return fmt.Errorf("no help topic for '%s'", args[0])
+	}
 	fmt.Fprint(Writer, helpOutput(opt.programTree.Parent))
-	return nil
+	return ErrorHelpCalled
 }
