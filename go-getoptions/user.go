@@ -112,12 +112,14 @@ func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) *GetOpt {
 func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	cmd := &GetOpt{}
 	command := &programTree{
-		Type:          argTypeCommand,
-		Name:          name,
-		ChildCommands: map[string]*programTree{},
-		ChildOptions:  map[string]*option.Option{},
-		Parent:        gopt.programTree,
-		Level:         gopt.programTree.Level + 1,
+		Type:            argTypeCommand,
+		Name:            name,
+		Description:     description,
+		HelpCommandName: gopt.programTree.HelpCommandName,
+		ChildCommands:   map[string]*programTree{},
+		ChildOptions:    map[string]*option.Option{},
+		Parent:          gopt.programTree,
+		Level:           gopt.programTree.Level + 1,
 	}
 
 	// Copy option definitions from parent to child
@@ -200,5 +202,6 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, remaining []string) error {
 	if gopt.finalNode.Parent != nil {
 		return fmt.Errorf("command %s has no defined CommandFn", gopt.finalNode.Name)
 	}
+	fmt.Fprint(Writer, gopt.Help())
 	return nil
 }

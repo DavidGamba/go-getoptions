@@ -14,15 +14,16 @@ import (
 var ErrorMissingArgument = errors.New("")
 
 type programTree struct {
-	Type          argType
-	Name          string
-	Description   string
-	ChildCommands map[string]*programTree
-	ChildOptions  map[string]*option.Option
-	ChildText     []string
-	Parent        *programTree
-	Level         int
-	CommandFn     CommandFn
+	Type            argType
+	Name            string
+	Description     string
+	ChildCommands   map[string]*programTree
+	ChildOptions    map[string]*option.Option
+	ChildText       []string
+	Parent          *programTree
+	Level           int
+	CommandFn       CommandFn
+	HelpCommandName string
 	command
 }
 
