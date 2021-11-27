@@ -24,14 +24,14 @@ func program(args []string) int {
 	opt.Bool("debug", false, opt.GetEnv("DEBUG"))
 	opt.String("profile", "default", opt.ValidValues("default", "dev", "staging", "prod"))
 	opt.SetUnknownMode(getoptions.Pass)
-	gitlog.New(opt).SetCommandFn(gitlog.Run)
-	gitshow.New(opt).SetCommandFn(gitshow.Run)
-	gitslow.New(opt).SetCommandFn(gitslow.Run)
+	gitlog.NewCommand(opt)
+	gitshow.NewCommand(opt)
+	gitslow.NewCommand(opt)
 	opt.HelpCommand("help", "")
 	remaining, err := opt.Parse(args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
-		os.Exit(1)
+		return 1
 	}
 	if opt.Called("debug") {
 		Logger.SetOutput(os.Stderr)

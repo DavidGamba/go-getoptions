@@ -14,10 +14,11 @@ var Logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
 
 var iterations int
 
-// New - Populate Options definition
-func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
+// NewCommand - Populate Options definition
+func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
 	opt := parent.NewCommand("slow", "Run something in a very slow way (please cancel me with Ctrl-C)")
 	opt.IntVar(&iterations, "iterations", 5)
+	opt.SetCommandFn(Run)
 	return opt
 }
 

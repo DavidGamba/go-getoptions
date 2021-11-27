@@ -11,11 +11,12 @@ import (
 
 var Logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
 
-// New - Populate Options definition
-func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
+// NewCommand - Populate Options definition
+func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
 	opt := parent.NewCommand("show", "Show various types of objects")
 	opt.Bool("show-option", false)
 	opt.String("password", "", opt.GetEnv("PASSWORD"), opt.Alias("p"))
+	opt.SetCommandFn(Run)
 	return opt
 }
 

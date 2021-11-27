@@ -11,10 +11,11 @@ import (
 
 var Logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
 
-// New - Populate Options definition
-func New(parent *getoptions.GetOpt) *getoptions.GetOpt {
+// NewCommand - Populate Options definition
+func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
 	opt := parent.NewCommand("log", "Show commit logs")
 	opt.Bool("log-option", false, opt.Alias("l"))
+	opt.SetCommandFn(Run)
 	return opt
 }
 

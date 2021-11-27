@@ -18,10 +18,10 @@ var TM *dag.TaskMap
 var Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 func main() {
-	os.Exit(program())
+	os.Exit(program(os.Args))
 }
 
-func program() int {
+func program(args []string) int {
 	opt := getoptions.New()
 	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("quiet", false)
@@ -30,7 +30,7 @@ func program() int {
 	opt.NewCommand("build", "build project artifacts").SetCommandFn(Build)
 	opt.NewCommand("clean", "clean project artifacts").SetCommandFn(Clean)
 	opt.HelpCommand("")
-	remaining, err := opt.Parse(os.Args[1:])
+	remaining, err := opt.Parse(args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
