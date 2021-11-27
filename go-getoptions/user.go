@@ -122,21 +122,46 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 		Level:           gopt.programTree.Level + 1,
 	}
 
-	// Copy option definitions from parent to child
-	for k, v := range gopt.programTree.ChildOptions {
-		// The option parent doesn't match properly here.
-		// I should in a way create a copy of the option but I still want a pointer to the data.
+	// TODO: Copying options from parent to child can't be done on declaration
+	// because if an option is declared after the command then it is not part of
+	// the tree.
+	// However, the other side of the coin, is that if we do it in the parse call
+	// then I have to wait until parse to find duplicates and panics.
 
-		// c := v.Copy() // copy that maintains a pointer to the underlying data
-		// c.SetParent(command)
+	// // Copy option definitions from parent to child
+	// for k, v := range gopt.programTree.ChildOptions {
+	// 	// The option parent doesn't match properly here.
+	// 	// I should in a way create a copy of the option but I still want a pointer to the data.
+	//
+	// 	// c := v.Copy() // copy that maintains a pointer to the underlying data
+	// 	// c.SetParent(command)
+	//
+	// 	// TODO: This is doing an overwrite, ensure it doesn't exist
+	// 	// command.ChildOptions[k] = c
+	// 	command.ChildOptions[k] = v
+	// }
 
-		// TODO: This is doing an overwrite, ensure it doesn't exist
-		// command.ChildOptions[k] = c
-		command.ChildOptions[k] = v
-	}
 	cmd.programTree = command
 	gopt.programTree.AddChildCommand(name, command)
+	copyOptionsFromParent(gopt.programTree, false)
 	return cmd
+}
+
+func copyOptionsFromParent(parent *programTree, fail bool) {
+	for k, v := range parent.ChildOptions {
+		for _, command := range parent.ChildCommands {
+			// don't copy options to help command
+			if command.Name == parent.HelpCommandName {
+				continue
+			}
+			if fail {
+				if _, ok := command.ChildOptions[k]; ok {
+					panic("duplicate option definition")
+				}
+			}
+			command.ChildOptions[k] = v
+		}
+	}
 }
 
 // SetCommandFn - Defines the command entry point function.
@@ -196,6 +221,10 @@ func (gopt *GetOpt) Value(name string) interface{} {
 }
 
 func (gopt *GetOpt) Dispatch(ctx context.Context, remaining []string) error {
+	if gopt.finalNode.HelpCommandName != "" && gopt.Called(gopt.finalNode.HelpCommandName) {
+		fmt.Fprint(Writer, helpOutput(gopt.finalNode))
+		return ErrorHelpCalled
+	}
 	if gopt.finalNode.CommandFn != nil {
 		return gopt.finalNode.CommandFn(ctx, &GetOpt{gopt.finalNode, gopt.finalNode}, remaining)
 	}

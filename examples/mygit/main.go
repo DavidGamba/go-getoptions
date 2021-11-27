@@ -49,9 +49,9 @@ func program(args []string) int {
 
 	err = opt.Dispatch(ctx, remaining)
 	if err != nil {
-		// if errors.Is(err, getoptions.ErrorHelpCalled) {
-		// 	return 1
-		// }
+		if errors.Is(err, getoptions.ErrorHelpCalled) {
+			return 1
+		}
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
 	}

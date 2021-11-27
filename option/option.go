@@ -105,36 +105,43 @@ func New(name string, optType Type, data interface{}) *Option {
 	case StringRepeatType:
 		opt.HelpArgName = "string"
 		opt.pStringS = data.(*[]string)
+		opt.DefaultStr = "[]"
 		opt.MinArgs = 1
 		opt.MaxArgs = 1 // By default we only allow one argument at a time
 	case IntType:
 		opt.HelpArgName = "int"
 		opt.pInt = data.(*int)
+		opt.DefaultStr = fmt.Sprintf("%d", *data.(*int))
 		opt.MinArgs = 1
 		opt.MaxArgs = 1
 	case IntRepeatType:
 		opt.HelpArgName = "int"
 		opt.pIntS = data.(*[]int)
+		opt.DefaultStr = "[]"
 		opt.MinArgs = 1
 		opt.MaxArgs = 1 // By default we only allow one argument at a time
 	case Float64Type:
 		opt.HelpArgName = "float64"
 		opt.pFloat64 = data.(*float64)
+		opt.DefaultStr = fmt.Sprintf("%f", *data.(*float64))
 		opt.MinArgs = 1
 		opt.MaxArgs = 1
 	case Float64RepeatType:
 		opt.HelpArgName = "float64"
 		opt.pFloat64S = data.(*[]float64)
+		opt.DefaultStr = "[]"
 		opt.MinArgs = 1
 		opt.MaxArgs = 1 // By default we only allow one argument at a time
 	case StringMapType:
 		opt.HelpArgName = "key=value"
 		opt.pStringM = data.(*map[string]string)
+		opt.DefaultStr = "{}"
 		opt.MinArgs = 1
 		opt.MaxArgs = 1 // By default we only allow one argument at a time
 	case BoolType:
 		opt.pBool = data.(*bool)
 		opt.boolDefault = *data.(*bool)
+		opt.DefaultStr = fmt.Sprintf("%t", *data.(*bool))
 		opt.MinArgs = 0
 		opt.MaxArgs = 0
 	}

@@ -21,9 +21,12 @@ const (
 	HelpCommandInfo
 )
 
-func getHelpName(n *programTree) string {
+// ErrorHelpCalled - Indicates the help has been handled.
+var ErrorHelpCalled = fmt.Errorf("help called")
+
+func getCurrentNodeName(n *programTree) string {
 	if n.Parent != nil {
-		parentName := getHelpName(n.Parent)
+		parentName := getCurrentNodeName(n.Parent)
 		return fmt.Sprintf("%s %s", parentName, n.Name)
 	}
 	return n.Name
@@ -40,14 +43,19 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 	}
 	helpTxt := ""
 
-	scriptName := getHelpName(node)
+	scriptName := getCurrentNodeName(node)
 
 	options := []*option.Option{}
 	for k, option := range node.ChildOptions {
 		// filter out aliases
-		if k == option.Name {
-			options = append(options, option)
+		if k != option.Name {
+			continue
 		}
+		// filter out unknown options
+		if option.Unknown {
+			continue
+		}
+		options = append(options, option)
 	}
 
 	for _, section := range sections {
@@ -94,13 +102,25 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 	return helpTxt
 }
 
-func (gopt *GetOpt) HelpCommand(name string, description string) *GetOpt {
+// HelpCommand - Declares a help command and a help option.
+// Additionally, it allows to define aliases to the help option.
+//
+// For example:
+//
+//     opt.HelpCommand("help", "show this help", opt.Alias("?"))
+func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn) *GetOpt {
+	// Question: How do I determine the name of the help option so -h or -? work with the command?
+	// Maybe I need to add an extra parameter for the help option.
+	// Or do we assume they are called the same?
+
 	// TODO: Think about panicking on double call to this method
 
 	gopt.programTree.HelpCommandName = name
 	for _, command := range gopt.programTree.ChildCommands {
 		command.HelpCommandName = name
 	}
+
+	gopt.Bool(name, false, append([]ModifyFn{gopt.Description(description)}, fns...)...)
 
 	cmd := &GetOpt{}
 	command := &programTree{
@@ -116,6 +136,7 @@ func (gopt *GetOpt) HelpCommand(name string, description string) *GetOpt {
 	cmd.programTree = command
 	gopt.programTree.AddChildCommand(name, command)
 	cmd.SetCommandFn(runHelp)
+	copyOptionsFromParent(gopt.programTree, false)
 	return cmd
 }
 
