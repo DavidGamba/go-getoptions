@@ -1,14 +1,16 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 
-	gitlog "github.com/DavidGamba/go-getoptions/examples/mygit/log"
-	gitshow "github.com/DavidGamba/go-getoptions/examples/mygit/show"
-	gitslow "github.com/DavidGamba/go-getoptions/examples/mygit/slow"
+	complexgreet "github.com/DavidGamba/go-getoptions/examples/complex/greet"
+	complexlog "github.com/DavidGamba/go-getoptions/examples/complex/log"
+	complexshow "github.com/DavidGamba/go-getoptions/examples/complex/show"
+	complexslow "github.com/DavidGamba/go-getoptions/examples/complex/slow"
 	"github.com/DavidGamba/go-getoptions/go-getoptions"
 )
 
@@ -20,14 +22,14 @@ func main() {
 
 func program(args []string) int {
 	opt := getoptions.New()
-	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false, opt.GetEnv("DEBUG"))
 	opt.String("profile", "default", opt.ValidValues("default", "dev", "staging", "prod"))
 	opt.SetUnknownMode(getoptions.Pass)
-	gitlog.NewCommand(opt)
-	gitshow.NewCommand(opt)
-	gitslow.NewCommand(opt)
-	opt.HelpCommand("help", "")
+	complexgreet.NewCommand(opt)
+	complexlog.NewCommand(opt)
+	complexshow.NewCommand(opt)
+	complexslow.NewCommand(opt)
+	opt.HelpCommand("help", "", opt.Alias("?"))
 	remaining, err := opt.Parse(args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
@@ -35,9 +37,9 @@ func program(args []string) int {
 	}
 	if opt.Called("debug") {
 		Logger.SetOutput(os.Stderr)
-		gitlog.Logger.SetOutput(os.Stderr)
-		gitshow.Logger.SetOutput(os.Stderr)
-		gitslow.Logger.SetOutput(os.Stderr)
+		complexlog.Logger.SetOutput(os.Stderr)
+		complexshow.Logger.SetOutput(os.Stderr)
+		complexslow.Logger.SetOutput(os.Stderr)
 	}
 	if opt.Called("profile") {
 		Logger.Printf("profile: %s\n", opt.Value("profile"))
