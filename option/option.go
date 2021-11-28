@@ -250,7 +250,7 @@ func (opt *Option) CheckRequired() error {
 			if opt.IsRequiredErr != "" {
 				return fmt.Errorf("%w%s", ErrorMissingRequiredOption, opt.IsRequiredErr)
 			}
-			return fmt.Errorf("%w%s '%s'", ErrorMissingRequiredOption, text.ErrorMissingRequiredOption, opt.Name)
+			return fmt.Errorf("%w"+text.ErrorMissingRequiredOption, ErrorMissingRequiredOption, opt.Name)
 		}
 	}
 	return nil

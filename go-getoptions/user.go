@@ -12,6 +12,7 @@ package getoptions
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -21,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/DavidGamba/go-getoptions/option"
+	"github.com/DavidGamba/go-getoptions/text"
 )
 
 // Logger instance set to `ioutil.Discard` by default.
@@ -33,6 +35,8 @@ var exitFn = os.Exit
 // completionWriter - Writer where the completion results will be written to.
 // Set as a variable to allow for easy testing.
 var completionWriter io.Writer = os.Stdout
+
+var errorUnknownOption = errors.New("")
 
 // GetOpt - main object.
 type GetOpt struct {
@@ -104,7 +108,7 @@ func (gopt *GetOpt) Self(name string, description string) *GetOpt {
 // This allows for subcommands.
 // TODO: Add aliases
 func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) *GetOpt {
-	// TODO:
+	gopt.programTree.unknownMode = mode
 	return gopt
 }
 
@@ -223,6 +227,19 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 		err := option.CheckRequired()
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	if gopt.programTree.unknownMode != Pass {
+		for _, option := range node.ChildOptions {
+			if option.Unknown {
+				switch gopt.programTree.unknownMode {
+				case Fail:
+					return nil, fmt.Errorf("%w"+text.MessageOnUnknown, errorUnknownOption, option.Name)
+				case Warn:
+					fmt.Fprintf(Writer, text.MessageOnUnknown, option.Name)
+				}
+			}
 		}
 	}
 

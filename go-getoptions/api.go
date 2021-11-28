@@ -25,6 +25,7 @@ type programTree struct {
 	Level           int
 	CommandFn       CommandFn
 	HelpCommandName string
+	unknownMode     UnknownMode // Unknown option mode
 	command
 }
 

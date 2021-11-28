@@ -293,7 +293,7 @@ func TestRequired(t *testing.T) {
 		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
 			t.Errorf("Error string didn't match expected value")
 		}
-		if err != nil && err.Error() != "missing required option 'flag'" {
+		if err != nil && err.Error() != "missing required parameter 'flag'" {
 			t.Errorf("Error string didn't match expected value")
 		}
 	})
@@ -309,6 +309,19 @@ func TestRequired(t *testing.T) {
 		}
 		if err != nil && err.Error() != "please provide 'flag'" {
 			t.Errorf("Error string didn't match expected value")
+		}
+	})
+}
+
+func TestUnknownOptionModes(t *testing.T) {
+	t.Run("fail", func(t *testing.T) {
+		opt := New()
+		_, err := opt.Parse([]string{"--flags"})
+		if err == nil {
+			t.Errorf("Unknown option 'flags' didn't raise error")
+		}
+		if err != nil && err.Error() != "Unknown option 'flags'" {
+			t.Errorf("Error string didn't match expected value: %s\n", err)
 		}
 	})
 }
