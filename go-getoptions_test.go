@@ -42,7 +42,7 @@ func setupLogging() *bytes.Buffer {
 	s := ""
 	buf := bytes.NewBufferString(s)
 	Debug.SetOutput(buf)
-	option.Debug.SetOutput(buf)
+	option.Logger.SetOutput(buf)
 	return buf
 }
 
@@ -86,6 +86,7 @@ func TestAliasMatchesOption(t *testing.T) {
 }
 
 func TestRequired(t *testing.T) {
+	// DONE
 	opt := New()
 	opt.Bool("flag", false, opt.Required())
 	_, err := opt.Parse([]string{"--flag"})
@@ -99,7 +100,7 @@ func TestRequired(t *testing.T) {
 	if err == nil {
 		t.Errorf("Required option missing didn't raise error")
 	}
-	if err != nil && err.Error() != "Missing required option 'flag'!" {
+	if err != nil && err.Error() != "missing required option 'flag'" {
 		t.Errorf("Error string didn't match expected value")
 	}
 

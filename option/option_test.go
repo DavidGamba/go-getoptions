@@ -9,6 +9,7 @@
 package option
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -209,11 +210,11 @@ func TestRequired(t *testing.T) {
 		{"bool", func() *Option {
 			b := false
 			return New("help", BoolType, &b).SetRequired("")
-		}(), []string{""}, true, nil, fmt.Errorf(text.ErrorMissingRequiredOption, "help")},
+		}(), []string{""}, true, nil, ErrorMissingRequiredOption},
 		{"bool", func() *Option {
 			b := false
 			return New("help", BoolType, &b).SetRequired("err")
-		}(), []string{""}, true, nil, fmt.Errorf("err")},
+		}(), []string{""}, true, nil, ErrorMissingRequiredOption},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -238,7 +239,7 @@ func TestRequired(t *testing.T) {
 			if err != nil && tt.errRequired == nil {
 				t.Errorf("got = '%#v', want '%#v'", err, tt.errRequired)
 			}
-			if err != nil && tt.errRequired != nil && err.Error() != tt.errRequired.Error() {
+			if err != nil && tt.errRequired != nil && !errors.Is(err, tt.errRequired) {
 				t.Errorf("got = '%#v', want '%#v'", err, tt.errRequired)
 			}
 		})

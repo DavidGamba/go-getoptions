@@ -10,6 +10,7 @@
 package option
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -20,9 +21,11 @@ import (
 	"github.com/DavidGamba/go-getoptions/text"
 )
 
-// Debug Logger instance set to `ioutil.Discard` by default.
-// Enable debug logging by setting: `Debug.SetOutput(os.Stderr)`.
-var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
+// Logger instance set to `ioutil.Discard` by default.
+// Enable debug logging by setting: `Logger.SetOutput(os.Stderr)`.
+var Logger = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
+
+var ErrorMissingRequiredOption = errors.New("")
 
 // Handler - Signature for the function that handles saving to the option.
 type Handler func(optName string, argument string, usedAlias string) error
@@ -245,9 +248,9 @@ func (opt *Option) CheckRequired() error {
 	if opt.IsRequired {
 		if !opt.Called {
 			if opt.IsRequiredErr != "" {
-				return fmt.Errorf(opt.IsRequiredErr)
+				return fmt.Errorf("%w%s", ErrorMissingRequiredOption, opt.IsRequiredErr)
 			}
-			return fmt.Errorf(text.ErrorMissingRequiredOption, opt.Name)
+			return fmt.Errorf("%w%s '%s'", ErrorMissingRequiredOption, text.ErrorMissingRequiredOption, opt.Name)
 		}
 	}
 	return nil
@@ -341,7 +344,7 @@ func (opt *Option) Save(a ...string) error {
 		}
 	}
 
-	Debug.Printf("name: %s, optType: %d\n", opt.Name, opt.OptType)
+	Logger.Printf("name: %s, optType: %d\n", opt.Name, opt.OptType)
 	switch opt.OptType {
 	case StringType:
 		opt.SetString(a[0])
@@ -368,9 +371,9 @@ func (opt *Option) Save(a ...string) error {
 		var is []int
 		for _, e := range a {
 			if strings.Contains(e, "..") {
-				Debug.Printf("e: %s\n", e)
+				Logger.Printf("e: %s\n", e)
 				n := strings.SplitN(e, "..", 2)
-				Debug.Printf("n: %v\n", n)
+				Logger.Printf("n: %v\n", n)
 				n1, n2 := n[0], n[1]
 				in1, err := strconv.Atoi(n1)
 				if err != nil {

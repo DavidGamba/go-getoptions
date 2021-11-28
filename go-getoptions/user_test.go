@@ -1,6 +1,7 @@
 package getoptions
 
 import (
+	"errors"
 	"os"
 	"reflect"
 	"testing"
@@ -270,5 +271,44 @@ func TestOptionWrongMinMax(t *testing.T) {
 	t.Run("IntSlice min > max", func(t *testing.T) {
 		defer recoverFn()
 		New().IntSlice("ss", 2, 1)
+	})
+}
+
+func TestRequired(t *testing.T) {
+	t.Run("error raised when called", func(t *testing.T) {
+		opt := New()
+		opt.Bool("flag", false, opt.Required())
+		_, err := opt.Parse([]string{"--flag"})
+		if err != nil {
+			t.Errorf("Required option called but error raised")
+		}
+	})
+	t.Run("error not raised", func(t *testing.T) {
+		opt := New()
+		opt.Bool("flag", false, opt.Required())
+		_, err := opt.Parse([]string{})
+		if err == nil {
+			t.Errorf("Required option missing didn't raise error")
+		}
+		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
+			t.Errorf("Error string didn't match expected value")
+		}
+		if err != nil && err.Error() != "missing required option 'flag'" {
+			t.Errorf("Error string didn't match expected value")
+		}
+	})
+	t.Run("custom message", func(t *testing.T) {
+		opt := New()
+		opt.Bool("flag", false, opt.Required("please provide 'flag'"))
+		_, err := opt.Parse([]string{})
+		if err == nil {
+			t.Errorf("Required option missing didn't raise error")
+		}
+		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
+			t.Errorf("Error string didn't match expected value")
+		}
+		if err != nil && err.Error() != "please provide 'flag'" {
+			t.Errorf("Error string didn't match expected value")
+		}
 	})
 }

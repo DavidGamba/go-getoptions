@@ -209,6 +209,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	// After we are done parsing, we know what node in the tree we are.
 	// I could easily dispatch from here.
 	// Think about whether or not there is value in dispatching directly from parse or if it is better to call the dispatch function.
+	// I came up with the conclusion that dispatch provides a bunch of flexibility and explicitness.
 
 	// TODO: parseCLIArgs needs to return the remaining array
 	node, _, err := parseCLIArgs(false, gopt.programTree, args, Normal)
@@ -216,6 +217,16 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 		return nil, err
 	}
 	gopt.finalNode = node
+
+	// Validate required options
+	for _, option := range node.ChildOptions {
+		err := option.CheckRequired()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// TODO: Validate unknown options
 
 	return node.ChildText, nil
 }
