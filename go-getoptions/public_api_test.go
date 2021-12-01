@@ -187,4 +187,41 @@ func TestUnknownOptionModes(t *testing.T) {
 			t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags", "--flegs"})
 		}
 	})
+	t.Run("first unknown argument as a passthrough", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		opt := getoptions.New()
+		getoptions.Writer = buf
+		opt.SetUnknownMode(getoptions.Pass)
+		remaining, err := opt.Parse([]string{"--flags"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if buf.String() != "" {
+			t.Errorf("output didn't match expected value: %s", buf.String())
+		}
+		if !reflect.DeepEqual(remaining, []string{"--flags"}) {
+			t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags"})
+		}
+	})
+	t.Run("first unknown argument as a passthrough with a known one after", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		opt := getoptions.New()
+		getoptions.Writer = buf
+		opt.Bool("known", false)
+		opt.Bool("another", false)
+		opt.SetUnknownMode(getoptions.Pass)
+		remaining, err := opt.Parse([]string{"--flags", "--known", "--another", "--unknown"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if buf.String() != "" {
+			t.Errorf("output didn't match expected value: %s", buf.String())
+		}
+		if !reflect.DeepEqual(remaining, []string{"--flags", "--unknown"}) {
+			t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags", "--unknown"})
+		}
+		if !opt.Called("known") && !opt.Called("another") {
+			t.Errorf("known or another were not called")
+		}
+	})
 }

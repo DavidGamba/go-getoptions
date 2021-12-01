@@ -890,6 +890,8 @@ StringMap and StringMapVar:: Comma separated key=value?
 [[roadmap]]
 == ROADMAP
 
+* Move all internal code into the `internal/` dir to clarify its purpose.
+
 * Create new error description for errors when parsing integer ranges (`1..3`).
 
 * Option that runs a function?
