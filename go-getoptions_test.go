@@ -94,16 +94,18 @@ func TestRequired(t *testing.T) {
 		t.Errorf("Required option called but error raised")
 	}
 
+	// DONE
 	opt = New()
 	opt.Bool("flag", false, opt.Required())
 	_, err = opt.Parse([]string{})
 	if err == nil {
 		t.Errorf("Required option missing didn't raise error")
 	}
-	if err != nil && err.Error() != "missing required option 'flag'" {
+	if err != nil && err.Error() != "missing required parameter 'flag'" {
 		t.Errorf("Error string didn't match expected value")
 	}
 
+	// DONE
 	opt = New()
 	opt.Bool("flag", false, opt.Required("Missing --flag!"))
 	_, err = opt.Parse([]string{})
