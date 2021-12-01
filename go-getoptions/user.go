@@ -94,6 +94,37 @@ func (gopt *GetOpt) Self(name string, description string) *GetOpt {
 	return gopt
 }
 
+// SetMode - Sets the Operation Mode.
+// The operation mode only affects options starting with a single dash '-'.
+// The available operation modes are: normal, bundling or singleDash.
+//
+// The following table shows the different operation modes given the string "-opt=arg".
+//
+//     .Operation Modes for string "-opt=arg"
+//     |===
+//     |Mode             |Description
+//
+//     |normal           |option: opt
+//                         argument: arg
+//
+//     |bundling         |option: o
+//                         argument: nil
+//                        option: p
+//                         argument: nil
+//                        option: t
+//                         argument: arg
+//
+//     |singleDash       |option: o
+//                         argument: pt=arg
+//
+//     |===
+//
+// See https://github.com/DavidGamba/go-getoptions#operation_modes for more details.
+// func (gopt *GetOpt) SetMode(mode Mode) *GetOpt {
+// 	gopt.programTree.mode = mode
+// 	return gopt
+// }
+
 // SetUnknownMode - Determines how to behave when encountering an unknown option.
 //
 // • 'fail' (default) will make 'Parse' return an error with the unknown option information.
@@ -108,6 +139,34 @@ func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) *GetOpt {
 	gopt.programTree.unknownMode = mode
 	return gopt
 }
+
+// SetRequireOrder - Stop parsing options when a subcommand is passed.
+// Put every remaining argument, including the subcommand, in the `remaining` slice.
+//
+// A subcommand is assumed to be the first argument that is not an option or an argument to an option.
+// When a subcommand is found, stop parsing arguments and let a subcommand handler handle the remaining arguments.
+// For example:
+//
+//     command --opt arg subcommand --subopt subarg
+//
+// In the example above, `--opt` is an option and `arg` is an argument to an option, making `subcommand` the first non option argument.
+//
+// This method is useful when both the command and the subcommand have option handlers for the same option.
+//
+// For example, with:
+//
+//     command --help
+//
+// `--help` is handled by `command`, and with:
+//
+//     command subcommand --help
+//
+// `--help` is not handled by `command` since there was a subcommand that caused the parsing to stop.
+// In this case, the `remaining` slice will contain `['subcommand', '--help']` and that can be passed directly to a subcommand's option parser.
+// func (gopt *GetOpt) SetRequireOrder() *GetOpt {
+// 	gopt.programTree.requireOrder = true
+// 	return gopt
+// }
 
 // HelpSynopsisArgs - Defines the help synopsis args description.
 // Defaults to: [<args>]

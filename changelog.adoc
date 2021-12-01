@@ -43,6 +43,9 @@ There is no need to define the name of the help command at this level anymore si
 
 * `Write` io.Writer used to write warnings and errors (which defaults to os.Stderr) has been made into a package level variable and not a method of GetOpt.
 
+* WIP: `opt.SetRequireOrder` might be dropped since now we fully track subcommands.
+Need to consider its usefulness when doing wrappers around other programs.
+
 === New Features
 
 Autocompletion is super useful now.
