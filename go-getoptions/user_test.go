@@ -1,7 +1,9 @@
 package getoptions
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -291,9 +293,9 @@ func TestRequired(t *testing.T) {
 			t.Errorf("Required option missing didn't raise error")
 		}
 		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
-			t.Errorf("Error string didn't match expected value")
+			t.Errorf("Error type didn't match")
 		}
-		if err != nil && err.Error() != "missing required parameter 'flag'" {
+		if err != nil && err.Error() != "Missing required parameter 'flag'" {
 			t.Errorf("Error string didn't match expected value")
 		}
 	})
@@ -305,7 +307,7 @@ func TestRequired(t *testing.T) {
 			t.Errorf("Required option missing didn't raise error")
 		}
 		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
-			t.Errorf("Error string didn't match expected value")
+			t.Errorf("Error type didn't match")
 		}
 		if err != nil && err.Error() != "please provide 'flag'" {
 			t.Errorf("Error string didn't match expected value")
@@ -314,14 +316,47 @@ func TestRequired(t *testing.T) {
 }
 
 func TestUnknownOptionModes(t *testing.T) {
-	t.Run("fail", func(t *testing.T) {
+	t.Run("default fail", func(t *testing.T) {
 		opt := New()
 		_, err := opt.Parse([]string{"--flags"})
 		if err == nil {
 			t.Errorf("Unknown option 'flags' didn't raise error")
 		}
+		if err != nil && !errors.Is(err, errorUnknownOption) {
+			t.Errorf("Error type didn't match")
+		}
 		if err != nil && err.Error() != "Unknown option 'flags'" {
 			t.Errorf("Error string didn't match expected value: %s\n", err)
+		}
+	})
+	t.Run("explicit fail", func(t *testing.T) {
+		opt := New()
+		opt.SetUnknownMode(Fail)
+		_, err := opt.Parse([]string{"--flags"})
+		if err == nil {
+			t.Errorf("Unknown option 'flags' didn't raise error")
+		}
+		if err != nil && !errors.Is(err, errorUnknownOption) {
+			t.Errorf("Error type didn't match")
+		}
+		if err != nil && err.Error() != "Unknown option 'flags'" {
+			t.Errorf("Error string didn't match expected value: %s\n", err)
+		}
+	})
+	t.Run("warn", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		opt := New()
+		Writer = buf
+		opt.SetUnknownMode(Warn)
+		remaining, err := opt.Parse([]string{"--flags", "--flegs"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if buf.String() != fmt.Sprintf("WARNING: Unknown option '%s'\nWARNING: Unknown option '%s'\n", "flags", "flegs") {
+			t.Errorf("Warning message didn't match expected value: %s", buf.String())
+		}
+		if !reflect.DeepEqual(remaining, []string{"--flags", "--flegs"}) {
+			t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags", "--flegs"})
 		}
 	})
 }

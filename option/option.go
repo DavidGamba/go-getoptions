@@ -89,6 +89,10 @@ type Option struct {
 	pStringM  *map[string]string // receiver for string map pointer
 
 	Unknown bool // Temporary marker used during parsing
+
+	// Verbatim text used to generate the option
+	// Used in cases where the option is unknown and we eventually have to send it to the remaining slice.
+	Verbatim string
 }
 
 // New - Returns a new option object
@@ -339,6 +343,7 @@ func (opt *Option) Save(a ...string) error {
 		if len(opt.ValidValues) > 0 {
 			_, ok := stringSliceIndex(opt.ValidValues, e)
 			if !ok {
+				// TODO: convert to text variable
 				return fmt.Errorf("wrong value for option '%s', valid values are %#v", opt.Name, opt.ValidValues)
 			}
 		}
@@ -352,6 +357,7 @@ func (opt *Option) Save(a ...string) error {
 	case IntType:
 		i, err := strconv.Atoi(a[0])
 		if err != nil {
+			// TODO: Create error type for use in tests with errors.Is
 			return fmt.Errorf(text.ErrorConvertToInt, opt.UsedAlias, a[0])
 		}
 		opt.SetInt(i)
@@ -360,6 +366,7 @@ func (opt *Option) Save(a ...string) error {
 		// TODO: Read the different errors when parsing float
 		i, err := strconv.ParseFloat(a[0], 64)
 		if err != nil {
+			// TODO: Create error type for use in tests with errors.Is
 			return fmt.Errorf(text.ErrorConvertToFloat64, opt.UsedAlias, a[0])
 		}
 		opt.SetFloat64(i)
@@ -396,6 +403,7 @@ func (opt *Option) Save(a ...string) error {
 			} else {
 				i, err := strconv.Atoi(e)
 				if err != nil {
+					// TODO: Create error type for use in tests with errors.Is
 					return fmt.Errorf(text.ErrorConvertToInt, opt.UsedAlias, e)
 				}
 				is = append(is, i)
@@ -406,6 +414,7 @@ func (opt *Option) Save(a ...string) error {
 	case StringMapType:
 		keyValue := strings.Split(a[0], "=")
 		if len(keyValue) < 2 {
+			// TODO: Create error type for use in tests with errors.Is
 			return fmt.Errorf(text.ErrorArgumentIsNotKeyValue, opt.UsedAlias)
 		}
 		opt.SetKeyValueToStringMap(keyValue[0], keyValue[1])

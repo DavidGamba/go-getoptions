@@ -169,11 +169,12 @@ type command struct {
 // TODO: Make this a method of tree so we can add parent information.
 // Maybe not a good idea? Would it complicate testing?
 // newUnknownCLIOption - attaches a new CLI option to the parent that is labelled as unknown for later handling.
-func newUnknownCLIOption(parent *programTree, name string, args ...string) *option.Option {
+func newUnknownCLIOption(parent *programTree, name, verbatim string, args ...string) *option.Option {
 	data := []string{}
 	data = append(data, args...)
 	arg := option.New(name, option.StringRepeatType, &data)
 	arg.Unknown = true
+	arg.Verbatim = verbatim
 	return arg
 }
 
@@ -303,7 +304,7 @@ ARGS_LOOP:
 					continue ARGS_LOOP
 				}
 			}
-			opt := newUnknownCLIOption(currentProgramNode, "-")
+			opt := newUnknownCLIOption(currentProgramNode, "-", iterator.Value())
 			currentProgramNode.ChildOptions["-"] = opt
 			continue ARGS_LOOP
 		}
@@ -388,7 +389,7 @@ ARGS_LOOP:
 					// TODO: This shouldn't append new children but update existing ones and isOption needs to be able to check if the option expects a follow up argument.
 					// Check min, check max and keep ingesting until something starts with `-` or matches a command.
 
-					opt := newUnknownCLIOption(currentProgramNode, p.Option, p.Args...)
+					opt := newUnknownCLIOption(currentProgramNode, p.Option, iterator.Value(), p.Args...)
 					currentProgramNode.ChildOptions[p.Option] = opt
 				}
 

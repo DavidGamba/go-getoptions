@@ -230,16 +230,15 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 		}
 	}
 
-	if gopt.programTree.unknownMode != Pass {
-		for _, option := range node.ChildOptions {
-			if option.Unknown {
-				switch gopt.programTree.unknownMode {
-				case Fail:
-					return nil, fmt.Errorf("%w"+text.MessageOnUnknown, errorUnknownOption, option.Name)
-				case Warn:
-					fmt.Fprintf(Writer, text.MessageOnUnknown, option.Name)
-				}
+	for _, option := range node.ChildOptions {
+		if option.Unknown {
+			switch gopt.programTree.unknownMode {
+			case Fail:
+				return nil, fmt.Errorf("%w"+text.MessageOnUnknown, errorUnknownOption, option.Name)
+			case Warn:
+				fmt.Fprintf(Writer, text.WarningOnUnknown+"\n", option.Name)
 			}
+			node.ChildText = append(node.ChildText, option.Verbatim)
 		}
 	}
 

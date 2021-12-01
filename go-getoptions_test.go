@@ -101,7 +101,7 @@ func TestRequired(t *testing.T) {
 	if err == nil {
 		t.Errorf("Required option missing didn't raise error")
 	}
-	if err != nil && err.Error() != "missing required parameter 'flag'" {
+	if err != nil && err.Error() != "Missing required parameter 'flag'" {
 		t.Errorf("Error string didn't match expected value")
 	}
 
@@ -119,6 +119,7 @@ func TestRequired(t *testing.T) {
 
 // TODO
 func TestUnknownOptionModes(t *testing.T) {
+	// DONE
 	// Default
 	opt := New()
 	_, err := opt.Parse([]string{"--flags"})
@@ -129,6 +130,7 @@ func TestUnknownOptionModes(t *testing.T) {
 		t.Errorf("Error string didn't match expected value: %s\n", err)
 	}
 
+	// DONE
 	opt = New()
 	opt.SetUnknownMode(Fail)
 	_, err = opt.Parse([]string{"--flags"})
