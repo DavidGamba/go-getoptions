@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/DavidGamba/go-getoptions/go-getoptions"
+	// "github.com/DavidGamba/go-getoptions"
 	"github.com/DavidGamba/go-getoptions/option"
 )
 

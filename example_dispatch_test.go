@@ -33,7 +33,7 @@ func ExampleGetOpt_Dispatch() {
 		os.Exit(1)
 	}
 
-	opt.Writer = os.Stdout // Print help to stdout instead of stderr for test purpose
+	getoptions.Writer = os.Stdout // Print help to stdout instead of stderr for test purpose
 
 	err = opt.Dispatch(context.Background(), "help", remaining)
 	if err != nil {

@@ -144,7 +144,7 @@ func TestUnknownOptionModes(t *testing.T) {
 	// DONE
 	buf := new(bytes.Buffer)
 	opt = New()
-	opt.Writer = buf
+	Writer = buf
 	opt.SetUnknownMode(Warn)
 	remaining, err := opt.Parse([]string{"--flags", "--flegs"})
 	if err != nil {
@@ -161,7 +161,7 @@ func TestUnknownOptionModes(t *testing.T) {
 	// Tests first unknown argument as a passthrough
 	buf = new(bytes.Buffer)
 	opt = New()
-	opt.Writer = buf
+	Writer = buf
 	opt.SetUnknownMode(Pass)
 	remaining, err = opt.Parse([]string{"--flags"})
 	if err != nil {
@@ -178,7 +178,7 @@ func TestUnknownOptionModes(t *testing.T) {
 	// Tests first unknown argument as a passthrough with a known one after
 	buf = new(bytes.Buffer)
 	opt = New()
-	opt.Writer = buf
+	Writer = buf
 	opt.Bool("known", false)
 	opt.Bool("another", false)
 	opt.SetUnknownMode(Pass)
@@ -200,7 +200,7 @@ func TestUnknownOptionModes(t *testing.T) {
 func TestSetRequireOrder(t *testing.T) {
 	buf := new(bytes.Buffer)
 	opt := New()
-	opt.Writer = buf
+	Writer = buf
 	opt.String("opt", "")
 	opt.Bool("help", false)
 	opt.SetRequireOrder()
@@ -221,7 +221,7 @@ func TestSetRequireOrder(t *testing.T) {
 	// Tests requireOrder with PassThrough
 	buf = new(bytes.Buffer)
 	opt = New()
-	opt.Writer = buf
+	Writer = buf
 	opt.Bool("known", false)
 	opt.Bool("another", false)
 	opt.SetUnknownMode(Pass)
@@ -239,7 +239,7 @@ func TestSetRequireOrder(t *testing.T) {
 
 	buf = new(bytes.Buffer)
 	opt = New()
-	opt.Writer = buf
+	Writer = buf
 	opt.Bool("known", false)
 	opt.Bool("another", false)
 	opt.SetUnknownMode(Pass)
@@ -2288,7 +2288,7 @@ func TestDispatch(t *testing.T) {
 		exitFn = func(code int) { called = true }
 		buf := setupLogging()
 		opt := New()
-		opt.Writer = helpBuf
+		Writer = helpBuf
 		opt.Bool("help", false)
 		opt.NewCommand("command", "").SetCommandFn(fn)
 		opt.HelpCommand("")
@@ -2330,7 +2330,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 		exitFn = func(code int) { called = true }
 		buf := setupLogging()
 		opt := New()
-		opt.Writer = helpBuf
+		Writer = helpBuf
 		opt.Bool("help", false)
 		opt.NewCommand("command", "").SetCommandFn(fn)
 		opt.HelpCommand("")
@@ -2372,7 +2372,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 		exitFn = func(code int) { called = true }
 		buf := setupLogging()
 		opt := New()
-		opt.Writer = helpBuf
+		Writer = helpBuf
 		opt.Bool("help", false)
 		opt.NewCommand("command", "").SetCommandFn(fn)
 		opt.HelpCommand("")
@@ -2416,7 +2416,7 @@ OPTIONS:
 		}
 		buf := setupLogging()
 		opt := New()
-		opt.Writer = helpBuf
+		Writer = helpBuf
 		opt.Bool("help", false)
 		command := opt.NewCommand("command", "").SetCommandFn(fn)
 		command.NewCommand("sub-command", "").SetCommandFn(fn)
@@ -2469,7 +2469,7 @@ OPTIONS:
 		}
 		buf := setupLogging()
 		opt := New()
-		opt.Writer = helpBuf
+		Writer = helpBuf
 		opt.Bool("help", false)
 		command := opt.NewCommand("command", "").SetCommandFn(commandFn)
 		command.NewCommand("sub-command", "").SetCommandFn(fn)
@@ -2518,7 +2518,7 @@ OPTIONS:
 		}
 		buf := setupLogging()
 		opt := New()
-		opt.Writer = helpBuf
+		Writer = helpBuf
 		opt.Bool("help", false)
 		command := opt.NewCommand("command", "").SetCommandFn(commandFn)
 		subcommand := command.NewCommand("sub-command", "").SetCommandFn(fn)
@@ -3261,7 +3261,7 @@ func TestInterruptContext(t *testing.T) {
 	helpBuf := new(bytes.Buffer)
 	buf := setupLogging()
 	opt := New()
-	opt.Writer = helpBuf
+	Writer = helpBuf
 	ctx, cancel, done := opt.InterruptContext()
 	defer func() {
 		cancel()

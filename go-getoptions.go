@@ -84,6 +84,9 @@ var exitFn = os.Exit
 // Set as a variable to allow for easy testing.
 var completionWriter io.Writer = os.Stdout
 
+// Writer - io.Writer to write warnings to. Defaults to os.Stderr.
+var Writer io.Writer = os.Stderr
+
 // GetOpt - main object.
 type GetOpt struct {
 	// Help fields
@@ -105,9 +108,6 @@ type GetOpt struct {
 	unknownMode    UnknownMode // Unknown option mode
 	requireOrder   bool        // Stop parsing on non option
 	mapKeysToLower bool        // Set Map keys lower case
-
-	// Debugging
-	Writer io.Writer // io.Writer to write warnings to. Defaults to os.Stderr.
 
 	// Data
 	obj        map[string]*option.Option // indexed options
@@ -135,7 +135,6 @@ func New() *GetOpt {
 		name:       filepath.Base(os.Args[0]),
 		obj:        make(map[string]*option.Option),
 		commands:   make(map[string]*GetOpt),
-		Writer:     os.Stderr,
 		completion: root,
 	}
 	return gopt
@@ -222,8 +221,8 @@ func (gopt *GetOpt) extraDetails() string {
 func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args []string) error {
 	Debug.Printf("Dispatch %v\n", args)
 	if len(args) == 0 {
-		fmt.Fprint(gopt.Writer, gopt.Help())
-		fmt.Fprint(gopt.Writer, gopt.extraDetails()+"\n")
+		fmt.Fprint(Writer, gopt.Help())
+		fmt.Fprint(Writer, gopt.extraDetails()+"\n")
 		exitFn(1)
 		return nil
 	}
@@ -233,7 +232,7 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args [
 			commandName := args[1]
 			for name, v := range gopt.commands {
 				if commandName == name {
-					fmt.Fprint(gopt.Writer, v.Help())
+					fmt.Fprint(Writer, v.Help())
 					exitFn(1)
 					return nil
 				}
@@ -241,8 +240,8 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args [
 			// TODO: Expose string as var?
 			return fmt.Errorf("unkown help entry '%s'", commandName)
 		}
-		fmt.Fprint(gopt.Writer, gopt.Help())
-		fmt.Fprint(gopt.Writer, gopt.extraDetails()+"\n")
+		fmt.Fprint(Writer, gopt.Help())
+		fmt.Fprint(Writer, gopt.extraDetails()+"\n")
 		exitFn(1)
 		return nil
 	default:
@@ -253,7 +252,7 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, helpCommandName string, args [
 					remaining, err := v.Parse(args[1:])
 					if len(v.commands) == 0 {
 						if v.Called(helpCommandName) {
-							fmt.Fprint(gopt.Writer, v.Help())
+							fmt.Fprint(Writer, v.Help())
 							return ErrorHelpCalled
 						}
 					}
@@ -1271,9 +1270,6 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 func (gopt *GetOpt) passOptionsToChildren() error {
 	Debug.Printf("passOptionsToChildren %s\n", gopt.name)
 	for _, commandOpt := range gopt.commands {
-		// pass writer to child
-		commandOpt.Writer = gopt.Writer
-
 		// pass options to child
 		for optName, opt := range gopt.obj {
 			commandOpt.obj[optName] = opt
@@ -1364,7 +1360,7 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 						remaining = append(remaining, arg)
 					case Warn:
 						// TODO: This WARNING can't be changed into another language. Hardcoded.
-						fmt.Fprintf(gopt.Writer, "WARNING: "+text.MessageOnUnknown+"\n", optElement.Option)
+						fmt.Fprintf(Writer, "WARNING: "+text.MessageOnUnknown+"\n", optElement.Option)
 						remaining = append(remaining, arg)
 					default:
 						err := fmt.Errorf(text.MessageOnUnknown, optElement.Option)
@@ -1403,7 +1399,7 @@ func (gopt *GetOpt) parse(args []string) ([]string, error) {
 //     ctx, cancel, done := getoptions.InterruptContext()
 //     defer func() { cancel(); <-done }()
 //
-// NOTE: InterruptContext is a method to reuse gopt.Writer
+// NOTE: InterruptContext is a method to reuse Writer
 func (gopt *GetOpt) InterruptContext() (ctx context.Context, cancel context.CancelFunc, done chan struct{}) {
 	done = make(chan struct{}, 1)
 	ctx, cancel = context.WithCancel(context.Background())
@@ -1417,7 +1413,7 @@ func (gopt *GetOpt) InterruptContext() (ctx context.Context, cancel context.Canc
 		}()
 		select {
 		case <-signals:
-			fmt.Fprintf(gopt.Writer, "\n%s\n", text.MessageOnInterrupt)
+			fmt.Fprintf(Writer, "\n%s\n", text.MessageOnInterrupt)
 		case <-ctx.Done():
 		}
 	}()
