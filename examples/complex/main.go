@@ -24,7 +24,7 @@ func program(args []string) int {
 	opt := getoptions.New()
 	opt.Bool("debug", false, opt.GetEnv("DEBUG"))
 	opt.String("profile", "default", opt.ValidValues("default", "dev", "staging", "prod"))
-	opt.SetUnknownMode(getoptions.Pass)
+	// opt.SetUnknownMode(getoptions.Pass)
 	complexgreet.NewCommand(opt)
 	complexlog.NewCommand(opt)
 	complexshow.NewCommand(opt)
