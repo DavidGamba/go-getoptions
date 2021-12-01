@@ -12,7 +12,6 @@ package getoptions
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -35,8 +34,6 @@ var exitFn = os.Exit
 // completionWriter - Writer where the completion results will be written to.
 // Set as a variable to allow for easy testing.
 var completionWriter io.Writer = os.Stdout
-
-var errorUnknownOption = errors.New("")
 
 // GetOpt - main object.
 type GetOpt struct {
@@ -234,7 +231,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 		if option.Unknown {
 			switch gopt.programTree.unknownMode {
 			case Fail:
-				return nil, fmt.Errorf("%w"+text.MessageOnUnknown, errorUnknownOption, option.Name)
+				return nil, fmt.Errorf(text.MessageOnUnknown, option.Name)
 			case Warn:
 				fmt.Fprintf(Writer, text.WarningOnUnknown+"\n", option.Name)
 			}
