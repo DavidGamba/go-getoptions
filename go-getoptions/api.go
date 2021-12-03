@@ -20,6 +20,7 @@ type programTree struct {
 	SynopsisArgs    string
 	ChildCommands   map[string]*programTree
 	ChildOptions    map[string]*option.Option
+	UnknownOptions  []*option.Option // Track unknown options in order in case they need to be passed to the remaining array.
 	ChildText       []string
 	Parent          *programTree
 	Level           int
@@ -305,7 +306,7 @@ ARGS_LOOP:
 				}
 			}
 			opt := newUnknownCLIOption(currentProgramNode, "-", iterator.Value())
-			currentProgramNode.ChildOptions["-"] = opt
+			currentProgramNode.UnknownOptions = append(currentProgramNode.UnknownOptions, opt)
 			continue ARGS_LOOP
 		}
 
@@ -390,7 +391,7 @@ ARGS_LOOP:
 					// Check min, check max and keep ingesting until something starts with `-` or matches a command.
 
 					opt := newUnknownCLIOption(currentProgramNode, p.Option, iterator.Value(), p.Args...)
-					currentProgramNode.ChildOptions[p.Option] = opt
+					currentProgramNode.UnknownOptions = append(currentProgramNode.UnknownOptions, opt)
 				}
 
 			}

@@ -212,15 +212,16 @@ func TestUnknownOptionModes(t *testing.T) {
 		opt.Bool("known", false)
 		opt.Bool("another", false)
 		opt.SetUnknownMode(getoptions.Pass)
-		remaining, err := opt.Parse([]string{"--flags", "--known", "--another", "--unknown"})
+		remaining, err := opt.Parse([]string{"--flags", "--known", "--another", "--unknown", "--unknown-2", "--unknown-3", "--unknown-4"})
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
 		if buf.String() != "" {
 			t.Errorf("output didn't match expected value: %s", buf.String())
 		}
-		if !reflect.DeepEqual(remaining, []string{"--flags", "--unknown"}) {
-			t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags", "--unknown"})
+		expected := []string{"--flags", "--unknown", "--unknown-2", "--unknown-3", "--unknown-4"}
+		if !reflect.DeepEqual(remaining, expected) {
+			t.Errorf("remaining didn't have expected value: %v != %v", remaining, expected)
 		}
 		if !opt.Called("known") && !opt.Called("another") {
 			t.Errorf("known or another were not called")
