@@ -117,7 +117,6 @@ func TestRequired(t *testing.T) {
 	}
 }
 
-// TODO
 func TestUnknownOptionModes(t *testing.T) {
 	// DONE
 	// Default

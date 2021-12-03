@@ -41,6 +41,10 @@ const (
 	IntType
 	Float64Type
 
+	StringOptionalType
+	IntOptionalType
+	Float64OptionalType
+
 	StringRepeatType
 	IntRepeatType
 	Float64RepeatType
@@ -109,6 +113,13 @@ func New(name string, optType Type, data interface{}) *Option {
 		opt.DefaultStr = *data.(*string)
 		opt.MinArgs = 1
 		opt.MaxArgs = 1
+	case StringOptionalType:
+		opt.HelpArgName = "string"
+		opt.pString = data.(*string)
+		opt.DefaultStr = *data.(*string)
+		opt.MinArgs = 0
+		opt.MaxArgs = 1
+		opt.IsOptional = true
 	case StringRepeatType:
 		opt.HelpArgName = "string"
 		opt.pStringS = data.(*[]string)
@@ -121,6 +132,13 @@ func New(name string, optType Type, data interface{}) *Option {
 		opt.DefaultStr = fmt.Sprintf("%d", *data.(*int))
 		opt.MinArgs = 1
 		opt.MaxArgs = 1
+	case IntOptionalType:
+		opt.HelpArgName = "int"
+		opt.pInt = data.(*int)
+		opt.DefaultStr = fmt.Sprintf("%d", *data.(*int))
+		opt.MinArgs = 0
+		opt.MaxArgs = 1
+		opt.IsOptional = true
 	case IntRepeatType:
 		opt.HelpArgName = "int"
 		opt.pIntS = data.(*[]int)
@@ -133,6 +151,13 @@ func New(name string, optType Type, data interface{}) *Option {
 		opt.DefaultStr = fmt.Sprintf("%f", *data.(*float64))
 		opt.MinArgs = 1
 		opt.MaxArgs = 1
+	case Float64OptionalType:
+		opt.HelpArgName = "float64"
+		opt.pFloat64 = data.(*float64)
+		opt.DefaultStr = fmt.Sprintf("%f", *data.(*float64))
+		opt.MinArgs = 0
+		opt.MaxArgs = 1
+		opt.IsOptional = true
 	case Float64RepeatType:
 		opt.HelpArgName = "float64"
 		opt.pFloat64S = data.(*[]float64)
@@ -191,15 +216,15 @@ func (opt *Option) synopsis() {
 // Value - Get untyped option value
 func (opt *Option) Value() interface{} {
 	switch opt.OptType {
-	case StringType:
+	case StringType, StringOptionalType:
 		return *opt.pString
 	case StringRepeatType:
 		return *opt.pStringS
-	case IntType:
+	case IntType, IntOptionalType:
 		return *opt.pInt
 	case IntRepeatType:
 		return *opt.pIntS
-	case Float64Type:
+	case Float64Type, Float64OptionalType:
 		return *opt.pFloat64
 	case StringMapType:
 		return *opt.pStringM
@@ -351,10 +376,10 @@ func (opt *Option) Save(a ...string) error {
 
 	Logger.Printf("name: %s, optType: %d\n", opt.Name, opt.OptType)
 	switch opt.OptType {
-	case StringType:
+	case StringType, StringOptionalType:
 		opt.SetString(a[0])
 		return nil
-	case IntType:
+	case IntType, IntOptionalType:
 		i, err := strconv.Atoi(a[0])
 		if err != nil {
 			// TODO: Create error type for use in tests with errors.Is
@@ -362,7 +387,7 @@ func (opt *Option) Save(a ...string) error {
 		}
 		opt.SetInt(i)
 		return nil
-	case Float64Type:
+	case Float64Type, Float64OptionalType:
 		// TODO: Read the different errors when parsing float
 		i, err := strconv.ParseFloat(a[0], 64)
 		if err != nil {

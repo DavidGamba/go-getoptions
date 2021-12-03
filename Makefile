@@ -1,8 +1,8 @@
 .PHONY: test
 
 test:
-	go test -coverprofile=coverage.txt -covermode=atomic ./ ./completion/ ./option ./help ./dag ./sliceiterator ./text
-	cd go-getoptions && go test -coverprofile=coverage.txt -covermode=atomic ./
+	go test -race -coverprofile=coverage.txt -covermode=atomic ./ ./completion/ ./option ./help ./dag ./sliceiterator ./text
+	cd go-getoptions && go test -race -coverprofile=coverage.txt -covermode=atomic ./
 
 race:
 	go test -race ./dag -count=1
