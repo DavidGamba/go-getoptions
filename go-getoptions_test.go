@@ -426,6 +426,7 @@ func TestOptionals(t *testing.T) {
 	}
 }
 
+// DONE
 func TestGetOptBool(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
@@ -484,6 +485,7 @@ func TestGetOptBool(t *testing.T) {
 	}
 }
 
+// DONE
 func TestCalled(t *testing.T) {
 	opt := New()
 	opt.Bool("hello", false)

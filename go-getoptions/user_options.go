@@ -67,6 +67,8 @@ func (gopt *GetOpt) ValidValues(values ...string) ModifyFn {
 	}
 }
 
+// Called - Indicates if the option was passed on the command line.
+// If the `name` is an option that wasn't declared it will return false.
 func (gopt *GetOpt) Called(name string) bool {
 	if name == "" {
 		// Don't panic at this point since the user can only reproduce this by
@@ -77,6 +79,24 @@ func (gopt *GetOpt) Called(name string) bool {
 		return v.Called
 	}
 	return false
+}
+
+// CalledAs - Returns the alias used to call the option.
+// Empty string otherwise.
+//
+// If the `name` is an option that wasn't declared it will return an empty string.
+//
+// For options that can be called multiple times, the last alias used is returned.
+func (gopt *GetOpt) CalledAs(name string) string {
+	if name == "" {
+		// Don't panic at this point since the user can only reproduce this by
+		// executing every branch of their code.
+		return ""
+	}
+	if v, ok := gopt.programTree.ChildOptions[name]; ok {
+		return v.UsedAlias
+	}
+	return ""
 }
 
 func (gopt *GetOpt) Bool(name string, def bool, fns ...ModifyFn) *bool {

@@ -508,3 +508,124 @@ func TestGetOptBool(t *testing.T) {
 		}
 	})
 }
+
+func TestCalled(t *testing.T) {
+	opt := getoptions.New()
+	opt.Bool("hello", false)
+	opt.Bool("happy", false)
+	opt.Bool("world", false)
+	opt.String("string", "")
+	opt.String("string2", "")
+	opt.Int("int", 0)
+	opt.Int("int2", 0)
+	opt.Float64("float", 123.123)
+	opt.Float64("float2", 0.0)
+	_, err := opt.Parse([]string{"--hello", "--world", "--string2", "str", "--int2", "123", "--float2", "456.456"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if !opt.Called("hello") {
+		t.Errorf("hello didn't have expected value %v", false)
+	}
+	if opt.Called("happy") {
+		t.Errorf("happy didn't have expected value %v", true)
+	}
+	if !opt.Called("world") {
+		t.Errorf("world didn't have expected value %v", false)
+	}
+	if opt.Called("string") {
+		t.Errorf("string didn't have expected value %v", true)
+	}
+	if !opt.Called("string2") {
+		t.Errorf("string2 didn't have expected value %v", false)
+	}
+	if opt.Called("int") {
+		t.Errorf("int didn't have expected value %v", true)
+	}
+	if !opt.Called("int2") {
+		t.Errorf("int2 didn't have expected value %v", false)
+	}
+	if opt.Called("float") {
+		t.Errorf("int didn't have expected value %v", true)
+	}
+	if !opt.Called("float2") {
+		t.Errorf("float2 didn't have expected value %v", false)
+	}
+	if opt.Called("unknown") {
+		t.Errorf("unknown didn't have expected value %v", false)
+	}
+}
+
+func TestCalledAs(t *testing.T) {
+	t.Run("flag", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("flag", false, opt.Alias("f", "hello"))
+		_, err := opt.Parse([]string{"--flag"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if opt.CalledAs("flag") != "flag" {
+			t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("flag"), "flag")
+		}
+	})
+
+	t.Run("hello", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("flag", false, opt.Alias("f", "hello"))
+		_, err := opt.Parse([]string{"--hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if opt.CalledAs("flag") != "hello" {
+			t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("flag"), "hello")
+		}
+	})
+
+	t.Run("abbreviation", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("flag", false, opt.Alias("f", "hello"))
+		_, err := opt.Parse([]string{"--h"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if opt.CalledAs("flag") != "hello" {
+			t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("flag"), "hello")
+		}
+	})
+
+	t.Run("emtpy", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("flag", false, opt.Alias("f", "hello"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if opt.CalledAs("flag") != "" {
+			t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("flag"), "")
+		}
+	})
+
+	t.Run("wrong name", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("flag", false, opt.Alias("f", "hello"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if opt.CalledAs("x") != "" {
+			t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("x"), "")
+		}
+	})
+
+	t.Run("all aliases, last one wins", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringSlice("list", 1, 1, opt.Alias("array", "slice"))
+		_, err := opt.Parse([]string{"--list=list", "--array=array", "--slice=slice"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if opt.CalledAs("list") != "slice" {
+			t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("list"), "slice")
+		}
+	})
+}
