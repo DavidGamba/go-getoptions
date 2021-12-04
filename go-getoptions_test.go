@@ -117,6 +117,7 @@ func TestRequired(t *testing.T) {
 	}
 }
 
+// DONE
 func TestUnknownOptionModes(t *testing.T) {
 	// DONE
 	// Default
@@ -258,6 +259,7 @@ func TestSetRequireOrder(t *testing.T) {
 	}
 }
 
+// DONE
 func TestOptionals(t *testing.T) {
 	// Missing argument without default
 	opt := New()

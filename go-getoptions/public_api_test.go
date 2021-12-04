@@ -7,10 +7,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/DavidGamba/go-getoptions/go-getoptions"
-	"github.com/DavidGamba/go-getoptions/text"
 	// "github.com/DavidGamba/go-getoptions"
+	"github.com/DavidGamba/go-getoptions/go-getoptions"
 	"github.com/DavidGamba/go-getoptions/option"
+	"github.com/DavidGamba/go-getoptions/text"
 )
 
 func TestDefinitionPanics(t *testing.T) {
@@ -459,6 +459,52 @@ func TestOptionals(t *testing.T) {
 		}
 		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToFloat64, "float", "hello") {
 			t.Errorf("Error string didn't match expected value '%s'", err)
+		}
+	})
+}
+
+func TestGetOptBool(t *testing.T) {
+	t.Run("bool", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("flag", false)
+		_, err := opt.Parse([]string{"--flag"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if opt.Value("flag") != true {
+			t.Errorf("Wrong value: %v != %v", opt.Value("flag"), true)
+		}
+	})
+
+	t.Run("case sensitivity", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("v", false)
+		opt.Bool("V", false)
+		_, err := opt.Parse([]string{"-v"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !opt.Called("v") {
+			t.Errorf("v didn't have expected value %v", false)
+		}
+		if opt.Called("V") {
+			t.Errorf("V didn't have expected value %v", true)
+		}
+	})
+
+	t.Run("case sensitivity", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("v", false)
+		opt.Bool("V", false)
+		_, err := opt.Parse([]string{"-V"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !opt.Called("V") {
+			t.Errorf("V didn't have expected value %v", false)
+		}
+		if opt.Called("v") {
+			t.Errorf("v didn't have expected value %v", true)
 		}
 	})
 }

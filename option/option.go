@@ -361,7 +361,12 @@ func stringSliceIndex(ss []string, e string) (int, bool) {
 
 // Save - Saves the data provided into the option
 func (opt *Option) Save(a ...string) error {
+	Logger.Printf("name: %s, optType: %d\n", opt.Name, opt.OptType)
 	if len(a) < 1 {
+		switch opt.OptType {
+		case BoolType:
+			opt.SetBoolAsOppositeToDefault()
+		}
 		return nil
 	}
 	for _, e := range a {
@@ -374,7 +379,6 @@ func (opt *Option) Save(a ...string) error {
 		}
 	}
 
-	Logger.Printf("name: %s, optType: %d\n", opt.Name, opt.OptType)
 	switch opt.OptType {
 	case StringType, StringOptionalType:
 		opt.SetString(a[0])

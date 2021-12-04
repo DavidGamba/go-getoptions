@@ -28,11 +28,11 @@ func TestOption(t *testing.T) {
 		{"empty", func() *Option {
 			b := false
 			return New("help", BoolType, &b)
-		}(), []string{}, false, nil},
+		}(), []string{}, true, nil},
 		{"empty", func() *Option {
 			b := true
 			return New("help", BoolType, &b)
-		}(), []string{}, true, nil},
+		}(), []string{}, false, nil},
 		{"bool", func() *Option {
 			b := false
 			return New("help", BoolType, &b)
