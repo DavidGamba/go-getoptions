@@ -230,9 +230,9 @@ func TestUnknownOptionModes(t *testing.T) {
 }
 
 func TestOptionals(t *testing.T) {
-	t.Run("missing argument without default", func(t *testing.T) {
+	t.Run("missing argument for non optional", func(t *testing.T) {
 		opt := getoptions.New()
-		opt.String("string", "")
+		opt.String("string", "default")
 		_, err := opt.Parse([]string{"--string"})
 		if err == nil {
 			t.Errorf("Missing argument for option 'string' didn't raise error")
@@ -242,7 +242,7 @@ func TestOptionals(t *testing.T) {
 		}
 	})
 
-	t.Run("missing argument with default string", func(t *testing.T) {
+	t.Run("missing argument string", func(t *testing.T) {
 		opt := getoptions.New()
 		opt.StringOptional("string", "default", opt.Alias("alias"))
 		_, err := opt.Parse([]string{"--string"})
@@ -254,7 +254,7 @@ func TestOptionals(t *testing.T) {
 		}
 	})
 
-	t.Run("missing argument with default int", func(t *testing.T) {
+	t.Run("missing argument int", func(t *testing.T) {
 		opt := getoptions.New()
 		opt.IntOptional("int", 123, opt.Alias("alias"))
 		_, err := opt.Parse([]string{"--int"})
@@ -266,7 +266,7 @@ func TestOptionals(t *testing.T) {
 		}
 	})
 
-	t.Run("missing argument with default float", func(t *testing.T) {
+	t.Run("missing argument float", func(t *testing.T) {
 		opt := getoptions.New()
 		opt.Float64Optional("float", 123.123, opt.Alias("alias"))
 		_, err := opt.Parse([]string{"--float"})
@@ -283,7 +283,8 @@ func TestOptionals(t *testing.T) {
 		opt.StringOptional("string", "default")
 		opt.IntOptional("int", 123)
 		opt.Float64Optional("float", 123.123)
-		_, err := opt.Parse([]string{"--string", "--int", "--float"})
+		opt.Bool("flag", false)
+		_, err := opt.Parse([]string{"--string", "--int", "--float", "--flag"})
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
@@ -295,21 +296,6 @@ func TestOptionals(t *testing.T) {
 		}
 		if opt.Value("float") != 123.123 {
 			t.Errorf("Default value not set for 'float'")
-		}
-	})
-	t.Run("missing argument, next argument is option", func(t *testing.T) {
-		opt := getoptions.New()
-		opt.StringOptional("string", "default")
-		opt.IntOptional("int", 123)
-		_, err := opt.Parse([]string{"--int", "--string"})
-		if err != nil {
-			t.Errorf("Unexpected error: %s", err)
-		}
-		if opt.Value("int") != 123 {
-			t.Errorf("Default value not set for 'int'")
-		}
-		if opt.Value("string") != "default" {
-			t.Errorf("Default value not set for 'string'")
 		}
 	})
 
@@ -460,6 +446,18 @@ func TestOptionals(t *testing.T) {
 			t.Errorf("Int cast didn't raise errors")
 		}
 		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello") {
+			t.Errorf("Error string didn't match expected value '%s'", err)
+		}
+	})
+
+	t.Run("Cast errors", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64Optional("float", 0.0)
+		_, err := opt.Parse([]string{"--float=hello"})
+		if err == nil {
+			t.Errorf("Float cast didn't raise errors")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToFloat64, "float", "hello") {
 			t.Errorf("Error string didn't match expected value '%s'", err)
 		}
 	})
