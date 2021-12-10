@@ -77,12 +77,14 @@ type CommandFn func(context.Context, *GetOpt, []string) error
 //   opt := getoptions.New()
 func New() *GetOpt {
 	gopt := &GetOpt{}
+	globalOptionMap := make(map[string]string)
 	gopt.programTree = &programTree{
-		Type:          argTypeProgname,
-		Name:          os.Args[0],
-		ChildCommands: map[string]*programTree{},
-		ChildOptions:  map[string]*option.Option{},
-		Level:         0,
+		Type:            argTypeProgname,
+		Name:            os.Args[0],
+		ChildCommands:   map[string]*programTree{},
+		ChildOptions:    map[string]*option.Option{},
+		Level:           0,
+		GlobalOptionMap: &globalOptionMap,
 	}
 	return gopt
 }
@@ -187,6 +189,7 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 		ChildOptions:    map[string]*option.Option{},
 		Parent:          gopt.programTree,
 		Level:           gopt.programTree.Level + 1,
+		GlobalOptionMap: gopt.programTree.GlobalOptionMap,
 	}
 
 	// TODO: Copying options from parent to child can't be done on declaration

@@ -27,6 +27,11 @@ type programTree struct {
 	CommandFn       CommandFn
 	HelpCommandName string
 	unknownMode     UnknownMode // Unknown option mode
+	// Used to track option names and aliases at a global level.
+	// So for example, we can have an alias p that globally refers to profile but
+	// once set, no matter the level, p can't refer to password.
+	// Aliases have to be globally consistent.
+	GlobalOptionMap *map[string]string // map[option/alias]option
 	command
 }
 
@@ -98,6 +103,10 @@ func (n *programTree) AddChildOption(name string, opt *option.Option) {
 		panic(fmt.Sprintf("Option/Alias '%s' is already defined in option '%s'", name, v.Name))
 	}
 
+	if v, ok := (*n.GlobalOptionMap)[name]; ok && v != opt.Name {
+		panic(fmt.Sprintf("Option/Alias '%s' is already globally defined in option '%s'", name, v))
+	}
+
 	switch opt.OptType {
 	case option.StringRepeatType, option.IntRepeatType, option.Float64RepeatType:
 		err := opt.ValidateMinMaxArgs()
@@ -107,6 +116,7 @@ func (n *programTree) AddChildOption(name string, opt *option.Option) {
 	}
 
 	n.ChildOptions[name] = opt
+	(*n.GlobalOptionMap)[name] = opt.Name
 }
 
 // AddChildOption - Adds child commands to programTree and runs validations.
@@ -330,18 +340,31 @@ ARGS_LOOP:
 
 			// iterate over the possible cli args and try matching against expectations
 			for _, p := range optPair {
-				matches := 0
 				// handle full option match
-				// TODO: handle partial matches
-				if cOpt, ok := currentProgramNode.ChildOptions[p.Option]; ok {
+				optionMatches := getAliasNameFromPartialEntry(currentProgramNode, p.Option)
+				if len(optionMatches) > 1 {
+					err := fmt.Errorf(text.ErrorAmbiguousArgument, iterator.Value(), optionMatches)
+					return currentProgramNode, &[]string{}, err
+				}
+
+				if len(optionMatches) == 0 {
+					// TODO: This is a new option, add it as a children and mark it as unknown
+					// TODO: This shouldn't append new children but update existing ones and isOption needs to be able to check if the option expects a follow up argument.
+					// Check min, check max and keep ingesting until something starts with `-` or matches a command.
+
+					opt := newUnknownCLIOption(currentProgramNode, p.Option, iterator.Value(), p.Args...)
+					currentProgramNode.UnknownOptions = append(currentProgramNode.UnknownOptions, opt)
+					continue
+				}
+
+				if cOpt, ok := currentProgramNode.ChildOptions[optionMatches[0]]; ok {
 					Logger.Printf("full match option: %s\n", cOpt.Name)
 					cOpt.Called = true
-					cOpt.UsedAlias = p.Option
+					cOpt.UsedAlias = optionMatches[0]
 					err := cOpt.Save(p.Args...)
 					if err != nil {
 						return currentProgramNode, &[]string{}, err
 					}
-					matches++
 					// TODO: Handle option having a minimum bigger than 1
 
 					// Validate minimum
@@ -376,24 +399,8 @@ ARGS_LOOP:
 						if err != nil {
 							return currentProgramNode, &[]string{}, err
 						}
-
 					}
 				}
-
-				if matches > 1 {
-					// TODO: handle ambiguous option call error
-					continue
-				}
-
-				if matches == 0 {
-					// TODO: This is a new option, add it as a children and mark it as unknown
-					// TODO: This shouldn't append new children but update existing ones and isOption needs to be able to check if the option expects a follow up argument.
-					// Check min, check max and keep ingesting until something starts with `-` or matches a command.
-
-					opt := newUnknownCLIOption(currentProgramNode, p.Option, iterator.Value(), p.Args...)
-					currentProgramNode.UnknownOptions = append(currentProgramNode.UnknownOptions, opt)
-				}
-
 			}
 			continue ARGS_LOOP
 		}
@@ -422,6 +429,22 @@ ARGS_LOOP:
 	// Errors can be unknown options, options without values, etc
 
 	return currentProgramNode, &[]string{}, nil
+}
+
+func getAliasNameFromPartialEntry(n *programTree, entry string) []string {
+	// Attempt to fully match node option
+	if _, ok := (*n.GlobalOptionMap)[entry]; ok {
+		return []string{entry}
+	}
+	// Attempt to match initial chars of node option
+	matches := []string{}
+	for k := range *n.GlobalOptionMap {
+		if strings.HasPrefix(k, entry) {
+			Logger.Printf("found: %s, %s\n", k, entry)
+			matches = append(matches, k)
+		}
+	}
+	return matches
 }
 
 // TODO:
