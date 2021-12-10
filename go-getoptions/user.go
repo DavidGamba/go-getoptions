@@ -84,7 +84,7 @@ func New() *GetOpt {
 		ChildCommands:   map[string]*programTree{},
 		ChildOptions:    map[string]*option.Option{},
 		Level:           0,
-		GlobalOptionMap: &globalOptionMap,
+		GlobalOptionMap: globalOptionMap,
 	}
 	return gopt
 }
@@ -178,8 +178,14 @@ func (gopt *GetOpt) HelpSynopsisArgs(args string) *GetOpt {
 }
 
 // NewCommand - Returns a new GetOpt object representing a new command.
+//
+// NOTE: commands must be declared after all options are declared.
 func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	cmd := &GetOpt{}
+	globalOptionMap := make(map[string]string)
+	for k, v := range gopt.programTree.GlobalOptionMap {
+		globalOptionMap[k] = v
+	}
 	command := &programTree{
 		Type:            argTypeCommand,
 		Name:            name,
@@ -189,7 +195,7 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 		ChildOptions:    map[string]*option.Option{},
 		Parent:          gopt.programTree,
 		Level:           gopt.programTree.Level + 1,
-		GlobalOptionMap: gopt.programTree.GlobalOptionMap,
+		GlobalOptionMap: globalOptionMap,
 	}
 
 	// TODO: Copying options from parent to child can't be done on declaration

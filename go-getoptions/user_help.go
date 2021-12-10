@@ -108,6 +108,8 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 // For example:
 //
 //     opt.HelpCommand("help", "show this help", opt.Alias("?"))
+//
+// NOTE: commands must be declared after all options are declared.
 func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn) *GetOpt {
 	// Question: How do I determine the name of the help option so -h or -? work with the command?
 	// Maybe I need to add an extra parameter for the help option.

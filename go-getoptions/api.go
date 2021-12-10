@@ -31,7 +31,7 @@ type programTree struct {
 	// So for example, we can have an alias p that globally refers to profile but
 	// once set, no matter the level, p can't refer to password.
 	// Aliases have to be globally consistent.
-	GlobalOptionMap *map[string]string // map[option/alias]option
+	GlobalOptionMap map[string]string // map[option/alias]option
 	command
 }
 
@@ -82,6 +82,18 @@ func (n *programTree) Str() string {
 	} else {
 		out += ", child commands: []"
 	}
+	if len(n.GlobalOptionMap) > 0 {
+		var keys []string
+		for k := range n.GlobalOptionMap {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		out += ", option map: [\n"
+		for _, k := range keys {
+			out += padding(level) + fmt.Sprintf("  { %s = %s }\n", k, n.GlobalOptionMap[k])
+		}
+		out += padding(level) + "]"
+	}
 	out += "\n"
 	return out
 }
@@ -103,7 +115,7 @@ func (n *programTree) AddChildOption(name string, opt *option.Option) {
 		panic(fmt.Sprintf("Option/Alias '%s' is already defined in option '%s'", name, v.Name))
 	}
 
-	if v, ok := (*n.GlobalOptionMap)[name]; ok && v != opt.Name {
+	if v, ok := n.GlobalOptionMap[name]; ok && v != opt.Name {
 		panic(fmt.Sprintf("Option/Alias '%s' is already globally defined in option '%s'", name, v))
 	}
 
@@ -116,7 +128,7 @@ func (n *programTree) AddChildOption(name string, opt *option.Option) {
 	}
 
 	n.ChildOptions[name] = opt
-	(*n.GlobalOptionMap)[name] = opt.Name
+	n.GlobalOptionMap[name] = opt.Name
 }
 
 // AddChildOption - Adds child commands to programTree and runs validations.
@@ -433,12 +445,12 @@ ARGS_LOOP:
 
 func getAliasNameFromPartialEntry(n *programTree, entry string) []string {
 	// Attempt to fully match node option
-	if _, ok := (*n.GlobalOptionMap)[entry]; ok {
+	if _, ok := n.GlobalOptionMap[entry]; ok {
 		return []string{entry}
 	}
 	// Attempt to match initial chars of node option
 	matches := []string{}
-	for k := range *n.GlobalOptionMap {
+	for k := range n.GlobalOptionMap {
 		if strings.HasPrefix(k, entry) {
 			Logger.Printf("found: %s, %s\n", k, entry)
 			matches = append(matches, k)

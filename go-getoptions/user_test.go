@@ -32,50 +32,55 @@ func TestTrees(t *testing.T) {
 
 	t.Run("programTree", func(t *testing.T) {
 		root := &programTree{
-			Type:          argTypeProgname,
-			Name:          os.Args[0],
-			ChildCommands: map[string]*programTree{},
-			ChildOptions:  map[string]*option.Option{},
+			Type:            argTypeProgname,
+			Name:            os.Args[0],
+			ChildCommands:   map[string]*programTree{},
+			ChildOptions:    map[string]*option.Option{},
+			GlobalOptionMap: map[string]string{},
 		}
 		rootopt1Data := ""
 		rootopt1 := option.New("rootopt1", option.StringType, &rootopt1Data)
 		cmd1 := &programTree{
-			Type:          argTypeCommand,
-			Name:          "cmd1",
-			Parent:        root,
-			ChildCommands: map[string]*programTree{},
-			ChildOptions:  map[string]*option.Option{},
-			Level:         1,
+			Type:            argTypeCommand,
+			Name:            "cmd1",
+			Parent:          root,
+			ChildCommands:   map[string]*programTree{},
+			ChildOptions:    map[string]*option.Option{},
+			GlobalOptionMap: map[string]string{},
+			Level:           1,
 		}
 		cmd1opt1Data := ""
 		cmd1opt1 := option.New("cmd1opt1", option.StringType, &cmd1opt1Data)
 		sub1cmd1 := &programTree{
-			Type:          argTypeCommand,
-			Name:          "sub1cmd1",
-			Parent:        cmd1,
-			ChildCommands: map[string]*programTree{},
-			ChildOptions:  map[string]*option.Option{},
-			Level:         2,
+			Type:            argTypeCommand,
+			Name:            "sub1cmd1",
+			Parent:          cmd1,
+			ChildCommands:   map[string]*programTree{},
+			ChildOptions:    map[string]*option.Option{},
+			GlobalOptionMap: map[string]string{},
+			Level:           2,
 		}
 		sub1cmd1opt1Data := ""
 		sub1cmd1opt1 := option.New("sub1cmd1opt1", option.StringType, &sub1cmd1opt1Data)
 		sub2cmd1 := &programTree{
-			Type:          argTypeCommand,
-			Name:          "sub2cmd1",
-			Parent:        cmd1,
-			ChildCommands: map[string]*programTree{},
-			ChildOptions:  map[string]*option.Option{},
-			Level:         2,
+			Type:            argTypeCommand,
+			Name:            "sub2cmd1",
+			Parent:          cmd1,
+			ChildCommands:   map[string]*programTree{},
+			ChildOptions:    map[string]*option.Option{},
+			GlobalOptionMap: map[string]string{},
+			Level:           2,
 		}
 		sub2cmd1opt1Data := ""
 		sub2cmd1opt1 := option.New("-", option.StringType, &sub2cmd1opt1Data)
 		cmd2 := &programTree{
-			Type:          argTypeCommand,
-			Name:          "cmd2",
-			Parent:        root,
-			ChildCommands: map[string]*programTree{},
-			ChildOptions:  map[string]*option.Option{},
-			Level:         1,
+			Type:            argTypeCommand,
+			Name:            "cmd2",
+			Parent:          root,
+			ChildCommands:   map[string]*programTree{},
+			ChildOptions:    map[string]*option.Option{},
+			GlobalOptionMap: map[string]string{},
+			Level:           1,
 		}
 		cmd2opt1Data := ""
 		cmd2opt1 := option.New("cmd2opt1", option.StringType, &cmd2opt1Data)
@@ -84,6 +89,8 @@ func TestTrees(t *testing.T) {
 		root.ChildCommands["cmd1"] = cmd1
 		root.ChildCommands["cmd2"] = cmd2
 
+		root.GlobalOptionMap["rootopt1"] = "rootopt1"
+
 		// rootopt1Copycmd1 := rootopt1.Copy().SetParent(cmd1)
 		rootopt1Copycmd1 := rootopt1
 		cmd1.ChildOptions["rootopt1"] = rootopt1Copycmd1
@@ -91,10 +98,16 @@ func TestTrees(t *testing.T) {
 		cmd1.ChildCommands["sub1cmd1"] = sub1cmd1
 		cmd1.ChildCommands["sub2cmd1"] = sub2cmd1
 
+		cmd1.GlobalOptionMap["rootopt1"] = "rootopt1"
+		cmd1.GlobalOptionMap["cmd1opt1"] = "cmd1opt1"
+
 		// rootopt1Copycmd2 := rootopt1.Copy().SetParent(cmd2)
 		rootopt1Copycmd2 := rootopt1
 		cmd2.ChildOptions["rootopt1"] = rootopt1Copycmd2
 		cmd2.ChildOptions["cmd2opt1"] = cmd2opt1
+
+		cmd2.GlobalOptionMap["rootopt1"] = "rootopt1"
+		cmd2.GlobalOptionMap["cmd2opt1"] = "cmd2opt1"
 
 		// rootopt1Copysub1cmd1 := rootopt1.Copy().SetParent(sub1cmd1)
 		rootopt1Copysub1cmd1 := rootopt1
@@ -105,6 +118,10 @@ func TestTrees(t *testing.T) {
 		sub1cmd1.ChildOptions["cmd1opt1"] = cmd1opt1Copysub1cmd1
 		sub1cmd1.ChildOptions["sub1cmd1opt1"] = sub1cmd1opt1
 
+		sub1cmd1.GlobalOptionMap["rootopt1"] = "rootopt1"
+		sub1cmd1.GlobalOptionMap["cmd1opt1"] = "cmd1opt1"
+		sub1cmd1.GlobalOptionMap["sub1cmd1opt1"] = "sub1cmd1opt1"
+
 		// rootopt1Copysub2cmd1 := rootopt1.Copy().SetParent(sub2cmd1)
 		rootopt1Copysub2cmd1 := rootopt1
 		// cmd1opt1Copysub2cmd1 := cmd1opt1.Copy().SetParent(sub2cmd1)
@@ -112,6 +129,10 @@ func TestTrees(t *testing.T) {
 		sub2cmd1.ChildOptions["rootopt1"] = rootopt1Copysub2cmd1
 		sub2cmd1.ChildOptions["cmd1opt1"] = cmd1opt1Copysub2cmd1
 		sub2cmd1.ChildOptions["-"] = sub2cmd1opt1
+
+		sub2cmd1.GlobalOptionMap["rootopt1"] = "rootopt1"
+		sub2cmd1.GlobalOptionMap["cmd1opt1"] = "cmd1opt1"
+		sub2cmd1.GlobalOptionMap["-"] = "-"
 
 		tree := setupOpt().programTree
 		if !reflect.DeepEqual(root, tree) {
