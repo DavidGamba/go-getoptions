@@ -263,3 +263,18 @@ func (gopt *GetOpt) StringMapVar(m *map[string]string, name string, min, max int
 		fn(gopt, n)
 	}
 }
+
+// SetMapKeysToLower - StringMap keys captured from StringMap are lower case.
+// For example:
+//
+//     command --opt key=value
+//
+// And:
+//
+//     command --opt KEY=value
+//
+// Would both return `map[string]string{"key":"value"}`.
+func (gopt *GetOpt) SetMapKeysToLower() *GetOpt {
+	gopt.programTree.mapKeysToLower = true
+	return gopt
+}

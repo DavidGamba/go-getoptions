@@ -33,6 +33,9 @@ type programTree struct {
 	// once set, no matter the level, p can't refer to password.
 	// Aliases have to be globally consistent.
 	GlobalOptionMap map[string]string // map[option/alias]option
+
+	mapKeysToLower bool // controls wether or not map keys are normalized to lowercase
+
 	command
 }
 
@@ -373,6 +376,7 @@ ARGS_LOOP:
 					Logger.Printf("full match option: %s\n", cOpt.Name)
 					cOpt.Called = true
 					cOpt.UsedAlias = optionMatches[0]
+					cOpt.MapKeysToLower = tree.mapKeysToLower
 					err := cOpt.Save(p.Args...)
 					if err != nil {
 						return currentProgramNode, []string{}, err

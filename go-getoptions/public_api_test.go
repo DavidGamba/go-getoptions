@@ -1199,7 +1199,7 @@ func TestGetOptStringMap(t *testing.T) {
 
 	t.Run("ignore case", func(t *testing.T) {
 		opt := getoptions.New()
-		// opt.SetMapKeysToLower()
+		opt.SetMapKeysToLower()
 		sm := opt.StringMap("string", 1, 3)
 		_, err := opt.Parse([]string{"--string", "Key1=value1", "kEy2=value2", "keY3=value3"})
 		if err != nil {

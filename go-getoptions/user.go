@@ -196,6 +196,7 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 		Parent:          gopt.programTree,
 		Level:           gopt.programTree.Level + 1,
 		GlobalOptionMap: globalOptionMap,
+		mapKeysToLower:  gopt.programTree.mapKeysToLower,
 	}
 
 	// TODO: Copying options from parent to child can't be done on declaration
