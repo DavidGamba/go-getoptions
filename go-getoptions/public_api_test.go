@@ -1004,3 +1004,209 @@ func TestGetOptFloat64(t *testing.T) {
 		}
 	})
 }
+
+// TODO: Allow passing : as the map divider
+func TestGetOptStringMap(t *testing.T) {
+	setup := func() *getoptions.GetOpt {
+		opt := getoptions.New()
+		opt.StringMap("string", 1, 3, opt.Alias("alias"))
+		opt.String("opt", "")
+		return opt
+	}
+
+	cases := []struct {
+		name   string
+		opt    *getoptions.GetOpt
+		option string
+		input  []string
+		value  map[string]string
+	}{
+		{"arg inline with option",
+			setup(),
+			"string",
+			[]string{"--string=hello=world"},
+			map[string]string{"hello": "world"},
+		},
+		{"arg inline with alias",
+			setup(),
+			"string",
+			[]string{"--alias=hello=world"},
+			map[string]string{"hello": "world"},
+		},
+		{"inline arg with following non key value text",
+			setup(),
+			"string",
+			[]string{"--string=hello=happy", "world"},
+			map[string]string{"hello": "happy"},
+		},
+		{"arg with following non key value text",
+			setup(),
+			"string",
+			[]string{"--string", "hello=happy", "world"},
+			map[string]string{"hello": "happy"},
+		},
+		{"arg with following string option",
+			setup(),
+			"string",
+			[]string{"--string", "hello=world", "--opt", "happy"},
+			map[string]string{"hello": "world"},
+		},
+		{"inline arg with leading dashes",
+			setup(),
+			"string",
+			[]string{"--string=--hello=happy", "world"},
+			map[string]string{"--hello": "happy"},
+		},
+		{"multiple calls",
+			setup(),
+			"string",
+			[]string{"--string", "hello=world", "--string", "key=value", "--string", "key2=value2"},
+			map[string]string{"hello": "world", "key": "value", "key2": "value2"},
+		},
+		{"multiple calls using maximum",
+			setup(),
+			"string",
+			[]string{"--string", "hello=world", "key=value", "key2=value2"},
+			map[string]string{"hello": "world", "key": "value", "key2": "value2"},
+		},
+		{"2 args",
+			setup(),
+			"string",
+			[]string{"--string", "hello=happy", "happy=world"},
+			map[string]string{"hello": "happy", "happy": "world"},
+		},
+		{"inline arg plus extra arg",
+			setup(),
+			"string",
+			[]string{"--string=--hello=happy", "happy=world"},
+			map[string]string{"--hello": "happy", "happy": "world"},
+		},
+		{"validate case",
+			setup(),
+			"string",
+			[]string{"--string", "key=value", "Key=value1", "kEy=value2"},
+			map[string]string{"key": "value", "Key": "value1", "kEy": "value2"},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			_, err := c.opt.Parse(c.input)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+			if !reflect.DeepEqual(c.opt.Value(c.option), c.value) {
+				t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
+			}
+		})
+	}
+
+	t.Run("arg not key value", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringMap("string", 1, 3)
+		_, err := opt.Parse([]string{"--string", "hello"})
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentIsNotKeyValue, "string") {
+			t.Errorf("Error string didn't match expected value: %s", err.Error())
+		}
+	})
+
+	t.Run("arg not key value", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringMap("string", 1, 3)
+		_, err := opt.Parse([]string{"--string=hello"})
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentIsNotKeyValue, "string") {
+			t.Errorf("Error string didn't match expected value: %s", err.Error())
+		}
+	})
+
+	t.Run("no arg", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringMap("string", 1, 3)
+		_, err := opt.Parse([]string{"--string"})
+		if err == nil {
+			t.Errorf("Missing argument for option 'string' didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "string") {
+			t.Errorf("Error string didn't match expected value: %s", err.Error())
+		}
+	})
+
+	t.Run("no arg", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringMap("string", 1, 3)
+		_, err := opt.Parse([]string{"--string", "--hello=happy", "world"})
+		if err == nil {
+			t.Errorf("Missing argument for option 'string' didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, "string") {
+			t.Errorf("Error string didn't match expected value: %s", err.Error())
+		}
+	})
+
+	t.Run("no arg, wrong min", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringMap("string", 2, 3)
+		_, err := opt.Parse([]string{"--string", "hello=world"})
+		if err == nil {
+			t.Errorf("Passing less than min didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "string") {
+			t.Errorf("Error string didn't match expected value: %s", err.Error())
+		}
+	})
+
+	t.Run("arg wrong min", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringMap("string", 2, 3)
+		_, err := opt.Parse([]string{"--string", "hello=world", "happy"})
+		if err == nil {
+			t.Errorf("Passing less than min didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentIsNotKeyValue, "string") {
+			t.Errorf("Error string didn't match expected value: %s", err.Error())
+		}
+	})
+
+	t.Run("multiple args", func(t *testing.T) {
+		opt := getoptions.New()
+		sm := opt.StringMap("string", 1, 3)
+		_, err := opt.Parse([]string{"--string", "hello=world", "key=value", "key2=value2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm) {
+			t.Errorf("Wrong value: %v != %v", map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm)
+		}
+		if sm["hello"] != "world" || sm["key"] != "value" || sm["key2"] != "value2" {
+			t.Errorf("Wrong value: %v", sm)
+		}
+	})
+
+	t.Run("multiple args", func(t *testing.T) {
+		var sm map[string]string
+		opt := getoptions.New()
+		opt.StringMapVar(&sm, "string", 1, 3)
+		_, err := opt.Parse([]string{"--string", "hello=world", "key=value", "key2=value2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm) {
+			t.Errorf("Wrong value: %v != %v", map[string]string{"hello": "world", "key": "value", "key2": "value2"}, sm)
+		}
+		if sm["hello"] != "world" || sm["key"] != "value" || sm["key2"] != "value2" {
+			t.Errorf("Wrong value: %v", sm)
+		}
+	})
+
+	t.Run("ignore case", func(t *testing.T) {
+		opt := getoptions.New()
+		// opt.SetMapKeysToLower()
+		sm := opt.StringMap("string", 1, 3)
+		_, err := opt.Parse([]string{"--string", "Key1=value1", "kEy2=value2", "keY3=value3"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(map[string]string{"key1": "value1", "key2": "value2", "key3": "value3"}, sm) {
+			t.Errorf("Wrong value: %v != %v", map[string]string{"key1": "value1", "key2": "value2", "key3": "value3"}, sm)
+		}
+	})
+}

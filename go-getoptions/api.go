@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/DavidGamba/go-getoptions/option"
@@ -361,14 +362,12 @@ ARGS_LOOP:
 				}
 
 				if len(optionMatches) == 0 {
-					// TODO: This is a new option, add it as a children and mark it as unknown
 					// TODO: This shouldn't append new children but update existing ones and isOption needs to be able to check if the option expects a follow up argument.
-					// Check min, check max and keep ingesting until something starts with `-` or matches a command.
-
 					opt := newUnknownCLIOption(currentProgramNode, p.Option, iterator.Value(), p.Args...)
 					currentProgramNode.UnknownOptions = append(currentProgramNode.UnknownOptions, opt)
 					continue
 				}
+				// TODO: Check min, check max and keep ingesting until something starts with `-` or matches a command.
 
 				if cOpt, ok := currentProgramNode.ChildOptions[optionMatches[0]]; ok {
 					Logger.Printf("full match option: %s\n", cOpt.Name)
@@ -398,6 +397,7 @@ ARGS_LOOP:
 						}
 					}
 
+				MAX_LOOP:
 					// Run maximun
 					for ; i < cOpt.MaxArgs; i++ {
 						if !iterator.ExistsNext() {
@@ -407,6 +407,31 @@ ARGS_LOOP:
 						if _, is := isOption(value, mode, false); is {
 							break
 						}
+
+						// Validate that value matches expected format
+						switch cOpt.OptType {
+						case option.StringRepeatType:
+						// TODO: Should we validate that argument doesn't match a command?
+						// nothing to do here
+						case option.IntRepeatType:
+							// Next Value is not an int entry, break the max feed.
+							_, err := strconv.Atoi(value)
+							if err != nil {
+								break MAX_LOOP
+							}
+						case option.Float64RepeatType:
+							// Next Value is not a float64 entry, break the max feed.
+							_, err := strconv.ParseFloat(value, 64)
+							if err != nil {
+								break MAX_LOOP
+							}
+						case option.StringMapType:
+							// Next Value is not a key=value entry, break the max feed.
+							if !strings.Contains(value, "=") {
+								break MAX_LOOP
+							}
+						}
+
 						iterator.Next()
 						err := cOpt.Save(iterator.Value())
 						if err != nil {

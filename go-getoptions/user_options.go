@@ -256,6 +256,8 @@ func (gopt *GetOpt) StringMapVar(m *map[string]string, name string, min, max int
 		*m = make(map[string]string)
 	}
 	n := option.New(name, option.StringMapType, m)
+	n.MinArgs = min
+	n.MaxArgs = max
 	gopt.programTree.AddChildOption(name, n)
 	for _, fn := range fns {
 		fn(gopt, n)
