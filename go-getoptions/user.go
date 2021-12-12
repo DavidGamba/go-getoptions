@@ -122,10 +122,10 @@ func (gopt *GetOpt) Self(name string, description string) *GetOpt {
 //     |===
 //
 // See https://github.com/DavidGamba/go-getoptions#operation_modes for more details.
-// func (gopt *GetOpt) SetMode(mode Mode) *GetOpt {
-// 	gopt.programTree.mode = mode
-// 	return gopt
-// }
+func (gopt *GetOpt) SetMode(mode Mode) *GetOpt {
+	gopt.programTree.mode = mode
+	return gopt
+}
 
 // SetUnknownMode - Determines how to behave when encountering an unknown option.
 //
@@ -283,7 +283,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	// I came up with the conclusion that dispatch provides a bunch of flexibility and explicitness.
 
 	// TODO: parseCLIArgs needs to return the remaining array
-	node, _, err := parseCLIArgs(false, gopt.programTree, args, Normal)
+	node, _, err := parseCLIArgs(false, gopt.programTree, args, gopt.programTree.mode)
 	if err != nil {
 		return nil, err
 	}

@@ -1668,3 +1668,28 @@ func TestDefaultValues(t *testing.T) {
 		t.Errorf("int didn't have expected value: %v != %v", opt.Value("int"), 0)
 	}
 }
+
+func TestBundling(t *testing.T) {
+	var o, p bool
+	var s string
+	opt := getoptions.New()
+	opt.BoolVar(&o, "o", false)
+	opt.BoolVar(&p, "p", false)
+	opt.StringVar(&s, "t", "")
+	opt.SetMode(getoptions.Bundling)
+	_, err := opt.Parse([]string{
+		"-opt=arg",
+	})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if o != true {
+		t.Errorf("o didn't have expected value: %v != %v", o, true)
+	}
+	if p != true {
+		t.Errorf("p didn't have expected value: %v != %v", p, true)
+	}
+	if s != "arg" {
+		t.Errorf("t didn't have expected value: %v != %v", s, "arg")
+	}
+}

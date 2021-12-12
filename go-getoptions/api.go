@@ -27,6 +27,7 @@ type programTree struct {
 	Level           int
 	CommandFn       CommandFn
 	HelpCommandName string
+	mode            Mode
 	unknownMode     UnknownMode // Unknown option mode
 	// Used to track option names and aliases at a global level.
 	// So for example, we can have an alias p that globally refers to profile but
