@@ -265,12 +265,13 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 		Logger.Printf("COMP_LINE: '%s', parts: %#v, args: %#v\n", compLine, compLineParts, args)
 		_, completions, err := parseCLIArgs(true, gopt.programTree, compLineParts, Normal)
 		if err != nil {
+			fmt.Fprintf(Writer, "\nERROR: %s\n", err)
 			exitFn(124) // programmable completion restarts from the beginning, with an attempt to find a new compspec for that command.
 
 			// Ignore errors in completion mode
 			return nil, nil
 		}
-		fmt.Fprintln(completionWriter, strings.Join(*completions, "\n"))
+		fmt.Fprintln(completionWriter, strings.Join(completions, "\n"))
 		exitFn(124) // programmable completion restarts from the beginning, with an attempt to find a new compspec for that command.
 	}
 

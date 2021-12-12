@@ -593,7 +593,7 @@ func TestCalledAs(t *testing.T) {
 		}
 	})
 
-	t.Run("emtpy", func(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
 		opt := getoptions.New()
 		opt.Bool("flag", false, opt.Alias("f", "hello"))
 		_, err := opt.Parse([]string{})
@@ -626,6 +626,381 @@ func TestCalledAs(t *testing.T) {
 		}
 		if opt.CalledAs("list") != "slice" {
 			t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("list"), "slice")
+		}
+	})
+}
+
+func TestEndOfParsing(t *testing.T) {
+	opt := getoptions.New()
+	opt.Bool("hello", false)
+	opt.Bool("world", false)
+	remaining, err := opt.Parse([]string{"hola", "--hello", "--", "mundo", "--world"})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if !reflect.DeepEqual(remaining, []string{"hola", "mundo", "--world"}) {
+		t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"hola", "mundo", "--world"})
+	}
+}
+
+func TestGetOptAliases(t *testing.T) {
+	setup := func() *getoptions.GetOpt {
+		opt := getoptions.New()
+		opt.Bool("flag", false, opt.Alias("f", "h"))
+		return opt
+	}
+
+	cases := []struct {
+		opt    *getoptions.GetOpt
+		option string
+		input  []string
+		value  bool
+	}{
+		{setup(),
+			"flag",
+			[]string{"--flag"},
+			true,
+		},
+		{setup(),
+			"flag",
+			[]string{"-f"},
+			true,
+		},
+		{setup(),
+			"flag",
+			[]string{"-h"},
+			true,
+		},
+		// TODO: Add flag to allow for this.
+		{setup(),
+			"flag",
+			[]string{"--fl"},
+			true,
+		},
+	}
+	for _, c := range cases {
+		_, err := c.opt.Parse(c.input)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if c.opt.Value(c.option) != c.value {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
+		}
+	}
+
+	t.Run("ambiguous", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("flag", false)
+		opt.Bool("fleg", false)
+		_, err := opt.Parse([]string{"--fl"})
+		if err == nil {
+			t.Errorf("Ambiguous argument 'fl' didn't raise unknown option error")
+		}
+		expected := fmt.Sprintf(text.ErrorAmbiguousArgument, "--fl", []string{"flag", "fleg"})
+		if err != nil && err.Error() != expected {
+			t.Errorf("Error string didn't match. expected: '%s', got: '%s'", expected, err)
+		}
+	})
+
+	t.Run("ensure there is no panic when alias matches the beginning of preexisting option", func(t *testing.T) {
+		// Bug: Startup panic when alias matches the beginning of preexisting option
+		// https://github.com/DavidGamba/go-getoptions/issues/1
+		opt := getoptions.New()
+		opt.Bool("fleg", false)
+		opt.Bool("flag", false, opt.Alias("f"))
+		_, err := opt.Parse([]string{"--f"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if opt.Called("fleg") {
+			t.Errorf("fleg should not have been called")
+		}
+		if !opt.Called("flag") {
+			t.Errorf("flag not called")
+		}
+	})
+
+	t.Run("second alias used", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Int("flag", 0, opt.Alias("f", "h"))
+		_, err := opt.Parse([]string{"--h"})
+		if err == nil {
+			t.Errorf("Int didn't raise errors")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "h") {
+			t.Errorf("Error string didn't match expected value '%s'", err)
+		}
+	})
+}
+
+func TestGetOptString(t *testing.T) {
+	setup := func() *getoptions.GetOpt {
+		opt := getoptions.New()
+		opt.String("string", "", opt.Alias("alias"))
+		return opt
+	}
+
+	cases := []struct {
+		opt    *getoptions.GetOpt
+		option string
+		input  []string
+		value  string
+	}{
+		{setup(),
+			"string",
+			[]string{"--string=hello"},
+			"hello",
+		},
+		{setup(),
+			"string",
+			[]string{"--string=hello", "world"},
+			"hello",
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello"},
+			"hello",
+		},
+		{setup(),
+			"string",
+			[]string{"--alias", "hello"},
+			"hello",
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello", "world"},
+			"hello",
+		},
+		// String should only accept an option looking string as an argument when passed after =
+		{setup(),
+			"string",
+			[]string{"--string=--hello", "world"},
+			"--hello",
+		},
+		// TODO: Set up a flag to decide whether or not to err on this
+		// To have the definition of string overridden. This should probably fail since it is most likely not what the user intends.
+		{setup(),
+			"string",
+			[]string{"--string", "hello", "--string", "world"},
+			"world",
+		},
+	}
+	for _, c := range cases {
+		_, err := c.opt.Parse(c.input)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if c.opt.Value(c.option) != c.value {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
+		}
+	}
+
+	t.Run("fail when arg not provided", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.String("string", "")
+		_, err := opt.Parse([]string{"--string", "--hello"})
+		if err == nil {
+			t.Errorf("Passing option where argument expected didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, "string") {
+			t.Errorf("Error string didn't match expected value")
+		}
+	})
+}
+
+func TestGetOptInt(t *testing.T) {
+	setup := func() *getoptions.GetOpt {
+		opt := getoptions.New()
+		opt.Int("int", 0, opt.Alias("alias"))
+		return opt
+	}
+
+	cases := []struct {
+		opt    *getoptions.GetOpt
+		option string
+		input  []string
+		value  int
+	}{
+		{setup(),
+			"int",
+			[]string{"--int=-123"},
+			-123,
+		},
+		{setup(),
+			"int",
+			[]string{"--int=-123", "world"},
+			-123,
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "123"},
+			123,
+		},
+		{setup(),
+			"int",
+			[]string{"--alias", "123"},
+			123,
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "123", "world"},
+			123,
+		},
+	}
+	for _, c := range cases {
+		_, err := c.opt.Parse(c.input)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if c.opt.Value(c.option) != c.value {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
+		}
+	}
+
+	t.Run("missing argument", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Int("int", 0)
+		_, err := opt.Parse([]string{"--int"})
+		if err == nil {
+			t.Errorf("Int didn't raise errors")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "int") {
+			t.Errorf("Error string didn't match expected value '%s'", err)
+		}
+	})
+
+	t.Run("cast error", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Int("int", 0)
+		_, err := opt.Parse([]string{"--int=hello"})
+		if err == nil {
+			t.Errorf("Int cast didn't raise errors")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello") {
+			t.Errorf("Error string didn't match expected value '%s'", err)
+		}
+	})
+
+	t.Run("cast error", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Int("int", 0)
+		_, err := opt.Parse([]string{"--int", "hello"})
+		if err == nil {
+			t.Errorf("Int cast didn't raise errors")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello") {
+			t.Errorf("Error string didn't match expected value '%s'", err)
+		}
+	})
+
+	t.Run("missing argument", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Int("int", 0)
+		_, err := opt.Parse([]string{"--int", "-123"})
+		if err == nil {
+			t.Errorf("Passing option where argument expected didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, "int") {
+			t.Errorf("Error string didn't match expected value: %s", err.Error())
+		}
+	})
+}
+
+func TestGetOptFloat64(t *testing.T) {
+	setup := func() *getoptions.GetOpt {
+		opt := getoptions.New()
+		opt.Float64("float", 0, opt.Alias("alias"))
+		return opt
+	}
+
+	cases := []struct {
+		opt    *getoptions.GetOpt
+		option string
+		input  []string
+		value  float64
+	}{
+		{setup(),
+			"float",
+			[]string{"--float=-1.23"},
+			-1.23,
+		},
+		{setup(),
+			"float",
+			[]string{"--float=-1.23", "world"},
+			-1.23,
+		},
+		{setup(),
+			"float",
+			[]string{"--float", "1.23"},
+			1.23,
+		},
+		{setup(),
+			"float",
+			[]string{"--alias", "1.23"},
+			1.23,
+		},
+		{setup(),
+			"float",
+			[]string{"--float", "1.23", "world"},
+			1.23,
+		},
+	}
+	for _, c := range cases {
+		_, err := c.opt.Parse(c.input)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if c.opt.Value(c.option) != c.value {
+			t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
+		}
+	}
+
+	t.Run("Missing Argument errors", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64("float", 0)
+		_, err := opt.Parse([]string{"--float"})
+		if err == nil {
+			t.Errorf("Float64 didn't raise errors")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "float") {
+			t.Errorf("Error string didn't match expected value '%s'", err)
+		}
+	})
+
+	t.Run("Cast errors", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64("float", 0)
+		_, err := opt.Parse([]string{"--float=hello"})
+		if err == nil {
+			t.Errorf("Float cast didn't raise errors")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToFloat64, "float", "hello") {
+			t.Errorf("Error string didn't match expected value '%s'", err)
+		}
+	})
+
+	t.Run("Cast errors", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64("float", 0)
+		_, err := opt.Parse([]string{"--float", "hello"})
+		if err == nil {
+			t.Errorf("Int cast didn't raise errors")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToFloat64, "float", "hello") {
+			t.Errorf("Error string didn't match expected value '%s'", err)
+		}
+	})
+
+	t.Run("missing argument", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64("float", 0)
+		_, err := opt.Parse([]string{"--float", "-123"})
+		if err == nil {
+			t.Errorf("Passing option where argument expected didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, "float") {
+			t.Errorf("Error string didn't match expected value: %s", err.Error())
 		}
 	})
 }

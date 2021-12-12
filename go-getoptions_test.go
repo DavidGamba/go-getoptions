@@ -525,6 +525,7 @@ func TestCalled(t *testing.T) {
 	}
 }
 
+// DONE
 func TestCalledAs(t *testing.T) {
 	opt := New()
 	opt.Bool("flag", false, opt.Alias("f", "hello"))
@@ -587,6 +588,7 @@ func TestCalledAs(t *testing.T) {
 	}
 }
 
+// DONE
 func TestEndOfParsing(t *testing.T) {
 	opt := New()
 	opt.Bool("hello", false)
@@ -601,6 +603,7 @@ func TestEndOfParsing(t *testing.T) {
 	}
 }
 
+// DONE
 func TestGetOptAliases(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
@@ -684,6 +687,7 @@ func TestGetOptAliases(t *testing.T) {
 	}
 }
 
+// DONE
 func TestGetOptString(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
@@ -757,6 +761,7 @@ func TestGetOptString(t *testing.T) {
 	}
 }
 
+// DONE
 func TestGetOptInt(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
@@ -849,6 +854,7 @@ func TestGetOptInt(t *testing.T) {
 	}
 }
 
+// DONE
 func TestGetOptFloat64(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()

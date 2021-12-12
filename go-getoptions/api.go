@@ -201,7 +201,7 @@ func newUnknownCLIOption(parent *programTree, name, verbatim string, args ...str
 	return arg
 }
 
-type completions *[]string
+type completions []string
 
 // parseCLIArgs - Given the root node tree and the cli args it returns a populated tree of the node that was called.
 // For example, if a command is called, then the returned node is that of the command with the options that were set updated with their values.
@@ -236,7 +236,7 @@ ARGS_LOOP:
 
 		// We only generate completions when we reached the end of the provided args
 		if completionMode && (iterator.IsLast() || len(args) == 0) {
-			comps := &[]string{}
+			completions := []string{}
 
 			// Options
 			{
@@ -250,39 +250,39 @@ ARGS_LOOP:
 						// handle lonesome dash
 						if k == "-" {
 							if iterator.Value() == "-" {
-								*comps = append(*comps, k)
+								completions = append(completions, k)
 							}
 							continue
 						}
 						if strings.HasPrefix(k, value) {
 							lastOpt = v
 							if currentProgramNode.ChildOptions[k].OptType != option.BoolType {
-								*comps = append(*comps, "--"+k+"=")
+								completions = append(completions, "--"+k+"=")
 							} else {
-								*comps = append(*comps, "--"+k)
+								completions = append(completions, "--"+k)
 							}
 						}
 					}
-					sort.Strings(*comps)
+					sort.Strings(completions)
 
 					// If there is a single completion and it expects an argument, add an
 					// extra completion so there is no trailing space automatically
 					// inserted by bash.
 					// This extra completion has nice documentation on what the option expects.
-					if len(*comps) == 1 && strings.HasSuffix((*comps)[0], "=") {
+					if len(completions) == 1 && strings.HasSuffix((completions)[0], "=") {
 						if lastOpt.SuggestedValues != nil && len(lastOpt.SuggestedValues) > 0 {
 							for _, e := range lastOpt.SuggestedValues {
-								*comps = append(*comps, (*comps)[0]+e)
+								completions = append(completions, completions[0]+e)
 							}
 						} else {
 							valueStr := "<value>"
 							if lastOpt.HelpArgName != "" {
 								valueStr = "<" + lastOpt.HelpArgName + ">"
 							}
-							*comps = append(*comps, (*comps)[0]+valueStr)
+							completions = append(completions, completions[0]+valueStr)
 						}
 					}
-					return currentProgramNode, comps, nil
+					return currentProgramNode, completions, nil
 				}
 			}
 
@@ -291,16 +291,16 @@ ARGS_LOOP:
 				// Iterate over commands and check prefix to see if we offer command completion
 				for k := range currentProgramNode.ChildCommands {
 					if strings.HasPrefix(k, iterator.Value()) {
-						*comps = append(*comps, k)
+						completions = append(completions, k)
 					}
 				}
 
-				sort.Strings(*comps)
+				sort.Strings(completions)
 				// Add trailing space to force next completion, makes for nicer UI when there is a single result.
-				if len(*comps) == 1 {
-					(*comps)[0] = (*comps)[0] + " "
+				if len(completions) == 1 {
+					(completions)[0] = completions[0] + " "
 				}
-				return currentProgramNode, comps, nil
+				return currentProgramNode, completions, nil
 			}
 
 			// Provide other kinds of completions, like file completions.
@@ -355,8 +355,9 @@ ARGS_LOOP:
 				// handle full option match
 				optionMatches := getAliasNameFromPartialEntry(currentProgramNode, p.Option)
 				if len(optionMatches) > 1 {
+					sort.Strings(optionMatches)
 					err := fmt.Errorf(text.ErrorAmbiguousArgument, iterator.Value(), optionMatches)
-					return currentProgramNode, &[]string{}, err
+					return currentProgramNode, []string{}, err
 				}
 
 				if len(optionMatches) == 0 {
@@ -375,7 +376,7 @@ ARGS_LOOP:
 					cOpt.UsedAlias = optionMatches[0]
 					err := cOpt.Save(p.Args...)
 					if err != nil {
-						return currentProgramNode, &[]string{}, err
+						return currentProgramNode, []string{}, err
 					}
 					// TODO: Handle option having a minimum bigger than 1
 
@@ -384,16 +385,16 @@ ARGS_LOOP:
 					for ; i < cOpt.MinArgs; i++ {
 						if !iterator.ExistsNext() && !cOpt.IsOptional {
 							err := fmt.Errorf(text.ErrorMissingArgument+"%w", cOpt.UsedAlias, ErrorMissingArgument)
-							return currentProgramNode, &[]string{}, err
+							return currentProgramNode, []string{}, err
 						}
 						iterator.Next()
 						if _, is := isOption(iterator.Value(), mode, false); is && !cOpt.IsOptional {
 							err := fmt.Errorf(text.ErrorArgumentWithDash+"%w", cOpt.UsedAlias, ErrorMissingArgument)
-							return currentProgramNode, &[]string{}, err
+							return currentProgramNode, []string{}, err
 						}
 						err := cOpt.Save(iterator.Value())
 						if err != nil {
-							return currentProgramNode, &[]string{}, err
+							return currentProgramNode, []string{}, err
 						}
 					}
 
@@ -409,7 +410,7 @@ ARGS_LOOP:
 						iterator.Next()
 						err := cOpt.Save(iterator.Value())
 						if err != nil {
-							return currentProgramNode, &[]string{}, err
+							return currentProgramNode, []string{}, err
 						}
 					}
 				}
@@ -440,7 +441,7 @@ ARGS_LOOP:
 	// TODO: After being done parsing everything validate for errors
 	// Errors can be unknown options, options without values, etc
 
-	return currentProgramNode, &[]string{}, nil
+	return currentProgramNode, []string{}, nil
 }
 
 func getAliasNameFromPartialEntry(n *programTree, entry string) []string {
