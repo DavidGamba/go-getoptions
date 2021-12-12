@@ -1517,3 +1517,154 @@ func TestGetOptIntSlice(t *testing.T) {
 		}
 	})
 }
+
+func TestVars(t *testing.T) {
+	opt := getoptions.New()
+
+	var flag, flag2, flag5, flag6 bool
+	opt.BoolVar(&flag, "flag", false)
+	opt.BoolVar(&flag2, "flag2", true)
+	flag3 := opt.Bool("flag3", false)
+	flag4 := opt.Bool("flag4", true)
+	opt.BoolVar(&flag5, "flag5", false)
+	opt.BoolVar(&flag6, "flag6", true)
+
+	var str, str2 string
+	opt.StringVar(&str, "stringVar", "")
+	opt.StringVar(&str2, "stringVar2", "")
+
+	var integer int
+	opt.IntVar(&integer, "intVar", 0)
+
+	var float float64
+	opt.Float64Var(&float, "float64Var", 0)
+
+	_, err := opt.Parse([]string{
+		"-flag",
+		"-flag2",
+		"-flag3",
+		"-flag4",
+		"--stringVar", "hello",
+		"--stringVar2=world",
+		"--intVar", "123",
+		"--float64Var", "1.23",
+	})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if flag != true {
+		t.Errorf("flag didn't have expected value: %v != %v", flag, true)
+	}
+	if flag2 != false {
+		t.Errorf("flag2 didn't have expected value: %v != %v", flag2, false)
+	}
+	if *flag3 != true {
+		t.Errorf("flag3 didn't have expected value: %v != %v", *flag3, true)
+	}
+	if *flag4 != false {
+		t.Errorf("flag4 didn't have expected value: %v != %v", *flag4, false)
+	}
+	if flag5 != false {
+		t.Errorf("flag5 didn't have expected value: %v != %v", flag5, false)
+	}
+	if flag6 != true {
+		t.Errorf("flag6 didn't have expected value: %v != %v", flag6, true)
+	}
+
+	if str != "hello" {
+		t.Errorf("str didn't have expected value: %v != %v", str, "hello")
+	}
+	if str2 != "world" {
+		t.Errorf("str2 didn't have expected value: %v != %v", str, "world")
+	}
+	if integer != 123 {
+		t.Errorf("integer didn't have expected value: %v != %v", integer, 123)
+	}
+	if float != 1.23 {
+		t.Errorf("float didn't have expected value: %v != %v", float, 1.23)
+	}
+}
+
+func TestDefaultValues(t *testing.T) {
+	var flag bool
+	var str, str2 string
+	var integer, integer2 int
+
+	opt := getoptions.New()
+	opt.Bool("flag", false)
+	opt.BoolVar(&flag, "varflag", false)
+	opt.String("string", "")
+	opt.String("string2", "default")
+	str3 := opt.String("string3", "default")
+	opt.StringVar(&str, "stringVar", "")
+	opt.StringVar(&str2, "stringVar2", "default")
+	opt.Int("int", 0)
+	int2 := opt.Int("int2", 5)
+	opt.IntVar(&integer, "intVar", 0)
+	opt.IntVar(&integer2, "intVar2", 5)
+	opt.StringSlice("string-repeat", 1, 1)
+	opt.StringMap("string-map", 1, 1)
+
+	_, err := opt.Parse([]string{})
+
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	expected := map[string]interface{}{
+		"flag":          false,
+		"varflag":       false,
+		"string":        "",
+		"string2":       "default",
+		"stringVar":     "",
+		"stringVar2":    "default",
+		"int":           0,
+		"intVar":        0,
+		"string-repeat": []string{},
+		"string-map":    map[string]string{},
+	}
+
+	for k := range expected {
+		if !reflect.DeepEqual(opt.Value(k), expected[k]) {
+			t.Errorf("Wrong value: %s\n%v !=\n%v", k, opt.Value(k), expected[k])
+		}
+	}
+
+	if flag != false {
+		t.Errorf("flag didn't have expected value: %v != %v", flag, true)
+	}
+	if str != "" {
+		t.Errorf("str didn't have expected value: %v != %v", str, "")
+	}
+	if str2 != "default" {
+		t.Errorf("str2 didn't have expected value: %v != %v", str, "default")
+	}
+	if *str3 != "default" {
+		t.Errorf("str didn't have expected value: %v != %v", str3, "default")
+	}
+	if integer != 0 {
+		t.Errorf("integer didn't have expected value: %v != %v", integer, 123)
+	}
+	if integer2 != 5 {
+		t.Errorf("integer2 didn't have expected value: %v != %v", integer2, 5)
+	}
+	if *int2 != 5 {
+		t.Errorf("int2 didn't have expected value: %v != %v", int2, 5)
+	}
+
+	// Tested above, but it gives me a feel for how it would be used
+
+	if opt.Value("flag").(bool) {
+		t.Errorf("flag didn't have expected value: %v != %v", opt.Value("flag"), false)
+	}
+	if opt.Value("non-used-flag") != nil && opt.Value("non-used-flag").(bool) {
+		t.Errorf("non-used-flag didn't have expected value: %v != %v", opt.Value("non-used-flag"), nil)
+	}
+	if opt.Value("string") != "" {
+		t.Errorf("str didn't have expected value: %v != %v", opt.Value("string"), "")
+	}
+	if opt.Value("int") != 0 {
+		t.Errorf("int didn't have expected value: %v != %v", opt.Value("int"), 0)
+	}
+}

@@ -1464,6 +1464,7 @@ func TestGetOptIntSlicePanicWithWrongMax(t *testing.T) {
 	opt.Parse([]string{})
 }
 
+// DONE
 func TestVars(t *testing.T) {
 	opt := New()
 
@@ -1532,6 +1533,7 @@ func TestVars(t *testing.T) {
 	}
 }
 
+// DONE
 func TestDefaultValues(t *testing.T) {
 	var flag bool
 	var str, str2 string
