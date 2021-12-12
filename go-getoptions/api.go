@@ -124,7 +124,7 @@ func (n *programTree) AddChildOption(name string, opt *option.Option) {
 	}
 
 	switch opt.OptType {
-	case option.StringRepeatType, option.IntRepeatType, option.Float64RepeatType:
+	case option.StringRepeatType, option.IntRepeatType, option.Float64RepeatType, option.StringMapType:
 		err := opt.ValidateMinMaxArgs()
 		if err != nil {
 			panic(fmt.Sprintf("%s definition error: %s", name, err))

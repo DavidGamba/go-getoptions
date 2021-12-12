@@ -92,6 +92,10 @@ func TestOptionWrongMinMax(t *testing.T) {
 		defer recoverFn()
 		getoptions.New().IntSlice("ss", 0, 1)
 	})
+	t.Run("StringMap min < 1", func(t *testing.T) {
+		defer recoverFn()
+		getoptions.New().StringMap("sm", 0, 1)
+	})
 
 	t.Run("StringSlice max < 1", func(t *testing.T) {
 		defer recoverFn()
@@ -101,6 +105,10 @@ func TestOptionWrongMinMax(t *testing.T) {
 		defer recoverFn()
 		getoptions.New().IntSlice("ss", 1, 0)
 	})
+	t.Run("StringMap max < 1", func(t *testing.T) {
+		defer recoverFn()
+		getoptions.New().StringMap("sm", 1, 0)
+	})
 
 	t.Run("StringSlice min > max", func(t *testing.T) {
 		defer recoverFn()
@@ -109,6 +117,10 @@ func TestOptionWrongMinMax(t *testing.T) {
 	t.Run("IntSlice min > max", func(t *testing.T) {
 		defer recoverFn()
 		getoptions.New().IntSlice("ss", 2, 1)
+	})
+	t.Run("StringMap min > max", func(t *testing.T) {
+		defer recoverFn()
+		getoptions.New().StringMap("sm", 2, 1)
 	})
 }
 
@@ -1207,6 +1219,301 @@ func TestGetOptStringMap(t *testing.T) {
 		}
 		if !reflect.DeepEqual(map[string]string{"key1": "value1", "key2": "value2", "key3": "value3"}, sm) {
 			t.Errorf("Wrong value: %v != %v", map[string]string{"key1": "value1", "key2": "value2", "key3": "value3"}, sm)
+		}
+	})
+}
+
+func TestGetOptStringSlice(t *testing.T) {
+	setup := func() *getoptions.GetOpt {
+		opt := getoptions.New()
+		opt.StringSlice("string", 1, 3, opt.Alias("alias"))
+		opt.String("opt", "")
+		return opt
+	}
+	cases := []struct {
+		opt    *getoptions.GetOpt
+		option string
+		input  []string
+		value  []string
+	}{
+		{setup(),
+			"string",
+			[]string{"--string", "hello"},
+			[]string{"hello"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string=hello"},
+			[]string{"hello"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello", "world"},
+			[]string{"hello", "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--alias", "hello", "world"},
+			[]string{"hello", "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string=hello", "world"},
+			[]string{"hello", "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello", "happy", "world"},
+			[]string{"hello", "happy", "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string=hello", "happy", "world"},
+			[]string{"hello", "happy", "world"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello", "--opt", "world"},
+			[]string{"hello"},
+		},
+		{setup(),
+			"string",
+			[]string{"--string", "hello", "--string", "world"},
+			[]string{"hello", "world"},
+		},
+	}
+	for _, c := range cases {
+		t.Run("cases", func(t *testing.T) {
+			_, err := c.opt.Parse(c.input)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+			if !reflect.DeepEqual(c.opt.Value(c.option), c.value) {
+				t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
+			}
+		})
+	}
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringSlice("string", 2, 3)
+		_, err := opt.Parse([]string{"--string", "hello"})
+		if err == nil {
+			t.Errorf("Passing less than min didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "string") {
+			t.Errorf("Error string didn't match expected value")
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringSlice("string", 1, 1)
+		_, err := opt.Parse([]string{"--string"})
+		if err == nil {
+			t.Errorf("Passing option where argument expected didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "string") {
+			t.Errorf("Error string didn't match expected value: %s", err.Error())
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringSlice("string", 1, 1)
+		_, err := opt.Parse([]string{"--string", "--hello", "world"})
+		if err == nil {
+			t.Errorf("Passing option where argument expected didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorArgumentWithDash, "string") {
+			t.Errorf("Error string didn't match expected value: %s", err.Error())
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		ss := opt.StringSlice("string", 1, 1)
+		_, err := opt.Parse([]string{"--string", "hello", "--string", "world"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(*ss, []string{"hello", "world"}) {
+			t.Errorf("Wrong value: %v != %v", *ss, []string{"hello", "world"})
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		var ssVar []string
+		opt.StringSliceVar(&ssVar, "string", 1, 1)
+		_, err := opt.Parse([]string{"--string", "hello", "--string", "world"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(ssVar, []string{"hello", "world"}) {
+			t.Errorf("Wrong value: %v != %v", ssVar, []string{"hello", "world"})
+		}
+	})
+}
+
+func TestGetOptIntSlice(t *testing.T) {
+	setup := func() *getoptions.GetOpt {
+		opt := getoptions.New()
+		opt.IntSlice("int", 1, 3, opt.Alias("alias"))
+		opt.String("opt", "")
+		return opt
+	}
+	cases := []struct {
+		opt    *getoptions.GetOpt
+		option string
+		input  []string
+		value  []int
+	}{
+		{setup(),
+			"int",
+			[]string{"--int", "123"},
+			[]int{123},
+		},
+		{setup(),
+			"int",
+			[]string{"--int=-123"},
+			[]int{-123},
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "123", "456", "hello"},
+			[]int{123, 456},
+		},
+		{setup(),
+			"int",
+			[]string{"--int=123", "456"},
+			[]int{123, 456},
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "123", "456", "789"},
+			[]int{123, 456, 789},
+		},
+		{setup(),
+			"int",
+			[]string{"--alias", "123", "456", "789"},
+			[]int{123, 456, 789},
+		},
+		{setup(),
+			"int",
+			[]string{"--int=123", "456", "789"},
+			[]int{123, 456, 789},
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "123", "--opt", "world"},
+			[]int{123},
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "123", "--int", "456"},
+			[]int{123, 456},
+		},
+		{setup(),
+			"int",
+			[]string{"--int", "1..5"},
+			[]int{1, 2, 3, 4, 5},
+		},
+	}
+	for _, c := range cases {
+		t.Run("cases", func(t *testing.T) {
+			_, err := c.opt.Parse(c.input)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+			if !reflect.DeepEqual(c.opt.Value(c.option), c.value) {
+				t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
+			}
+		})
+	}
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.IntSlice("int", 2, 3)
+		_, err := opt.Parse([]string{"--int", "123"})
+		if err == nil {
+			t.Errorf("Passing less than min didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "int") {
+			t.Errorf("Error int didn't match expected value")
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.IntSlice("int", 1, 3)
+		_, err := opt.Parse([]string{"--int", "hello"})
+		if err == nil {
+			t.Errorf("Passing string didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello") {
+			t.Errorf("Error int didn't match expected value: %s", err)
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.IntSlice("int", 1, 3)
+		_, err := opt.Parse([]string{"--int", "hello..3"})
+		if err == nil {
+			t.Errorf("Passing string didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "hello..3") {
+			t.Errorf("Error int didn't match expected value: %s", err)
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.IntSlice("int", 1, 3)
+		_, err := opt.Parse([]string{"--int", "1..hello"})
+		if err == nil {
+			t.Errorf("Passing string didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "1..hello") {
+			t.Errorf("Error int didn't match expected value: %s", err)
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.IntSlice("int", 1, 3)
+		_, err := opt.Parse([]string{"--int", "3..1"})
+		if err == nil {
+			t.Errorf("Passing string didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToInt, "int", "3..1") {
+			t.Errorf("Error int didn't match expected value: %s", err)
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		is := opt.IntSlice("int", 1, 1)
+		_, err := opt.Parse([]string{"--int", "1", "--int", "2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(*is, []int{1, 2}) {
+			t.Errorf("Wrong value: %v != %v", *is, []int{1, 2})
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		var isVar []int
+		opt.IntSliceVar(&isVar, "int", 1, 1)
+		_, err := opt.Parse([]string{"--int", "1", "--int", "2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(isVar, []int{1, 2}) {
+			t.Errorf("Wrong value: %v != %v", isVar, []int{1, 2})
 		}
 	})
 }

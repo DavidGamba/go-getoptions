@@ -947,6 +947,7 @@ func TestGetOptFloat64(t *testing.T) {
 	}
 }
 
+// DONE
 // TODO: Allow passing : as the map divider
 func TestGetOptStringMap(t *testing.T) {
 	setup := func() *GetOpt {
@@ -1116,6 +1117,7 @@ func TestGetOptStringMap(t *testing.T) {
 	}
 }
 
+// DONE
 func TestGetOptStringSlice(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
@@ -1237,6 +1239,7 @@ func TestGetOptStringSlice(t *testing.T) {
 	}
 }
 
+// DONE
 func TestGetOptIntSlice(t *testing.T) {
 	setup := func() *GetOpt {
 		opt := New()
@@ -1383,6 +1386,7 @@ func TestGetOptIntSlice(t *testing.T) {
 	}
 }
 
+// DONE
 // Verifies that a panic is reached when StringSlice has wrong min
 func TestGetOptStringSlicePanicWithWrongMin(t *testing.T) {
 	defer func() {
@@ -1395,6 +1399,7 @@ func TestGetOptStringSlicePanicWithWrongMin(t *testing.T) {
 	opt.Parse([]string{})
 }
 
+// DONE
 // Verifies that a panic is reached when StringMap has wrong min
 func TestGetOptStringMapPanicWithWrongMin(t *testing.T) {
 	defer func() {
@@ -1407,6 +1412,7 @@ func TestGetOptStringMapPanicWithWrongMin(t *testing.T) {
 	opt.Parse([]string{})
 }
 
+// DONE
 // Verifies that a panic is reached when IntSlice has wrong min
 func TestGetOptIntSlicePanicWithWrongMin(t *testing.T) {
 	defer func() {
@@ -1419,6 +1425,7 @@ func TestGetOptIntSlicePanicWithWrongMin(t *testing.T) {
 	opt.Parse([]string{})
 }
 
+// DONE
 // Verifies that a panic is reached when StringSlice has wrong max
 func TestGetOptStringSlicePanicWithWrongMax(t *testing.T) {
 	defer func() {
@@ -1431,6 +1438,7 @@ func TestGetOptStringSlicePanicWithWrongMax(t *testing.T) {
 	opt.Parse([]string{})
 }
 
+// DONE
 // Verifies that a panic is reached when StringMap has wrong max
 func TestGetOptStringMapPanicWithWrongMax(t *testing.T) {
 	defer func() {
@@ -1443,6 +1451,7 @@ func TestGetOptStringMapPanicWithWrongMax(t *testing.T) {
 	opt.Parse([]string{})
 }
 
+// DONE
 // Verifies that a panic is reached when IntSlice has wrong max
 func TestGetOptIntSlicePanicWithWrongMax(t *testing.T) {
 	defer func() {
