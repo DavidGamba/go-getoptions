@@ -201,6 +201,22 @@ func (gopt *GetOpt) IntSliceVar(p *[]int, name string, min, max int, fns ...Modi
 	}
 }
 
+// Increment - When called multiple times it increments the int counter defined by this option.
+func (gopt *GetOpt) Increment(name string, def int, fns ...ModifyFn) *int {
+	gopt.IncrementVar(&def, name, def, fns...)
+	return &def
+}
+
+// IncrementVar - When called multiple times it increments the provided int.
+func (gopt *GetOpt) IncrementVar(p *int, name string, def int, fns ...ModifyFn) {
+	*p = def
+	n := option.New(name, option.Increment, p)
+	gopt.programTree.AddChildOption(name, n)
+	for _, fn := range fns {
+		fn(gopt, n)
+	}
+}
+
 func (gopt *GetOpt) Float64(name string, def float64, fns ...ModifyFn) *float64 {
 	gopt.Float64Var(&def, name, def, fns...)
 	return &def

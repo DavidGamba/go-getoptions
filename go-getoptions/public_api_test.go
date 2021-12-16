@@ -1693,3 +1693,79 @@ func TestBundling(t *testing.T) {
 		t.Errorf("t didn't have expected value: %v != %v", s, "arg")
 	}
 }
+
+func TestSingleDash(t *testing.T) {
+	var o string
+	var p bool
+	var s string
+	opt := getoptions.New()
+	opt.StringVar(&o, "o", "")
+	opt.BoolVar(&p, "p", false)
+	opt.StringVar(&s, "t", "")
+	opt.SetMode(getoptions.SingleDash)
+	_, err := opt.Parse([]string{
+		"-opt=arg",
+	})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if o != "pt=arg" {
+		t.Errorf("o didn't have expected value: %v != %v", o, "pt=arg")
+	}
+	if opt.Called("p") || p != false {
+		t.Errorf("p didn't have expected value: %v != %v", p, false)
+	}
+	if opt.Called("t") || s != "" {
+		t.Errorf("t didn't have expected value: %v != %v", s, "")
+	}
+}
+
+func TestIncrement(t *testing.T) {
+	t.Run("", func(t *testing.T) {
+		var i, j int
+		opt := getoptions.New()
+		opt.IncrementVar(&i, "i", 0, opt.Alias("alias"))
+		opt.IncrementVar(&j, "j", 0)
+		ip := opt.Increment("ip", 0)
+		_, err := opt.Parse([]string{
+			"--i",
+			"--ip",
+		})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if i != 1 {
+			t.Errorf("i didn't have expected value: %v != %v", i, 1)
+		}
+		if j != 0 {
+			t.Errorf("i didn't have expected value: %v != %v", j, 0)
+		}
+		if *ip != 1 {
+			t.Errorf("ip didn't have expected value: %v != %v", *ip, 1)
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		var i, j int
+		opt := getoptions.New()
+		opt.IncrementVar(&i, "i", 0, opt.Alias("alias"))
+		opt.IncrementVar(&j, "j", 0)
+		ip := opt.Increment("ip", 0)
+		_, err := opt.Parse([]string{
+			"--i", "hello", "--i", "world", "--alias",
+			"--ip", "--ip", "--ip", "--ip", "--ip",
+		})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if i != 3 {
+			t.Errorf("i didn't have expected value: %v != %v", i, 3)
+		}
+		if j != 0 {
+			t.Errorf("i didn't have expected value: %v != %v", j, 0)
+		}
+		if *ip != 5 {
+			t.Errorf("ip didn't have expected value: %v != %v", *ip, 5)
+		}
+	})
+}

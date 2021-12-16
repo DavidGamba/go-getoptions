@@ -1617,6 +1617,7 @@ func TestDefaultValues(t *testing.T) {
 	}
 }
 
+// DONE
 func TestBundling(t *testing.T) {
 	buf := setupLogging()
 	var o, p bool
@@ -1644,6 +1645,7 @@ func TestBundling(t *testing.T) {
 	t.Log(buf.String())
 }
 
+// DONE
 func TestSingleDash(t *testing.T) {
 	var o string
 	var p bool
