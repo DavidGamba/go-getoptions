@@ -1,6 +1,9 @@
 package getoptions
 
 import (
+	"os"
+	"strings"
+
 	"github.com/DavidGamba/go-getoptions/option"
 )
 
@@ -49,8 +52,39 @@ func (gopt *GetOpt) Required(msg ...string) ModifyFn {
 	}
 }
 
-func (gopt *GetOpt) GetEnv(alias ...string) ModifyFn {
+// GetEnv - Will read an environment variable if set.
+// Precedence higher to lower: CLI option, environment variable, option default.
+//
+// Currently, only `opt.Bool`, `opt.BoolVar`, `opt.String`, and `opt.StringVar` are supported.
+//
+// When an environment variable that matches the variable from opt.GetEnv is
+// set, opt.GetEnv will set opt.Called(name) to true and will set
+// opt.CalledAs(name) to the name of the environment variable used.
+// In other words, when an option is required (opt.Required is set) opt.GetEnv
+// satisfies that requirement.
+//
+// When using `opt.GetEnv` with `opt.Bool` or `opt.BoolVar`, only the words
+// "true" or "false" are valid.  They can be provided in any casing, for
+// example: "true", "True" or "TRUE".
+//
+// NOTE: Non supported option types behave with a No-Op when `opt.GetEnv` is defined.
+func (gopt *GetOpt) GetEnv(name string) ModifyFn {
 	return func(parent *GetOpt, opt *option.Option) {
+		opt.SetEnvVar(name)
+		value := os.Getenv(name)
+		if value != "" {
+			switch opt.OptType {
+			case option.BoolType:
+				v := strings.ToLower(value)
+				if v == "true" || v == "false" {
+					opt.Save(v)
+					opt.SetCalled(name)
+				}
+			case option.StringType, option.IntType, option.Float64Type:
+				opt.Save(value)
+				opt.SetCalled(name)
+			}
+		}
 	}
 }
 
@@ -155,6 +189,7 @@ func (gopt *GetOpt) StringSliceVar(p *[]string, name string, min, max int, fns .
 	for _, fn := range fns {
 		fn(gopt, n)
 	}
+	n.Synopsis()
 }
 
 func (gopt *GetOpt) Int(name string, def int, fns ...ModifyFn) *int {
@@ -199,6 +234,7 @@ func (gopt *GetOpt) IntSliceVar(p *[]int, name string, min, max int, fns ...Modi
 	for _, fn := range fns {
 		fn(gopt, n)
 	}
+	n.Synopsis()
 }
 
 // Increment - When called multiple times it increments the int counter defined by this option.
@@ -258,6 +294,7 @@ func (gopt *GetOpt) Float64VarOptional(p *float64, name string, def float64, fns
 // 	n.MinArgs = min
 // 	n.MaxArgs = max
 // 	gopt.programTree.AddChildOption(name, n)
+// n.Synopsis()
 // }
 
 func (gopt *GetOpt) StringMap(name string, min, max int, fns ...ModifyFn) map[string]string {
@@ -278,6 +315,7 @@ func (gopt *GetOpt) StringMapVar(m *map[string]string, name string, min, max int
 	for _, fn := range fns {
 		fn(gopt, n)
 	}
+	n.Synopsis()
 }
 
 // SetMapKeysToLower - StringMap keys captured from StringMap are lower case.

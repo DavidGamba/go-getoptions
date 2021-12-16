@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -80,7 +81,7 @@ func New() *GetOpt {
 	globalOptionMap := make(map[string]string)
 	gopt.programTree = &programTree{
 		Type:            argTypeProgname,
-		Name:            os.Args[0],
+		Name:            filepath.Base(os.Args[0]),
 		ChildCommands:   map[string]*programTree{},
 		ChildOptions:    map[string]*option.Option{},
 		Level:           0,

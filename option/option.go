@@ -111,7 +111,7 @@ func New(name string, optType Type, data interface{}) *Option {
 	case StringType:
 		opt.HelpArgName = "string"
 		opt.pString = data.(*string)
-		opt.DefaultStr = *data.(*string)
+		opt.DefaultStr = fmt.Sprintf("\"%s\"", *data.(*string))
 		opt.MinArgs = 1
 		opt.MaxArgs = 1
 	case StringOptionalType:
@@ -183,7 +183,7 @@ func New(name string, optType Type, data interface{}) *Option {
 		opt.MinArgs = 0
 		opt.MaxArgs = 0
 	}
-	opt.synopsis()
+	opt.Synopsis()
 	return opt
 }
 
@@ -200,7 +200,7 @@ func (opt *Option) ValidateMinMaxArgs() error {
 	return nil
 }
 
-func (opt *Option) synopsis() {
+func (opt *Option) Synopsis() {
 	aliases := []string{}
 	for _, e := range opt.Aliases {
 		if len(e) > 1 {
@@ -242,7 +242,7 @@ func (opt *Option) Value() interface{} {
 // SetAlias - Adds aliases to an option.
 func (opt *Option) SetAlias(alias ...string) *Option {
 	opt.Aliases = append(opt.Aliases, alias...)
-	opt.synopsis()
+	opt.Synopsis()
 	return opt
 }
 
@@ -255,7 +255,7 @@ func (opt *Option) SetDescription(s string) *Option {
 // SetHelpArgName - Updates the HelpArgName.
 func (opt *Option) SetHelpArgName(s string) *Option {
 	opt.HelpArgName = s
-	opt.synopsis()
+	opt.Synopsis()
 	return opt
 }
 

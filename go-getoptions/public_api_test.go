@@ -13,6 +13,24 @@ import (
 	"github.com/DavidGamba/go-getoptions/text"
 )
 
+// Test helper to compare two string outputs and find the first difference
+func firstDiff(got, expected string) string {
+	same := ""
+	for i, gc := range got {
+		if len([]rune(expected)) <= i {
+			return fmt.Sprintf("Index: %d | diff: got '%s' - exp '%s'\n", len(expected), got, expected)
+		}
+		if gc != []rune(expected)[i] {
+			return fmt.Sprintf("Index: %d | diff: got '%c' - exp '%c'\n%s\n", i, gc, []rune(expected)[i], same)
+		}
+		same += string(gc)
+	}
+	if len(expected) > len(got) {
+		return fmt.Sprintf("Index: %d | diff: got '%s' - exp '%s'\n", len(got), got, expected)
+	}
+	return ""
+}
+
 func TestDefinitionPanics(t *testing.T) {
 	recoverFn := func() {
 		t.Helper()
@@ -51,6 +69,13 @@ func TestDefinitionPanics(t *testing.T) {
 		opt.Bool("flag", false)
 		cmd := opt.NewCommand("cmd", "")
 		cmd.Bool("fleg", false, opt.Alias("flag"))
+	})
+	t.Run("Alias double defined across commands", func(t *testing.T) {
+		defer recoverFn()
+		opt := getoptions.New()
+		opt.Bool("flag", false, opt.Alias("f"))
+		cmd := opt.NewCommand("cmd", "")
+		cmd.Bool("f", false)
 	})
 	t.Run("Alias double defined across commands", func(t *testing.T) {
 		defer recoverFn()
@@ -1783,4 +1808,178 @@ func TestLonesomeDash(t *testing.T) {
 	if !opt.Called("-") || stdin != true {
 		t.Errorf("stdin didn't have expected value: %v != %v", stdin, true)
 	}
+}
+
+func TestSynopsis(t *testing.T) {
+	t.Run("full help", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("flag", false, opt.Alias("f"))
+		opt.String("string", "")
+		opt.String("str", "str", opt.Required(), opt.GetEnv("_STR"))
+		opt.Int("int", 0, opt.Required())
+		opt.Float64("float", 0, opt.Alias("fl"))
+		opt.StringSlice("strSlice", 1, 2, opt.ArgName("my_value"), opt.GetEnv("_STR_SLICE"))
+		opt.StringSlice("list", 1, 1)
+		opt.StringSlice("req-list", 1, 2, opt.Required(), opt.ArgName("item"))
+		opt.IntSlice("intSlice", 1, 1, opt.Description("This option is using an int slice\nLets see how multiline works"))
+		opt.StringMap("strMap", 1, 2, opt.Description("Hello world"))
+		opt.NewCommand("log", "Log stuff")
+		opt.NewCommand("show", "Show stuff")
+		_, err := opt.Parse([]string{"--str", "a", "--int", "0", "--req-list", "a"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		name := opt.Help(getoptions.HelpName)
+		synopsis := opt.Help(getoptions.HelpSynopsis)
+		commandList := opt.Help(getoptions.HelpCommandList)
+		optionList := opt.Help(getoptions.HelpOptionList)
+		expectedName := `NAME:
+    go-getoptions.test
+
+`
+		expectedSynopsis := `SYNOPSIS:
+    go-getoptions.test --int <int> <--req-list <item>...>... --str <string>
+                       [--flag|-f] [--float|--fl <float64>] [--intSlice <int>]...
+                       [--list <string>]... [--strMap <key=value>...]...
+                       [--strSlice <my_value>...]... [--string <string>]
+                       <command> [<args>]
+
+`
+		expectedCommandList := `COMMANDS:
+    log     Log stuff
+    show    Show stuff
+
+`
+		expectedOptionList := `REQUIRED PARAMETERS:
+    --int <int>
+
+    --req-list <item>...
+
+    --str <string>              (env: _STR)
+
+OPTIONS:
+    --flag|-f                   (default: false)
+
+    --float|--fl <float64>      (default: 0.000000)
+
+    --intSlice <int>            This option is using an int slice
+                                Lets see how multiline works (default: [])
+
+    --list <string>             (default: [])
+
+    --strMap <key=value>...     Hello world (default: {})
+
+    --strSlice <my_value>...    (default: [], env: _STR_SLICE)
+
+    --string <string>           (default: "")
+
+`
+
+		if name != expectedName {
+			fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
+			t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
+		}
+		if synopsis != expectedSynopsis {
+			fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+			t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+		}
+		if commandList != expectedCommandList {
+			fmt.Printf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
+			t.Errorf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
+		}
+		if optionList != expectedOptionList {
+			fmt.Printf("got:\n%s\nexpected:\n%s\n", optionList, expectedOptionList)
+			t.Errorf("Unexpected option list:\n%s", firstDiff(optionList, expectedOptionList))
+		}
+		if opt.Help() != expectedSynopsis+expectedCommandList+expectedOptionList {
+			t.Errorf("Unexpected help:\n---\n%s\n---\n", opt.Help())
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.NewCommand("log", "Log stuff")
+		opt.NewCommand("show", "Show stuff")
+		opt.Self("name", "description...")
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		name := opt.Help(getoptions.HelpName)
+		synopsis := opt.Help(getoptions.HelpSynopsis)
+		expectedName := `NAME:
+    name - description...
+
+`
+		expectedSynopsis := `SYNOPSIS:
+    name <command> [<args>]
+
+`
+		if name != expectedName {
+			fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
+			t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
+		}
+		if synopsis != expectedSynopsis {
+			fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+			t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+		}
+		if opt.Help() != expectedName+expectedSynopsis+opt.Help(getoptions.HelpCommandList)+opt.Help(getoptions.HelpOptionList) {
+			t.Errorf("Unexpected help:\n---\n%s\n---\n", opt.Help())
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.HelpSynopsisArgs("[<filename>]")
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		synopsis := opt.Help(getoptions.HelpSynopsis)
+		commandList := opt.Help(getoptions.HelpCommandList)
+		expectedSynopsis := `SYNOPSIS:
+    go-getoptions.test [<filename>]
+
+`
+		expectedCommandList := ""
+		if synopsis != expectedSynopsis {
+			fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+			t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+		}
+		if commandList != expectedCommandList {
+			fmt.Printf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
+			t.Errorf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		logCmd := opt.NewCommand("log", "Log stuff")
+		subLogCmd := logCmd.NewCommand("sublog", "Sub Log stuff")
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		name := subLogCmd.Help(getoptions.HelpName)
+		synopsis := subLogCmd.Help(getoptions.HelpSynopsis)
+		expectedName := `NAME:
+    go-getoptions.test log sublog - Sub Log stuff
+
+`
+		expectedSynopsis := `SYNOPSIS:
+    go-getoptions.test log sublog [<args>]
+
+`
+		if name != expectedName {
+			fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
+			t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
+		}
+		if synopsis != expectedSynopsis {
+			fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+			t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+		}
+		if subLogCmd.Help() != expectedName+expectedSynopsis+subLogCmd.Help(getoptions.HelpCommandList)+subLogCmd.Help(getoptions.HelpOptionList) {
+			t.Errorf("Unexpected help:\n---\n%s\n---\n", opt.Help())
+		}
+	})
 }

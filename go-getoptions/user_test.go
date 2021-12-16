@@ -2,6 +2,7 @@ package getoptions
 
 import (
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -33,7 +34,7 @@ func TestTrees(t *testing.T) {
 	t.Run("programTree", func(t *testing.T) {
 		root := &programTree{
 			Type:            argTypeProgname,
-			Name:            os.Args[0],
+			Name:            filepath.Base(os.Args[0]),
 			ChildCommands:   map[string]*programTree{},
 			ChildOptions:    map[string]*option.Option{},
 			GlobalOptionMap: map[string]string{},

@@ -1999,6 +1999,7 @@ func TestCommandDuplicateDefinition(t *testing.T) {
 	t.Log(buf.String())
 }
 
+// DONE
 func TestCommandDuplicateDefinition2(t *testing.T) {
 	s := ""
 	buf := bytes.NewBufferString(s)

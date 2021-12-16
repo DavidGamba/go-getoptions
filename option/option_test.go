@@ -285,7 +285,7 @@ func TestOther(t *testing.T) {
 	ii := []int{}
 	opt = New("help", IntRepeatType, &ii)
 	opt.MaxArgs = 2
-	opt.synopsis()
+	opt.Synopsis()
 	if opt.HelpSynopsis != "--help <int>..." {
 		t.Errorf("got = '%#v', want '%#v'", opt.HelpSynopsis, "--help <int>...")
 	}
