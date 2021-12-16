@@ -329,6 +329,10 @@ ARGS_LOOP:
 				if _, ok := stringSliceIndex(v.Aliases, "-"); ok {
 					v.Called = true
 					v.UsedAlias = "-"
+					err := v.Save()
+					if err != nil {
+						return currentProgramNode, []string{}, err
+					}
 					continue ARGS_LOOP
 				}
 			}
