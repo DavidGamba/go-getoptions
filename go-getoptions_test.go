@@ -1672,6 +1672,7 @@ func TestSingleDash(t *testing.T) {
 	}
 }
 
+// DONE
 func TestIncrement(t *testing.T) {
 	var i, j int
 	opt := New()
@@ -1716,6 +1717,7 @@ func TestIncrement(t *testing.T) {
 	}
 }
 
+// DONE
 func TestLonesomeDash(t *testing.T) {
 	var stdin bool
 	opt := New()
@@ -1962,6 +1964,7 @@ func TestCompletion(t *testing.T) {
 	}
 }
 
+// DONE
 // Verifies that a panic is reached when Command is called with a getoptions without a name.
 func TestCommandPanicWithNoNameInput(t *testing.T) {
 	defer func() {
@@ -1974,6 +1977,7 @@ func TestCommandPanicWithNoNameInput(t *testing.T) {
 	opt.Parse([]string{})
 }
 
+// DONE
 // Verifies that a panic is reached when the same option is defined twice in the command.
 func TestCommandDuplicateDefinition(t *testing.T) {
 	s := ""

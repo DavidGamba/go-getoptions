@@ -229,8 +229,6 @@ func parseCLIArgs(completionMode bool, tree *programTree, args []string, mode Mo
 		args = []string{}
 	}
 
-	Logger.Printf("parseCLIArgs args: %v, mode: %v\n", args, mode)
-
 	currentProgramNode := tree
 
 	iterator := sliceiterator.New(&args)
@@ -378,7 +376,6 @@ ARGS_LOOP:
 				// TODO: Check min, check max and keep ingesting until something starts with `-` or matches a command.
 
 				if cOpt, ok := currentProgramNode.ChildOptions[optionMatches[0]]; ok {
-					Logger.Printf("full match option: %s\n", cOpt.Name)
 					cOpt.Called = true
 					cOpt.UsedAlias = optionMatches[0]
 					cOpt.MapKeysToLower = tree.mapKeysToLower
@@ -487,7 +484,6 @@ func getAliasNameFromPartialEntry(n *programTree, entry string) []string {
 	matches := []string{}
 	for k := range n.GlobalOptionMap {
 		if strings.HasPrefix(k, entry) {
-			Logger.Printf("found: %s, %s\n", k, entry)
 			matches = append(matches, k)
 		}
 	}
