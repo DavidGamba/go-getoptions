@@ -2,6 +2,7 @@ package getoptions_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -1980,6 +1981,217 @@ OPTIONS:
 		}
 		if subLogCmd.Help() != expectedName+expectedSynopsis+subLogCmd.Help(getoptions.HelpCommandList)+subLogCmd.Help(getoptions.HelpOptionList) {
 			t.Errorf("Unexpected help:\n---\n%s\n---\n", opt.Help())
+		}
+	})
+}
+
+// Make options unambiguous with subcomamnds.
+// --profile at the parent was getting matched with the -p for --password at the child.
+func TestCommandAmbiguosOption(t *testing.T) {
+	t.Run("Should match parent", func(t *testing.T) {
+		var profile, password, password2 string
+		opt := getoptions.New()
+		opt.SetUnknownMode(getoptions.Pass)
+		opt.StringVar(&profile, "profile", "")
+		command := opt.NewCommand("command", "")
+		command.StringVar(&password, "password", "")
+		command2 := opt.NewCommand("command2", "")
+		command2.StringVar(&password2, "password", "")
+		remaining, err := opt.Parse([]string{"-pr", "hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		remaining, err = command.Parse(remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if profile != "hello" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
+	})
+
+	t.Run("Should match command", func(t *testing.T) {
+		var profile, password, password2 string
+		opt := getoptions.New()
+		opt.SetUnknownMode(getoptions.Pass)
+		opt.StringVar(&profile, "profile", "")
+		command := opt.NewCommand("command", "")
+		command.StringVar(&password, "password", "")
+		command2 := opt.NewCommand("command2", "")
+		command2.StringVar(&password2, "password", "")
+		_, err := opt.Parse([]string{"command", "-pa", "hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if profile != "" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "hello" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
+	})
+
+	// New behaviour
+	// Since we don't know at this level that the option is ambiguous because only the parent options matter at this point then there is no failure.
+	t.Run("Should match parent", func(t *testing.T) {
+		var profile, password string
+		opt := getoptions.New()
+		opt.SetUnknownMode(getoptions.Pass)
+		opt.StringVar(&profile, "profile", "")
+		command := opt.NewCommand("command", "")
+		command.StringVar(&password, "password", "")
+		_, err := opt.Parse([]string{"-p", "hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if profile != "hello" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+	})
+
+	t.Run("Should fail", func(t *testing.T) {
+		var profile, password string
+		opt := getoptions.New()
+		opt.SetUnknownMode(getoptions.Pass)
+		opt.StringVar(&profile, "profile", "")
+		command := opt.NewCommand("command", "")
+		command.StringVar(&password, "password", "")
+		_, err := opt.Parse([]string{"command", "-p", "hello"})
+		if err == nil {
+			t.Errorf("Ambiguous argument didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorAmbiguousArgument, "-p", []string{"password", "profile"}) {
+			t.Errorf("Error string didn't match expected value: %s", err)
+		}
+	})
+
+	t.Run("Should match parent", func(t *testing.T) {
+		var profile, password, password2 string
+		opt := getoptions.New()
+		opt.SetUnknownMode(getoptions.Pass)
+		opt.StringVar(&profile, "profile", "", opt.Alias("p"))
+		command := opt.NewCommand("command", "")
+		command.StringVar(&password, "password", "")
+		command2 := opt.NewCommand("command2", "")
+		command2.StringVar(&password2, "password", "")
+		_, err := opt.Parse([]string{"-p", "hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if profile != "hello" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
+	})
+
+	t.Run("Should match command", func(t *testing.T) {
+		var profile, password, password2 string
+		opt := getoptions.New()
+		opt.SetUnknownMode(getoptions.Pass)
+		opt.StringVar(&profile, "profile", "")
+		command := opt.NewCommand("command", "")
+		command.StringVar(&password, "password", "", opt.Alias("p"))
+		command2 := opt.NewCommand("command2", "")
+		command2.StringVar(&password2, "password", "")
+		_, err := opt.Parse([]string{"command", "-p", "hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if profile != "" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "hello" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
+	})
+
+	t.Run("Should match command", func(t *testing.T) {
+		called := false
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			called = true
+			return nil
+		}
+		var profile, password, password2 string
+		opt := getoptions.New()
+		opt.SetUnknownMode(getoptions.Pass)
+		opt.StringVar(&profile, "profile", "")
+		command := opt.NewCommand("command", "").SetCommandFn(fn)
+		command.StringVar(&password, "password", "", opt.Alias("p"))
+		command2 := opt.NewCommand("command2", "")
+		command2.StringVar(&password2, "password", "")
+		remaining, err := opt.Parse([]string{"command", "-p", "hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !called {
+			t.Errorf("not called")
+		}
+		if profile != "" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "hello" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
+		}
+	})
+
+	t.Run("Should match parent at command", func(t *testing.T) {
+		called := false
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			called = true
+			return nil
+		}
+		var profile, password, password2 string
+		opt := getoptions.New()
+		// opt.SetRequireOrder()
+		opt.SetUnknownMode(getoptions.Pass)
+		opt.StringVar(&profile, "profile", "")
+		command := opt.NewCommand("command", "")
+		command.StringVar(&password, "password", "", opt.Alias("p"))
+		command2 := opt.NewCommand("command2", "")
+		command2.SetCommandFn(fn)
+		remaining, err := opt.Parse([]string{"command2", "-p", "hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !called {
+			t.Errorf("not called")
+		}
+		if profile != "hello" {
+			t.Errorf("Unexpected called option profile %s", profile)
+		}
+		if password != "" {
+			t.Errorf("Unexpected called option password %s", password)
+		}
+		if password2 != "" {
+			t.Errorf("Unexpected called option password %s", password2)
 		}
 	})
 }

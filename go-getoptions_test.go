@@ -1755,6 +1755,7 @@ func TestStringer(t *testing.T) {
 	// }`
 }
 
+// DONE
 func TestSynopsis(t *testing.T) {
 	opt := New()
 	opt.Bool("flag", false, opt.Alias("f"))
@@ -1921,6 +1922,7 @@ OPTIONS:
 	}
 }
 
+// TEST TODO
 func TestCompletion(t *testing.T) {
 	called := false
 	exitFn = func(code int) { called = true }
