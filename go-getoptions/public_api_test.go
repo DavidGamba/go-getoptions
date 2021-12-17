@@ -2346,54 +2346,41 @@ Use 'go-getoptions.test command help <command>' for extra details.
 		}
 	})
 
-	// t.Run("help case sub-command", func(t *testing.T) {
-	// 	helpBuf := new(bytes.Buffer)
-	// 	called := false
-	// 	commandFn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		err := opt.Dispatch(context.Background(), "help", args)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		return nil
-	// 	}
-	// 	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		called = true
-	// 		return nil
-	// 	}
-	// 	buf := setupLogging()
-	// 	opt := New()
-	// 	Writer = helpBuf
-	// 	opt.Bool("help", false)
-	// 	command := opt.NewCommand("command", "").SetCommandFn(commandFn)
-	// 	command.NewCommand("sub-command", "").SetCommandFn(fn)
-	// 	command.HelpCommand("")
-	// 	opt.HelpCommand("")
-	// 	remaining, err := opt.Parse([]string{"command", "sub-command", "--help"})
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	err = opt.Dispatch(context.Background(), "help", remaining)
-	// 	if err != nil && !errors.Is(err, ErrorHelpCalled) {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	if called {
-	// 		t.Errorf("Fn was called")
-	// 	}
-	// 	expected := `NAME:
-	// go-getoptions.test command sub-command
+	t.Run("help case sub-command", func(t *testing.T) {
+		helpBuf := new(bytes.Buffer)
+		commandFn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			return nil
+		}
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			return nil
+		}
+		opt := getoptions.New()
+		getoptions.Writer = helpBuf
+		command := opt.NewCommand("command", "").SetCommandFn(commandFn)
+		command.NewCommand("sub-command", "").SetCommandFn(fn)
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"command", "sub-command", "--help"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil && !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		expected := `NAME:
+    go-getoptions.test command sub-command
 
-	// SYNOPSIS:
-	// go-getoptions.test command sub-command [--help] [<args>]
+SYNOPSIS:
+    go-getoptions.test command sub-command [--help] [<args>]
 
-	// OPTIONS:
-	// --help    (default: false)
+OPTIONS:
+    --help    (default: false)
 
-	// `
-	// 	if helpBuf.String() != expected {
-	// 		t.Errorf("Wrong output:\n%s\n", helpBuf.String())
-	// 	}
-	// 	t.Log(buf.String())
-	// })
+`
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
 
 	// t.Run("help case sub-command with required option", func(t *testing.T) {
 	// 	helpBuf := new(bytes.Buffer)

@@ -242,6 +242,9 @@ func copyOptionsFromParent(parent *programTree, fail bool) {
 			command.GlobalOptionMap[k] = v
 		}
 	}
+	for _, command := range parent.ChildCommands {
+		copyOptionsFromParent(command, fail)
+	}
 }
 
 // SetCommandFn - Defines the command entry point function.

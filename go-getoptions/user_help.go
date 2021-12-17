@@ -120,12 +120,6 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 	// Define help option
 	gopt.Bool(name, false, append([]ModifyFn{gopt.Description(description)}, fns...)...)
 
-	gopt.programTree.HelpCommandName = name
-	for _, command := range gopt.programTree.ChildCommands {
-		// Define help command for all commands
-		command.HelpCommandName = name
-	}
-
 	globalOptionMap := make(map[string]string)
 	cmd := &GetOpt{}
 	command := &programTree{
@@ -144,6 +138,7 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 	cmd.SetCommandFn(runHelp)
 	cmd.HelpSynopsisArgs("<topic>")
 	copyOptionsFromParent(gopt.programTree, false)
+	setHelpCommandName(gopt.programTree, name)
 	return cmd
 }
 
@@ -160,4 +155,12 @@ func runHelp(ctx context.Context, opt *GetOpt, args []string) error {
 	}
 	fmt.Fprint(Writer, helpOutput(opt.programTree.Parent))
 	return ErrorHelpCalled
+}
+
+func setHelpCommandName(parent *programTree, name string) {
+	parent.HelpCommandName = name
+	for _, command := range parent.ChildCommands {
+		command.HelpCommandName = name
+		setHelpCommandName(command, name)
+	}
 }
