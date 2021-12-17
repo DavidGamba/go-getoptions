@@ -2382,58 +2382,45 @@ OPTIONS:
 		}
 	})
 
-	// t.Run("help case sub-command with required option", func(t *testing.T) {
-	// 	helpBuf := new(bytes.Buffer)
-	// 	called := false
-	// 	commandFn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		err := opt.Dispatch(context.Background(), "help", args)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		return nil
-	// 	}
-	// 	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		called = true
-	// 		return nil
-	// 	}
-	// 	buf := setupLogging()
-	// 	opt := New()
-	// 	Writer = helpBuf
-	// 	opt.Bool("help", false)
-	// 	command := opt.NewCommand("command", "").SetCommandFn(commandFn)
-	// 	subcommand := command.NewCommand("sub-command", "").SetCommandFn(fn)
-	// 	subcommand.String("required", "", opt.Required())
-	// 	command.HelpCommand("")
-	// 	opt.HelpCommand("")
-	// 	remaining, err := opt.Parse([]string{"command", "sub-command", "--help"})
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	err = opt.Dispatch(context.Background(), "help", remaining)
-	// 	if err != nil && !errors.Is(err, ErrorHelpCalled) {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	if called {
-	// 		t.Errorf("Fn was called")
-	// 	}
-	// 	expected := `NAME:
-	// go-getoptions.test command sub-command
+	t.Run("help case sub-command with required option", func(t *testing.T) {
+		helpBuf := new(bytes.Buffer)
+		commandFn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			return nil
+		}
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			return nil
+		}
+		opt := getoptions.New()
+		getoptions.Writer = helpBuf
+		command := opt.NewCommand("command", "").SetCommandFn(commandFn)
+		subcommand := command.NewCommand("sub-command", "").SetCommandFn(fn)
+		subcommand.String("required", "", opt.Required())
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"command", "sub-command", "--help"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil && !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		expected := `NAME:
+    go-getoptions.test command sub-command
 
-	// SYNOPSIS:
-	// go-getoptions.test command sub-command --required <string> [--help] [<args>]
+SYNOPSIS:
+    go-getoptions.test command sub-command --required <string> [--help] [<args>]
 
-	// REQUIRED PARAMETERS:
-	// --required <string>
+REQUIRED PARAMETERS:
+    --required <string>
 
-	// OPTIONS:
-	// --help                 (default: false)
+OPTIONS:
+    --help                 (default: false)
 
-	// `
-	// 	if helpBuf.String() != expected {
-	// 		t.Errorf("Wrong output:\n%s\n", helpBuf.String())
-	// 	}
-	// 	t.Log(buf.String())
-	// })
+`
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", helpBuf.String())
+		}
+	})
 
 	// t.Run("command", func(t *testing.T) {
 	// 	called := false

@@ -14,10 +14,7 @@ var Logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
 
 // NewCommand - Populate Options definition
 func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
-	opt := parent.NewCommand("greet", "Subcommands example")
-	// TODO: Auto inherit help command when there are subcommands
-	opt.HelpCommand("help", "", opt.Alias("?"))
-	opt.SetCommandFn(Run)
+	opt := parent.NewCommand("greet", "Subcommands example").SetCommandFn(Run)
 	en := opt.NewCommand("en", "greet in English").SetCommandFn(RunEnglish)
 	en.String("name", "", opt.Required(""))
 	es := opt.NewCommand("es", "greet in Spanish").SetCommandFn(RunSpanish)
@@ -27,9 +24,6 @@ func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
 
 // Run - Command entry point
 func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-	// if len(args) > 0 {
-	// 	if strings.[0]HasPrefix()
-	// }
 	fmt.Fprint(os.Stderr, opt.Help())
 	return getoptions.ErrorHelpCalled
 }

@@ -295,11 +295,15 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	}
 	gopt.finalNode = node
 
-	// Validate required options
-	for _, option := range node.ChildOptions {
-		err := option.CheckRequired()
-		if err != nil {
-			return nil, err
+	// Only validate required options at the parse call when the final node is the parent
+	// This to enable handling the help option in a command
+	if gopt.finalNode.Parent == nil {
+		// Validate required options
+		for _, option := range node.ChildOptions {
+			err := option.CheckRequired()
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -329,6 +333,13 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, remaining []string) error {
 	if gopt.finalNode.HelpCommandName != "" && gopt.Called(gopt.finalNode.HelpCommandName) {
 		fmt.Fprint(Writer, helpOutput(gopt.finalNode))
 		return ErrorHelpCalled
+	}
+	// Validate required options
+	for _, option := range gopt.finalNode.ChildOptions {
+		err := option.CheckRequired()
+		if err != nil {
+			return err
+		}
 	}
 	if gopt.finalNode.CommandFn != nil {
 		return gopt.finalNode.CommandFn(ctx, &GetOpt{gopt.finalNode, gopt.finalNode}, remaining)
