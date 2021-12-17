@@ -2022,6 +2022,7 @@ func TestCommandDuplicateDefinition2(t *testing.T) {
 	t.Log(buf.String())
 }
 
+// DONE
 // Make options unambiguous with subcomamnds.
 // --profile at the parent was getting matched with the -p for --password at the child.
 func TestCommandAmbiguosOption(t *testing.T) {
@@ -2287,6 +2288,7 @@ func TestCommandAmbiguosOption(t *testing.T) {
 	})
 }
 
+// DONE - this is no longer supported in the new version.
 func TestSetCommandFn(t *testing.T) {
 	called := false
 	fn := func(ctx context.Context, opt *GetOpt, args []string) error {

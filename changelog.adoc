@@ -43,8 +43,12 @@ There is no need to define the name of the help command at this level anymore si
 
 * `Write` io.Writer used to write warnings and errors (which defaults to os.Stderr) has been made into a package level variable and not a method of GetOpt.
 
+* `CommandFn` is no longer an exported field of `GetOpt`.
+If this was ever used, now the canonical way to execute a command function is through `opt.Dispatch`.
+
 * WIP: `opt.SetRequireOrder` might be dropped since now we fully track subcommands.
 Need to consider its usefulness when doing wrappers around other programs.
+
 
 === New Features
 
