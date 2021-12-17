@@ -184,9 +184,6 @@ func (gopt *GetOpt) HelpSynopsisArgs(args string) *GetOpt {
 func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	cmd := &GetOpt{}
 	globalOptionMap := make(map[string]string)
-	for k, v := range gopt.programTree.GlobalOptionMap {
-		globalOptionMap[k] = v
-	}
 	command := &programTree{
 		Type:            argTypeCommand,
 		Name:            name,
@@ -238,6 +235,11 @@ func copyOptionsFromParent(parent *programTree, fail bool) {
 				}
 			}
 			command.ChildOptions[k] = v
+		}
+	}
+	for _, command := range parent.ChildCommands {
+		for k, v := range parent.GlobalOptionMap {
+			command.GlobalOptionMap[k] = v
 		}
 	}
 }

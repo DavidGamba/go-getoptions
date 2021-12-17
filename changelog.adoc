@@ -18,10 +18,12 @@ The parsing tree was refactored from the ground up to better accommodate command
 
 * The HelpCommand signature has changed.
 The name of the "help" command is configurable.
+Additionally, when defining `opt.HelpCommand` there is no need to define a help option as it also declares one.
 +
 ----
+- opt.Bool("help", false, opt.Alias("?"))
 - opt.HelpCommand("")
-+ opt.HelpCommand("help", "")
++ opt.HelpCommand("help", "", opt.Alias("?"))
 ----
 
 * The Dispatch signature has changed.

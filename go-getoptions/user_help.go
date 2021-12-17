@@ -117,13 +117,16 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 
 	// TODO: Think about panicking on double call to this method
 
+	// Define help option
+	gopt.Bool(name, false, append([]ModifyFn{gopt.Description(description)}, fns...)...)
+
 	gopt.programTree.HelpCommandName = name
 	for _, command := range gopt.programTree.ChildCommands {
+		// Define help command for all commands
 		command.HelpCommandName = name
 	}
 
-	gopt.Bool(name, false, append([]ModifyFn{gopt.Description(description)}, fns...)...)
-
+	globalOptionMap := make(map[string]string)
 	cmd := &GetOpt{}
 	command := &programTree{
 		Type:            argTypeCommand,
@@ -132,6 +135,7 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 		HelpCommandName: gopt.programTree.HelpCommandName,
 		ChildCommands:   map[string]*programTree{},
 		ChildOptions:    map[string]*option.Option{},
+		GlobalOptionMap: globalOptionMap,
 		Parent:          gopt.programTree,
 		Level:           gopt.programTree.Level + 1,
 	}
