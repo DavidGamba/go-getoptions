@@ -34,6 +34,7 @@ type programTree struct {
 	// once set, no matter the level, p can't refer to password.
 	// Aliases have to be globally consistent.
 	GlobalOptionMap map[string]string // map[option/alias]option
+	Suggestions     []string          // Suggestions used for completions
 
 	mapKeysToLower bool // controls wether or not map keys are normalized to lowercase
 
@@ -298,17 +299,25 @@ ARGS_LOOP:
 					}
 				}
 
-				sort.Strings(completions)
-				// Add trailing space to force next completion, makes for nicer UI when there is a single result.
-				if len(completions) == 1 {
-					(completions)[0] = completions[0] + " "
+			}
+
+			// Suggestions
+			{
+				for _, e := range currentProgramNode.Suggestions {
+					if strings.HasPrefix(e, iterator.Value()) {
+						completions = append(completions, e)
+					}
 				}
-				return currentProgramNode, completions, nil
 			}
 
 			// Provide other kinds of completions, like file completions.
 
-			break ARGS_LOOP
+			sort.Strings(completions)
+			// Add trailing space to force next completion, makes for nicer UI when there is a single result.
+			if len(completions) == 1 {
+				(completions)[0] = completions[0] + " "
+			}
+			return currentProgramNode, completions, nil
 		}
 
 		// handle terminator

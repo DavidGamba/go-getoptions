@@ -218,7 +218,7 @@ func TestCompletion(t *testing.T) {
 	}{
 		{"option", func() { os.Setenv("COMP_LINE", "test --f") }, "--f\n--flag\n"},
 		{"command", func() { os.Setenv("COMP_LINE", "test h") }, "help \n"},
-		// {"command", func() { os.Setenv("COMP_LINE", "test help ") }, "log\nshow\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "test help ") }, "log\nshow\n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -229,8 +229,10 @@ func TestCompletion(t *testing.T) {
 
 			opt := New()
 			opt.Bool("flag", false, opt.Alias("f"))
-			opt.NewCommand("log", "").SetCommandFn(fn)
-			opt.NewCommand("show", "").SetCommandFn(fn)
+			logCmd := opt.NewCommand("log", "").SetCommandFn(fn)
+			logCmd.NewCommand("sub-log", "").SetCommandFn(fn)
+			showCmd := opt.NewCommand("show", "").SetCommandFn(fn)
+			showCmd.NewCommand("sub-show", "").SetCommandFn(fn)
 			opt.HelpCommand("help", "")
 			_, err := opt.Parse([]string{})
 			if err != nil {

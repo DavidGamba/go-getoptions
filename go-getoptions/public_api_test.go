@@ -2232,7 +2232,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 		}
 	})
 
-	t.Run("help case", func(t *testing.T) {
+	t.Run("help command", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			return nil
@@ -2270,7 +2270,7 @@ Use 'go-getoptions.test help <command>' for extra details.
 		}
 	})
 
-	t.Run("help case command", func(t *testing.T) {
+	t.Run("help command for command", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			return nil
@@ -2305,7 +2305,7 @@ OPTIONS:
 		}
 	})
 
-	t.Run("help case command", func(t *testing.T) {
+	t.Run("help option for command", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			return nil
@@ -2348,7 +2348,7 @@ Use 'go-getoptions.test command help <command>' for extra details.
 		}
 	})
 
-	t.Run("help case sub-command", func(t *testing.T) {
+	t.Run("help option for sub-command", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		commandFn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			return nil
@@ -2384,7 +2384,7 @@ OPTIONS:
 		}
 	})
 
-	t.Run("help case sub-command with required option", func(t *testing.T) {
+	t.Run("help option for sub-command with required option", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		commandFn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			return nil

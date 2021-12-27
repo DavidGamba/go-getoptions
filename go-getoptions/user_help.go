@@ -116,9 +116,16 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 	// Or do we assume they are called the same?
 
 	// TODO: Think about panicking on double call to this method
+	// TODO: Is the description argument required? maybe implement with the regular opt.Description
+	// TODO: Add a default help description to the help option when none defined.
 
 	// Define help option
 	gopt.Bool(name, false, append([]ModifyFn{gopt.Description(description)}, fns...)...)
+
+	suggestions := []string{}
+	for k := range gopt.programTree.ChildCommands {
+		suggestions = append(suggestions, k)
+	}
 
 	globalOptionMap := make(map[string]string)
 	cmd := &GetOpt{}
@@ -132,6 +139,7 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 		GlobalOptionMap: globalOptionMap,
 		Parent:          gopt.programTree,
 		Level:           gopt.programTree.Level + 1,
+		Suggestions:     suggestions,
 	}
 	cmd.programTree = command
 	gopt.programTree.AddChildCommand(name, command)
