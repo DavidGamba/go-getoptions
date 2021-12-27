@@ -50,6 +50,8 @@ There is no need to define the name of the help command at this level anymore si
 * `CommandFn` is no longer an exported field of `GetOpt`.
 If this was ever used, now the canonical way to execute a command function is through `opt.Dispatch`.
 
+* Remove `opt.Option`, this was used in test code to return the internal representation of an option and shouldn't be accessed directly by an end user.
+
 * WIP: `opt.SetRequireOrder` might be dropped since now we fully track subcommands.
 Need to consider its usefulness when doing wrappers around other programs.
 

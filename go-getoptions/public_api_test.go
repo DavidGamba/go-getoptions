@@ -2580,3 +2580,416 @@ OPTIONS:
 		}
 	})
 }
+
+func TestGetEnv(t *testing.T) {
+	setup := func(v string) {
+		os.Setenv("_get_opt_env_test1", v)
+		os.Setenv("_get_opt_env_test2", v)
+	}
+	cleanup := func() {
+		os.Unsetenv("_get_opt_env_test1")
+		os.Unsetenv("_get_opt_env_test2")
+	}
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Bool
+	/////////////////////////////////////////////////////////////////////////////
+
+	t.Run("bool no env", func(t *testing.T) {
+		cleanup()
+		var v1 bool
+		opt := getoptions.New()
+		opt.BoolVar(&v1, "opt1", false, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Bool("opt2", false, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != false {
+			t.Errorf("Unexpected value: %v", v1)
+		}
+		if *v2 != false {
+			t.Errorf("Unexpected value: %v", *v2)
+		}
+	})
+
+	t.Run("bool false env with option", func(t *testing.T) {
+		// Ensures that the cli args always have precedence over env vars.
+		setup("false")
+		var v1 bool
+		opt := getoptions.New()
+		opt.BoolVar(&v1, "opt1", false, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Bool("opt2", false, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{"--opt1", "--opt2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != true {
+			t.Errorf("Unexpected value: %v, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != true {
+			t.Errorf("Unexpected value: %v, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("bool true env with option", func(t *testing.T) {
+		setup("true")
+		var v1 bool
+		opt := getoptions.New()
+		opt.BoolVar(&v1, "opt1", false, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Bool("opt2", false, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{"--opt1", "--opt2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != true {
+			t.Errorf("Unexpected value: %v, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != true {
+			t.Errorf("Unexpected value: %v, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("bool true env with option reverse", func(t *testing.T) {
+		// Ensures that the cli args always have precedence over env vars.
+		setup("true")
+		var v1 bool
+		opt := getoptions.New()
+		opt.BoolVar(&v1, "opt1", true, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Bool("opt2", true, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{"--opt1", "--opt2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != false {
+			t.Errorf("Unexpected value: %v, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != false {
+			t.Errorf("Unexpected value: %v, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("bool env false", func(t *testing.T) {
+		setup("fAlse")
+		var v1 bool
+		opt := getoptions.New()
+		opt.BoolVar(&v1, "opt1", false, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Bool("opt2", false, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != false {
+			t.Errorf("Unexpected value: %v, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != false {
+			t.Errorf("Unexpected value: %v, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("bool env true", func(t *testing.T) {
+		setup("tRue")
+		var v1 bool
+		opt := getoptions.New()
+		opt.BoolVar(&v1, "opt1", false, opt.GetEnv("_get_opt_env_test1"), opt.Description("opt1"))
+		v2 := opt.Bool("opt2", false, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s\n", err)
+		}
+		if *v2 != true {
+			t.Errorf("Unexpected value: %v\n%#v\n", *v2, opt.Value("opt2"))
+		}
+		if v1 != true {
+			t.Errorf("Unexpected value: %v\n%#v\n", v1, opt.Value("opt1"))
+		}
+		cleanup()
+	})
+
+	t.Run("bool env true reverse", func(t *testing.T) {
+		setup("tRue")
+		var v1 bool
+		opt := getoptions.New()
+		opt.BoolVar(&v1, "opt1", true, opt.GetEnv("_get_opt_env_test1"), opt.Description("opt1"))
+		v2 := opt.Bool("opt2", true, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s\n", err)
+		}
+		if *v2 != true {
+			t.Errorf("Unexpected value: %v\n%#v\n", *v2, opt.Value("opt2"))
+		}
+		if v1 != true {
+			t.Errorf("Unexpected value: %v\n%#v\n", v1, opt.Value("opt1"))
+		}
+		cleanup()
+	})
+
+	t.Run("bool env false reverse", func(t *testing.T) {
+		setup("fAlse")
+		var v1 bool
+		opt := getoptions.New()
+		opt.BoolVar(&v1, "opt1", true, opt.GetEnv("_get_opt_env_test1"), opt.Description("opt1"))
+		v2 := opt.Bool("opt2", true, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s\n", err)
+		}
+		if *v2 != false {
+			t.Errorf("Unexpected value: %v\n%#v\n", *v2, opt.Value("opt2"))
+		}
+		if v1 != false {
+			t.Errorf("Unexpected value: %v\n%#v\n", v1, opt.Value("opt1"))
+		}
+		cleanup()
+	})
+
+	/////////////////////////////////////////////////////////////////////////////
+	// String
+	/////////////////////////////////////////////////////////////////////////////
+
+	t.Run("string no env", func(t *testing.T) {
+		cleanup()
+		var v1 string
+		opt := getoptions.New()
+		opt.StringVar(&v1, "opt1", "default1", opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.String("opt2", "default2", opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != "default1" {
+			t.Errorf("Unexpected value: %s", v1)
+		}
+		if *v2 != "default2" {
+			t.Errorf("Unexpected value: %s", *v2)
+		}
+	})
+
+	t.Run("string env with option", func(t *testing.T) {
+		setup("set-env")
+		var v1 string
+		opt := getoptions.New()
+		opt.StringVar(&v1, "opt1", "default1", opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.String("opt2", "default2", opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{"--opt1", "option1", "--opt2", "option2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != "option1" {
+			t.Errorf("Unexpected value: %s, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != "option2" {
+			t.Errorf("Unexpected value: %s, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("string env", func(t *testing.T) {
+		setup("set-env")
+		var v1 string
+		opt := getoptions.New()
+		opt.StringVar(&v1, "opt1", "default1", opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.String("opt2", "default2", opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != "set-env" {
+			t.Errorf("Unexpected value: %s, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != "set-env" {
+			t.Errorf("Unexpected value: %s, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("string optional env", func(t *testing.T) {
+		setup("set-env")
+		var v1 string
+		opt := getoptions.New()
+		opt.StringVarOptional(&v1, "opt1", "default1", opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.StringOptional("opt2", "default2", opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != "set-env" {
+			t.Errorf("Unexpected value: %s, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != "set-env" {
+			t.Errorf("Unexpected value: %s, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("string env required", func(t *testing.T) {
+		setup("set-env")
+		var v1 string
+		opt := getoptions.New()
+		opt.StringVar(&v1, "opt1", "default1", opt.GetEnv("_get_opt_env_test1"), opt.Required())
+		v2 := opt.String("opt2", "default2", opt.GetEnv("_get_opt_env_test2"), opt.Required())
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != "set-env" {
+			t.Errorf("Unexpected value: %s, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != "set-env" {
+			t.Errorf("Unexpected value: %s, %#v", *v2, opt.Value("opt2"))
+		}
+		if !opt.Called("opt1") {
+			t.Errorf("Not called: %s, %#v", v1, opt.Value("opt1"))
+		}
+		if opt.CalledAs("opt1") != "_get_opt_env_test1" {
+			t.Errorf("Not called as %s: %s, %#v", "_get_opt_env_test1", v1, opt.Value("opt1"))
+		}
+		cleanup()
+	})
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Int
+	/////////////////////////////////////////////////////////////////////////////
+
+	t.Run("int no env", func(t *testing.T) {
+		cleanup()
+		var v1 int
+		opt := getoptions.New()
+		opt.IntVar(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Int("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != 123 {
+			t.Errorf("Unexpected value: %d", v1)
+		}
+		if *v2 != 123 {
+			t.Errorf("Unexpected value: %d", *v2)
+		}
+	})
+
+	t.Run("int env with option", func(t *testing.T) {
+		setup("456")
+		var v1 int
+		opt := getoptions.New()
+		opt.IntVar(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Int("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{"--opt1", "789", "--opt2", "789"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != 789 {
+			t.Errorf("Unexpected value: %d, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != 789 {
+			t.Errorf("Unexpected value: %d, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("int env", func(t *testing.T) {
+		setup("456")
+		var v1 int
+		opt := getoptions.New()
+		opt.IntVar(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Int("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != 456 {
+			t.Errorf("Unexpected value: %d, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != 456 {
+			t.Errorf("Unexpected value: %d, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("int optional env", func(t *testing.T) {
+		setup("456")
+		var v1 int
+		opt := getoptions.New()
+		opt.IntVarOptional(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.IntOptional("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != 456 {
+			t.Errorf("Unexpected value: %d, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != 456 {
+			t.Errorf("Unexpected value: %d, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("int env error", func(t *testing.T) {
+		setup("abc")
+		var v1 int
+		opt := getoptions.New()
+		opt.IntVar(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Int("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		// TODO: Handle errors when env vars don't have proper types
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != 123 {
+			t.Errorf("Unexpected value: %d, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != 123 {
+			t.Errorf("Unexpected value: %d, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	/////////////////////////////////////////////////////////////////////////////
+	// Float64
+	/////////////////////////////////////////////////////////////////////////////
+
+	t.Run("float64 env", func(t *testing.T) {
+		setup("456.1")
+		var v1 float64
+		opt := getoptions.New()
+		opt.Float64Var(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Float64("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != 456.1 {
+			t.Errorf("Unexpected value: %f, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != 456.1 {
+			t.Errorf("Unexpected value: %f, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+
+	t.Run("float64 optional env", func(t *testing.T) {
+		setup("456.1")
+		var v1 float64
+		opt := getoptions.New()
+		opt.Float64VarOptional(&v1, "opt1", 123, opt.GetEnv("_get_opt_env_test1"))
+		v2 := opt.Float64Optional("opt2", 123, opt.GetEnv("_get_opt_env_test2"))
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if v1 != 456.1 {
+			t.Errorf("Unexpected value: %f, %#v", v1, opt.Value("opt1"))
+		}
+		if *v2 != 456.1 {
+			t.Errorf("Unexpected value: %f, %#v", *v2, opt.Value("opt2"))
+		}
+		cleanup()
+	})
+}

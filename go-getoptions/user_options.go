@@ -80,7 +80,13 @@ func (gopt *GetOpt) GetEnv(name string) ModifyFn {
 					opt.Save(v)
 					opt.SetCalled(name)
 				}
-			case option.StringType, option.IntType, option.Float64Type:
+			case option.StringType,
+				option.IntType,
+				option.Float64Type,
+				option.StringOptionalType,
+				option.IntOptionalType,
+				option.Float64OptionalType:
+
 				opt.Save(value)
 				opt.SetCalled(name)
 			}
