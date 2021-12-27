@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	// "github.com/DavidGamba/go-getoptions"
 	"github.com/DavidGamba/go-getoptions/go-getoptions"
@@ -2992,4 +2993,134 @@ func TestGetEnv(t *testing.T) {
 		}
 		cleanup()
 	})
+}
+
+func TestAll(t *testing.T) {
+	var flag bool
+	var str string
+	var integer int
+	opt := getoptions.New()
+	opt.Bool("flag", false)
+	opt.BoolVar(&flag, "varflag", false)
+	opt.Bool("non-used-flag", false)
+	opt.String("string", "")
+	opt.StringVar(&str, "stringVar", "")
+	opt.Int("int", 0)
+	opt.IntVar(&integer, "intVar", 0)
+	opt.StringSlice("string-repeat", 1, 1)
+	opt.StringSlice("string-slice-multi", 1, 3)
+	opt.StringMap("string-map", 1, 1)
+
+	remaining, err := opt.Parse([]string{
+		"hello",
+		"--flag",
+		"--varflag",
+		"happy",
+		"--string", "hello",
+		"--stringVar", "hello",
+		"--int", "123",
+		"--intVar", "123",
+		"--string-repeat", "hello", "--string-repeat", "world",
+		"--string-slice-multi", "hello", "happy", "--string-slice-multi", "world",
+		"--string-map", "hello=world", "--string-map", "server=name",
+		"world",
+	})
+
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if !reflect.DeepEqual(remaining, []string{"hello", "happy", "world"}) {
+		t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"hello", "happy", "world"})
+	}
+
+	expected := map[string]interface{}{
+		"flag":               true,
+		"string":             "hello",
+		"int":                123,
+		"string-repeat":      []string{"hello", "world"},
+		"string-slice-multi": []string{"hello", "happy", "world"},
+		"string-map":         map[string]string{"hello": "world", "server": "name"},
+	}
+
+	for k := range expected {
+		if !reflect.DeepEqual(opt.Value(k), expected[k]) {
+			t.Errorf("Wrong value: %v != %v", opt.Value(k), expected[k])
+		}
+	}
+
+	if flag != true {
+		t.Errorf("flag didn't have expected value: %v != %v", flag, true)
+	}
+	if str != "hello" {
+		t.Errorf("str didn't have expected value: %v != %v", str, "hello")
+	}
+	if integer != 123 {
+		t.Errorf("int didn't have expected value: %v != %v", integer, 123)
+	}
+
+	// Tested above, but it gives me a feel for how it would be used
+
+	if !opt.Value("flag").(bool) {
+		t.Errorf("flag didn't have expected value: %v != %v", opt.Value("flag"), true)
+	}
+	if opt.Value("non-used-flag").(bool) {
+		t.Errorf("non-used-flag didn't have expected value: %v != %v", opt.Value("non-used-flag"), false)
+	}
+	if opt.Value("string") != "hello" {
+		t.Errorf("str didn't have expected value: %v != %v", opt.Value("string"), "hello")
+	}
+	if opt.Value("int") != 123 {
+		t.Errorf("int didn't have expected value: %v != %v", opt.Value("int"), 123)
+	}
+}
+
+func TestInterruptContext(t *testing.T) {
+	iterations := 1000
+	sum := 0
+	called := false
+	cleanupFn := func() { called = true }
+	helpBuf := new(bytes.Buffer)
+	getoptions.Writer = helpBuf
+	ctx, cancel, done := getoptions.InterruptContext()
+	defer func() {
+		cancel()
+		<-done
+		if sum >= iterations {
+			t.Errorf("Interrupt not captured: %d\n", sum)
+		}
+	}()
+
+	for i := 0; i <= iterations; i++ {
+		sum++
+		select {
+		case <-ctx.Done():
+			cleanupFn()
+			return
+		default:
+		}
+		if i == 0 {
+			id := os.Getpid()
+			fmt.Printf("process id %d\n", id)
+			p, err := os.FindProcess(id)
+			if err != nil {
+				t.Errorf("Unexpected error: %s\n", err)
+				continue
+			}
+			fmt.Printf("process %v\n", p)
+			err = p.Signal(os.Interrupt)
+			if err != nil {
+				t.Errorf("Unexpected error: %s\n", err)
+				continue
+			}
+		}
+		// Give the kernel time to process the signal
+		time.Sleep(1 * time.Millisecond)
+	}
+	if !called {
+		t.Errorf("Cleanup function not called")
+	}
+	if helpBuf.String() != text.MessageOnInterrupt+"\n" {
+		t.Errorf("Wrong output: %s", helpBuf.String())
+	}
 }

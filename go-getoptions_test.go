@@ -2770,6 +2770,7 @@ OPTIONS:
 	})
 }
 
+// DONE
 func TestGetEnv(t *testing.T) {
 	setup := func(v string) {
 		os.Setenv("_get_opt_env_test1", v)
@@ -3199,6 +3200,7 @@ func TestGetEnv(t *testing.T) {
 	})
 }
 
+// DONE
 func TestAll(t *testing.T) {
 	var flag bool
 	var str string
