@@ -85,6 +85,7 @@ func TestAliasMatchesOption(t *testing.T) {
 	opt.Bool("bool", false, opt.Alias("flag"))
 }
 
+// DONE
 func TestRequired(t *testing.T) {
 	// DONE
 	opt := New()
@@ -2772,6 +2773,7 @@ OPTIONS:
 
 // DONE
 func TestGetEnv(t *testing.T) {
+
 	setup := func(v string) {
 		os.Setenv("_get_opt_env_test1", v)
 		os.Setenv("_get_opt_env_test2", v)
@@ -2780,6 +2782,7 @@ func TestGetEnv(t *testing.T) {
 		os.Unsetenv("_get_opt_env_test1")
 		os.Unsetenv("_get_opt_env_test2")
 	}
+
 	/////////////////////////////////////////////////////////////////////////////
 	// Bool
 	/////////////////////////////////////////////////////////////////////////////
@@ -3287,6 +3290,7 @@ func TestAll(t *testing.T) {
 	}
 }
 
+// DONE
 func TestInterruptContext(t *testing.T) {
 	iterations := 1000
 	sum := 0

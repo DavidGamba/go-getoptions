@@ -40,6 +40,24 @@ func setupTestLogging(t *testing.T) func() {
 	}
 }
 
+// Test helper to compare two string outputs and find the first difference
+func firstDiff(got, expected string) string {
+	same := ""
+	for i, gc := range got {
+		if len([]rune(expected)) <= i {
+			return fmt.Sprintf("got:\n%s\nIndex: %d | diff: got '%s' - exp '%s'\n", got, len(expected), got, expected)
+		}
+		if gc != []rune(expected)[i] {
+			return fmt.Sprintf("got:\n%s\nIndex: %d | diff: got '%c' - exp '%c'\n%s\n", got, i, gc, []rune(expected)[i], same)
+		}
+		same += string(gc)
+	}
+	if len(expected) > len(got) {
+		return fmt.Sprintf("got:\n%s\nIndex: %d | diff: got '%s' - exp '%s'\n", got, len(got), got, expected)
+	}
+	return ""
+}
+
 func programTreeError(expected, got *programTree) string {
 	return fmt.Sprintf("expected:\n%s\ngot:\n%s\n", expected.Str(), got.Str())
 }

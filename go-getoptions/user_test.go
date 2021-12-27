@@ -1,6 +1,8 @@
 package getoptions
 
 import (
+	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -194,4 +196,54 @@ func TestTrees(t *testing.T) {
 	})
 
 	t.Cleanup(func() { t.Log(buf.String()) })
+}
+
+func TestCompletion(t *testing.T) {
+	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
+		return nil
+	}
+	called := false
+	exitFn = func(code int) { called = true }
+
+	cleanup := func() {
+		os.Setenv("COMP_LINE", "")
+		completionWriter = os.Stdout
+		called = false
+	}
+
+	tests := []struct {
+		name     string
+		setup    func()
+		expected string
+	}{
+		{"option", func() { os.Setenv("COMP_LINE", "test --f") }, "--f\n--flag\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "test h") }, "help \n"},
+		// {"command", func() { os.Setenv("COMP_LINE", "test help ") }, "log\nshow\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+			s := ""
+			buf := bytes.NewBufferString(s)
+			completionWriter = buf
+
+			opt := New()
+			opt.Bool("flag", false, opt.Alias("f"))
+			opt.NewCommand("log", "").SetCommandFn(fn)
+			opt.NewCommand("show", "").SetCommandFn(fn)
+			opt.HelpCommand("help", "")
+			_, err := opt.Parse([]string{})
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+			if !called {
+				t.Errorf("COMP_LINE set and exit wasn't called")
+			}
+			if buf.String() != tt.expected {
+				t.Errorf("Error\ngot: '%s', expected: '%s'\n", buf.String(), tt.expected)
+				t.Errorf("diff:\n%s", firstDiff(buf.String(), tt.expected))
+			}
+			cleanup()
+		})
+	}
 }

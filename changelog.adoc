@@ -52,6 +52,8 @@ If this was ever used, now the canonical way to execute a command function is th
 
 * Remove `opt.Option`, this was used in test code to return the internal representation of an option and shouldn't be accessed directly by an end user.
 
+* Remove `opt.Stringer`, this was used to print a text representation of the parsed structure but other than in test code there is little value for it.
+
 * WIP: `opt.SetRequireOrder` might be dropped since now we fully track subcommands.
 Need to consider its usefulness when doing wrappers around other programs.
 
