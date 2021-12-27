@@ -4,7 +4,7 @@
 == WIP: v0.25.0-alpha: Major Refactor
 
 As the releases before, this release has 100% test coverage.
-Tested with ?
+Tested with Go 1.14, 1.15, 1.16 and Go 1.17.
 
 === Goal
 
@@ -13,6 +13,8 @@ In the initial implementation, completion was added as side logic to the existin
 In this implementation, completions are a first class citizen and share the same parsing tree structure that the rest of the library is using.
 
 The parsing tree was refactored from the ground up to better accommodate commands and subcommands and also the extra use cases that have been popping up ever since autocompletion support was added.
+
+The major user facing change is that instead of providing building blocks to build a command and subcommand experience, a single `opt.Parse` and `opt.Dispatch` call is required to handle options for commands and subcommands at all levels.
 
 === Breaking changes
 

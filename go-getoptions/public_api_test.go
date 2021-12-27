@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 
@@ -2422,185 +2423,160 @@ OPTIONS:
 		}
 	})
 
-	// t.Run("command", func(t *testing.T) {
-	// 	called := false
-	// 	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		called = true
-	// 		return nil
-	// 	}
-	// 	buf := setupLogging()
-	// 	opt := New()
-	// 	opt.Bool("help", false)
-	// 	opt.NewCommand("command", "").SetCommandFn(fn)
-	// 	opt.HelpCommand("")
-	// 	remaining, err := opt.Parse([]string{"command"})
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	err = opt.Dispatch(context.Background(), "help", remaining)
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	if !called {
-	// 		t.Errorf("Fn not called")
-	// 	}
-	// 	t.Log(buf.String())
-	// })
+	t.Run("command", func(t *testing.T) {
+		called := false
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			called = true
+			return nil
+		}
+		opt := getoptions.New()
+		opt.NewCommand("command", "").SetCommandFn(fn)
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"command"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !called {
+			t.Errorf("Fn not called")
+		}
+	})
 
-	// t.Run("command multiple parse calls", func(t *testing.T) {
-	// 	called := false
-	// 	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		remaining, err := opt.Parse(args)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		remaining, err = opt.Parse(remaining)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		called = opt.Called("command-option")
-	// 		return nil
-	// 	}
-	// 	buf := setupLogging()
-	// 	opt := New()
-	// 	opt.SetUnknownMode(Pass)
-	// 	opt.Bool("help", false)
-	// 	cmd := opt.NewCommand("command", "").SetCommandFn(fn)
-	// 	cmd.Bool("command-option", false)
-	// 	opt.HelpCommand("")
-	// 	remaining, err := opt.Parse([]string{"command", "--command-option"})
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	err = opt.Dispatch(context.Background(), "help", remaining)
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	if !called {
-	// 		t.Errorf("Option not called")
-	// 	}
-	// 	t.Log(buf.String())
-	// })
+	t.Run("check that command arguments are called", func(t *testing.T) {
+		called := false
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			called = opt.Called("command-option")
+			return nil
+		}
+		opt := getoptions.New()
+		opt.SetUnknownMode(getoptions.Pass)
+		cmd := opt.NewCommand("command", "").SetCommandFn(fn)
+		cmd.Bool("command-option", false)
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"command", "--command-option"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !called {
+			t.Errorf("Option not called")
+		}
+	})
 
-	// t.Run("command error", func(t *testing.T) {
-	// 	called := false
-	// 	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		called = true
-	// 		return fmt.Errorf("err")
-	// 	}
-	// 	buf := setupLogging()
-	// 	opt := New()
-	// 	opt.Bool("help", false)
-	// 	opt.NewCommand("command", "").SetCommandFn(fn)
-	// 	opt.HelpCommand("")
-	// 	remaining, err := opt.Parse([]string{"command"})
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	err = opt.Dispatch(context.Background(), "help", remaining)
-	// 	if err == nil {
-	// 		t.Errorf("Error not called")
-	// 	}
-	// 	if !called {
-	// 		t.Errorf("Fn not called")
-	// 	}
-	// 	t.Log(buf.String())
-	// })
+	t.Run("command error", func(t *testing.T) {
+		called := false
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			called = true
+			return fmt.Errorf("err")
+		}
+		opt := getoptions.New()
+		opt.NewCommand("command", "").SetCommandFn(fn)
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"command"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err == nil {
+			t.Errorf("Error not called")
+		}
+		if !called {
+			t.Errorf("Fn not called")
+		}
+	})
 
-	// t.Run("command error", func(t *testing.T) {
-	// 	called := false
-	// 	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		called = true
-	// 		return fmt.Errorf("err")
-	// 	}
-	// 	buf := setupLogging()
-	// 	opt := New()
-	// 	opt.Bool("help", false)
-	// 	opt.NewCommand("command", "").SetCommandFn(fn)
-	// 	opt.HelpCommand("")
-	// 	remaining, err := opt.Parse([]string{"x"})
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	err = opt.Dispatch(context.Background(), "help", remaining)
-	// 	if err == nil {
-	// 		t.Errorf("Error not called")
-	// 	}
-	// 	if called {
-	// 		t.Errorf("Fn was called")
-	// 	}
-	// 	t.Log(buf.String())
-	// })
+	t.Run("normal string shouldn't be interpreted as a command and should stay in remaining array", func(t *testing.T) {
+		called := false
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			called = true
+			return fmt.Errorf("err")
+		}
+		opt := getoptions.New()
+		opt.NewCommand("command", "").SetCommandFn(fn)
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"x"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if called {
+			t.Errorf("Fn was called")
+		}
+		if len(remaining) < 1 {
+			t.Errorf("wrong remaining %#v\n", remaining)
+		}
+		if len(remaining) == 1 && remaining[0] != "x" {
+			t.Errorf("wrong remaining %#v\n", remaining)
+		}
+	})
 
-	// t.Run("command error", func(t *testing.T) {
-	// 	called := false
-	// 	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		called = true
-	// 		return fmt.Errorf("err")
-	// 	}
-	// 	buf := setupLogging()
-	// 	opt := New()
-	// 	opt.Bool("help", false)
-	// 	opt.SetUnknownMode(Pass)
-	// 	opt.NewCommand("command", "").SetCommandFn(fn)
-	// 	opt.HelpCommand("")
-	// 	remaining, err := opt.Parse([]string{"-x"})
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	err = opt.Dispatch(context.Background(), "help", remaining)
-	// 	if err == nil {
-	// 		t.Errorf("Error not called")
-	// 	}
-	// 	if called {
-	// 		t.Errorf("Fn was called")
-	// 	}
-	// 	t.Log(buf.String())
-	// })
+	t.Run("unknonw option at parent triggers error", func(t *testing.T) {
+		called := false
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			called = true
+			return nil
+		}
+		opt := getoptions.New()
+		opt.NewCommand("command", "").SetCommandFn(fn)
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"-x"})
+		if err == nil {
+			t.Errorf("Error not called")
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if called {
+			t.Errorf("Fn was called")
+		}
+	})
 
-	// t.Run("command parse error", func(t *testing.T) {
-	// 	called := false
-	// 	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		called = true
-	// 		return nil
-	// 	}
-	// 	buf := setupLogging()
-	// 	opt := New()
-	// 	opt.Bool("help", false)
-	// 	opt.SetUnknownMode(Pass)
-	// 	opt.NewCommand("command", "").SetCommandFn(fn)
-	// 	opt.HelpCommand("")
-	// 	remaining, err := opt.Parse([]string{"command", "-x"})
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	err = opt.Dispatch(context.Background(), "help", remaining)
-	// 	if err == nil {
-	// 		t.Errorf("Error not called")
-	// 	}
-	// 	if called {
-	// 		t.Errorf("Fn was called")
-	// 	}
-	// 	t.Log(buf.String())
-	// })
+	t.Run("unknonw option at command triggers error", func(t *testing.T) {
+		called := false
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			called = true
+			return nil
+		}
+		opt := getoptions.New()
+		opt.NewCommand("command", "").SetCommandFn(fn)
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"command", "-x"})
+		if err == nil {
+			t.Errorf("Error not called")
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !called {
+			t.Errorf("Fn was not called")
+		}
+	})
 
-	// t.Run("help error", func(t *testing.T) {
-	// 	fn := func(ctx context.Context, opt *GetOpt, args []string) error {
-	// 		return nil
-	// 	}
-	// 	buf := setupLogging()
-	// 	opt := New()
-	// 	opt.Bool("help", false)
-	// 	opt.NewCommand("command", "").SetCommandFn(fn)
-	// 	opt.HelpCommand("")
-	// 	remaining, err := opt.Parse([]string{"help", "x"})
-	// 	if err != nil {
-	// 		t.Errorf("Unexpected error: %s", err)
-	// 	}
-	// 	err = opt.Dispatch(context.Background(), "help", remaining)
-	// 	if err == nil {
-	// 		t.Errorf("Error not called")
-	// 	}
-	// 	t.Log(buf.String())
-	// })
+	t.Run("help error", func(t *testing.T) {
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			return nil
+		}
+		opt := getoptions.New()
+		opt.NewCommand("command", "").SetCommandFn(fn)
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"help", "x"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err == nil {
+			t.Errorf("Error not called")
+		}
+	})
 }

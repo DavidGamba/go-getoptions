@@ -2309,6 +2309,7 @@ func TestSetCommandFn(t *testing.T) {
 	t.Log(buf.String())
 }
 
+// DONE
 func TestDispatch(t *testing.T) {
 	t.Run("no args", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)

@@ -145,7 +145,6 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 func runHelp(ctx context.Context, opt *GetOpt, args []string) error {
 	if len(args) > 0 {
 		for _, command := range opt.programTree.Parent.ChildCommands {
-			fmt.Printf("command: %s\n", command.Name)
 			if command.Name == args[0] {
 				fmt.Fprint(Writer, helpOutput(command))
 				return ErrorHelpCalled
