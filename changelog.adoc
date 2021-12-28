@@ -27,6 +27,8 @@ Additionally, when defining `opt.HelpCommand` there is no need to define a help 
 - opt.HelpCommand("")
 + opt.HelpCommand("help", "", opt.Alias("?"))
 ----
++
+WIP: The description could be called with opt.Description probably
 
 * The Dispatch signature has changed.
 There is no need to define the name of the help command at this level anymore since it has been moved to the `HelpCommand` declaration.
@@ -45,6 +47,10 @@ There is no need to define the name of the help command at this level anymore si
 + ctx, cancel, done := getoptions.InterruptContext()
 ----
 
+* WIP: `NewCommand` signature change.
+A command function is always required so make it explicit.
+Though empty could be considered as a help landing to avoid having to create one...
+
 * `Write` io.Writer used to write warnings and errors (which defaults to os.Stderr) has been made into a package level variable and not a method of GetOpt.
 
 * `CommandFn` is no longer an exported field of `GetOpt`.
@@ -59,7 +65,8 @@ Need to consider its usefulness when doing wrappers around other programs.
 
 * WIP: `opt.CustomCompletion` might be dropped.
 
-* Move exported packages that this library uses into the `internal` directory so they can't be imported by other projects by mistake.
+* Moved exported packages that this library uses into the `internal` directory so they can't be imported by other projects by mistake.
+
 
 
 === New Features

@@ -2505,6 +2505,20 @@ OPTIONS:
 		}
 	})
 
+	t.Run("command with missing fn", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.NewCommand("command", "")
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"command"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err == nil {
+			t.Errorf("expected error, non called")
+		}
+	})
+
 	t.Run("check that command arguments are called", func(t *testing.T) {
 		called := false
 		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
