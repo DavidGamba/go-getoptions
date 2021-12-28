@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/DavidGamba/go-getoptions/go-getoptions"
+	"github.com/DavidGamba/go-getoptions"
 )
 
 var Logger = log.New(ioutil.Discard, "show ", log.LstdFlags)

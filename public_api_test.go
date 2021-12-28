@@ -10,8 +10,7 @@ import (
 	"testing"
 	"time"
 
-	// "github.com/DavidGamba/go-getoptions"
-	"github.com/DavidGamba/go-getoptions/go-getoptions"
+	"github.com/DavidGamba/go-getoptions"
 	"github.com/DavidGamba/go-getoptions/option"
 	"github.com/DavidGamba/go-getoptions/text"
 )

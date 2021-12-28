@@ -7,11 +7,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/DavidGamba/go-getoptions"
 	complexgreet "github.com/DavidGamba/go-getoptions/examples/complex/greet"
 	complexlog "github.com/DavidGamba/go-getoptions/examples/complex/log"
 	complexshow "github.com/DavidGamba/go-getoptions/examples/complex/show"
 	complexslow "github.com/DavidGamba/go-getoptions/examples/complex/slow"
-	"github.com/DavidGamba/go-getoptions/go-getoptions"
 )
 
 var Logger = log.New(ioutil.Discard, "", log.LstdFlags)

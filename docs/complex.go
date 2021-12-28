@@ -19,11 +19,10 @@ func main() {
 
 func program(args []string) int {
 	opt := getoptions.New()
-	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false, opt.GetEnv("DEBUG"))
 	opt.SetUnknownMode(getoptions.Pass)
 	opt.NewCommand("cmd", "description").SetCommandFn(Run)
-	opt.HelpCommand("")
+	opt.HelpCommand("help", "", opt.Alias("?"))
 	remaining, err := opt.Parse(args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
@@ -34,10 +33,10 @@ func program(args []string) int {
 	}
 	Logger.Println(remaining)
 
-	ctx, cancel, done := opt.InterruptContext()
+	ctx, cancel, done := getoptions.InterruptContext()
 	defer func() { cancel(); <-done }()
 
-	err = opt.Dispatch(ctx, "help", remaining)
+	err = opt.Dispatch(ctx, remaining)
 	if err != nil {
 		if errors.Is(err, getoptions.ErrorHelpCalled) {
 			return 1

@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/DavidGamba/go-getoptions/go-getoptions"
+	"github.com/DavidGamba/go-getoptions"
 )
 
 var Logger = log.New(ioutil.Discard, "show ", log.LstdFlags)

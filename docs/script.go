@@ -34,7 +34,7 @@ func program(args []string) int {
 	}
 	Logger.Println(remaining)
 
-	ctx, cancel, done := opt.InterruptContext()
+	ctx, cancel, done := getoptions.InterruptContext()
 	defer func() { cancel(); <-done }()
 
 	err = realMain(ctx)
