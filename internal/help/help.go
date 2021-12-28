@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/DavidGamba/go-getoptions/option"
+	"github.com/DavidGamba/go-getoptions/internal/option"
 	"github.com/DavidGamba/go-getoptions/text"
 )
 

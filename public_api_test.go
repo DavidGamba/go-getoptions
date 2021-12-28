@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/DavidGamba/go-getoptions"
-	"github.com/DavidGamba/go-getoptions/option"
+	"github.com/DavidGamba/go-getoptions/internal/option"
 	"github.com/DavidGamba/go-getoptions/text"
 )
 

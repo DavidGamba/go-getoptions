@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/DavidGamba/go-getoptions/option"
+	"github.com/DavidGamba/go-getoptions/internal/option"
 )
 
 // ModifyFn - Function signature for functions that modify an option.

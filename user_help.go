@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/DavidGamba/go-getoptions/internal/help"
-	"github.com/DavidGamba/go-getoptions/option"
+	"github.com/DavidGamba/go-getoptions/internal/option"
 )
 
 // HelpSection - Indicates what portion of the help to return.

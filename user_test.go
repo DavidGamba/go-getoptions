@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/DavidGamba/go-getoptions/option"
+	"github.com/DavidGamba/go-getoptions/internal/option"
 )
 
 // User facing tree construction tests.
