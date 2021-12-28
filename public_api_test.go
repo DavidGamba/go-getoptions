@@ -160,6 +160,7 @@ func TestRequired(t *testing.T) {
 			t.Errorf("Required option called but error raised")
 		}
 	})
+
 	t.Run("error not raised", func(t *testing.T) {
 		opt := getoptions.New()
 		opt.Bool("flag", false, opt.Required())
@@ -174,10 +175,69 @@ func TestRequired(t *testing.T) {
 			t.Errorf("Error string didn't match expected value")
 		}
 	})
+
 	t.Run("custom message", func(t *testing.T) {
 		opt := getoptions.New()
 		opt.Bool("flag", false, opt.Required("please provide 'flag'"))
 		_, err := opt.Parse([]string{})
+		if err == nil {
+			t.Errorf("Required option missing didn't raise error")
+		}
+		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
+			t.Errorf("Error type didn't match")
+		}
+		if err != nil && err.Error() != "please provide 'flag'" {
+			t.Errorf("Error string didn't match expected value")
+		}
+	})
+
+	fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+		return nil
+	}
+
+	t.Run("command error raised when called", func(t *testing.T) {
+		opt := getoptions.New()
+		cmd := opt.NewCommand("cmd", "").SetCommandFn(fn)
+		cmd.Bool("flag", false, opt.Required())
+		remaining, err := opt.Parse([]string{"cmd", "--flag"})
+		if err != nil {
+			t.Errorf("Required option called but error raised")
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil {
+			t.Errorf("Required option called but error raised")
+		}
+	})
+
+	t.Run("error not raised", func(t *testing.T) {
+		opt := getoptions.New()
+		cmd := opt.NewCommand("cmd", "").SetCommandFn(fn)
+		cmd.Bool("flag", false, opt.Required())
+		remaining, err := opt.Parse([]string{"cmd"})
+		if err != nil {
+			t.Errorf("Required option called but error raised")
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err == nil {
+			t.Errorf("Required option missing didn't raise error")
+		}
+		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
+			t.Errorf("Error type didn't match")
+		}
+		if err != nil && err.Error() != "Missing required parameter 'flag'" {
+			t.Errorf("Error string didn't match expected value")
+		}
+	})
+
+	t.Run("custom message", func(t *testing.T) {
+		opt := getoptions.New()
+		cmd := opt.NewCommand("cmd", "").SetCommandFn(fn)
+		cmd.Bool("flag", false, opt.Required("please provide 'flag'"))
+		remaining, err := opt.Parse([]string{"cmd"})
+		if err != nil {
+			t.Errorf("Required option called but error raised")
+		}
+		err = opt.Dispatch(context.Background(), remaining)
 		if err == nil {
 			t.Errorf("Required option missing didn't raise error")
 		}
