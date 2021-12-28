@@ -21,7 +21,7 @@ func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
 }
 
 func GreetNewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
-	opt := parent.NewCommand("greet", "Subcommands example").SetCommandFn(Run)
+	opt := parent.NewCommand("greet", "Hi in multiple languages").SetCommandFn(Run)
 	en := opt.NewCommand("en", "greet in English").SetCommandFn(RunEnglish)
 	en.String("name", "", opt.Required(""))
 	es := opt.NewCommand("es", "greet in Spanish").SetCommandFn(RunSpanish)
@@ -30,7 +30,7 @@ func GreetNewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
 }
 
 func ByeNewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
-	opt := parent.NewCommand("bye", "Subcommands example").SetCommandFn(Run)
+	opt := parent.NewCommand("bye", "Bye in multiple languages").SetCommandFn(Run)
 	en := opt.NewCommand("en", "bye in English").SetCommandFn(RunByeEnglish)
 	en.String("name", "", opt.Required(""))
 	es := opt.NewCommand("es", "bye in Spanish").SetCommandFn(RunByeSpanish)

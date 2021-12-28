@@ -73,6 +73,9 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 		case HelpSynopsis:
 			commands := []string{}
 			for _, command := range node.ChildCommands {
+				if command.Name == node.HelpCommandName {
+					continue
+				}
 				commands = append(commands, command.Name)
 			}
 			helpTxt += help.Synopsis("", scriptName, node.SynopsisArgs, options, commands)
@@ -93,7 +96,8 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 		case HelpOptionList:
 			helpTxt += help.OptionList(options)
 		case HelpCommandInfo:
-			if node.HelpCommandName != "" && len(node.ChildCommands) > 0 {
+			// Index of 1 because when there is a child command, help is always injected
+			if node.HelpCommandName != "" && len(node.ChildCommands) > 1 {
 				helpTxt += fmt.Sprintf("Use '%s help <command>' for extra details.\n", scriptName)
 			}
 		}
@@ -110,7 +114,7 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 //     opt.HelpCommand("help", "show this help", opt.Alias("?"))
 //
 // NOTE: commands must be declared after all options are declared.
-func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn) *GetOpt {
+func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn) {
 	// Question: How do I determine the name of the help option so -h or -? work with the command?
 	// Maybe I need to add an extra parameter for the help option.
 	// Or do we assume they are called the same?
@@ -122,32 +126,46 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 	// Define help option
 	gopt.Bool(name, false, append([]ModifyFn{gopt.Description(description)}, fns...)...)
 
-	suggestions := []string{}
-	for k := range gopt.programTree.ChildCommands {
-		suggestions = append(suggestions, k)
+	cmdFn := func(parent *programTree) {
+		suggestions := []string{}
+		for k := range parent.ChildCommands {
+			if k != name {
+				suggestions = append(suggestions, k)
+			}
+		}
+		globalOptionMap := make(map[string]string)
+		cmd := &GetOpt{}
+		command := &programTree{
+			Type:            argTypeCommand,
+			Name:            name,
+			Description:     description,
+			HelpCommandName: name,
+			ChildCommands:   map[string]*programTree{},
+			ChildOptions:    map[string]*option.Option{},
+			GlobalOptionMap: globalOptionMap,
+			Parent:          parent,
+			Level:           parent.Level + 1,
+			Suggestions:     suggestions,
+		}
+		cmd.programTree = command
+		parent.AddChildCommand(name, command)
+		cmd.SetCommandFn(runHelp)
+		cmd.HelpSynopsisArgs("<topic>")
 	}
 
-	globalOptionMap := make(map[string]string)
-	cmd := &GetOpt{}
-	command := &programTree{
-		Type:            argTypeCommand,
-		Name:            name,
-		Description:     description,
-		HelpCommandName: gopt.programTree.HelpCommandName,
-		ChildCommands:   map[string]*programTree{},
-		ChildOptions:    map[string]*option.Option{},
-		GlobalOptionMap: globalOptionMap,
-		Parent:          gopt.programTree,
-		Level:           gopt.programTree.Level + 1,
-		Suggestions:     suggestions,
-	}
-	cmd.programTree = command
-	gopt.programTree.AddChildCommand(name, command)
-	cmd.SetCommandFn(runHelp)
-	cmd.HelpSynopsisArgs("<topic>")
+	// set HelpCommandName
+	runOnParentAndChildrenCommands(gopt.programTree, func(n *programTree) {
+		n.HelpCommandName = name
+	})
+
+	// Add help command to all commands
+	runOnParentAndChildrenCommands(gopt.programTree, func(n *programTree) {
+		if n.Name != name {
+			cmdFn(n)
+		}
+	})
+
 	copyOptionsFromParent(gopt.programTree, false)
-	setHelpCommandName(gopt.programTree, name)
-	return cmd
 }
 
 func runHelp(ctx context.Context, opt *GetOpt, args []string) error {
@@ -164,10 +182,9 @@ func runHelp(ctx context.Context, opt *GetOpt, args []string) error {
 	return ErrorHelpCalled
 }
 
-func setHelpCommandName(parent *programTree, name string) {
-	parent.HelpCommandName = name
+func runOnParentAndChildrenCommands(parent *programTree, fn func(*programTree)) {
+	fn(parent)
 	for _, command := range parent.ChildCommands {
-		command.HelpCommandName = name
-		setHelpCommandName(command, name)
+		runOnParentAndChildrenCommands(command, fn)
 	}
 }
