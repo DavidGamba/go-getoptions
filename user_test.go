@@ -30,6 +30,52 @@ func setupOpt() *GetOpt {
 	return opt
 }
 
+func TestString(t *testing.T) {
+	expected := `Name: go-getoptions.test, Type: 0, child options: [
+  Name: rootopt1, Aliases: [rootopt1], Values: 
+], child commands: [
+  Name: cmd1, Type: 1, Parent: go-getoptions.test, child options: [
+    Name: cmd1opt1, Aliases: [cmd1opt1], Values: 
+    Name: rootopt1, Aliases: [rootopt1], Values: 
+  ], child commands: [
+    Name: sub1cmd1, Type: 1, Parent: cmd1, child options: [
+      Name: cmd1opt1, Aliases: [cmd1opt1], Values: 
+      Name: rootopt1, Aliases: [rootopt1], Values: 
+      Name: sub1cmd1opt1, Aliases: [sub1cmd1opt1], Values: 
+    ], child commands: [], option map: [
+      { cmd1opt1 = cmd1opt1 }
+      { rootopt1 = rootopt1 }
+      { sub1cmd1opt1 = sub1cmd1opt1 }
+    ]
+    Name: sub2cmd1, Type: 1, Parent: cmd1, child options: [
+      Name: -, Aliases: [-], Values: 
+      Name: cmd1opt1, Aliases: [cmd1opt1], Values: 
+      Name: rootopt1, Aliases: [rootopt1], Values: 
+    ], child commands: [], option map: [
+      { - = - }
+      { cmd1opt1 = cmd1opt1 }
+      { rootopt1 = rootopt1 }
+    ]
+  ], option map: [
+    { cmd1opt1 = cmd1opt1 }
+    { rootopt1 = rootopt1 }
+  ]
+  Name: cmd2, Type: 1, Parent: go-getoptions.test, child options: [
+    Name: cmd2opt1, Aliases: [cmd2opt1], Values: 
+    Name: rootopt1, Aliases: [rootopt1], Values: 
+  ], child commands: [], option map: [
+    { cmd2opt1 = cmd2opt1 }
+    { rootopt1 = rootopt1 }
+  ]
+], option map: [
+  { rootopt1 = rootopt1 }
+]
+`
+	if setupOpt().programTree.String() != expected {
+		t.Errorf("wrong output: %s\n", firstDiff(setupOpt().programTree.String(), expected))
+	}
+}
+
 func TestTrees(t *testing.T) {
 	buf := setupLogging()
 
