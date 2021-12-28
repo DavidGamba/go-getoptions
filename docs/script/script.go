@@ -37,7 +37,7 @@ func program(args []string) int {
 	ctx, cancel, done := getoptions.InterruptContext()
 	defer func() { cancel(); <-done }()
 
-	err = realMain(ctx)
+	err = run(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
@@ -45,6 +45,6 @@ func program(args []string) int {
 	return 0
 }
 
-func realMain(ctx context.Context) error {
+func run(ctx context.Context) error {
 	return nil
 }
