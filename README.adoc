@@ -155,22 +155,25 @@ Tab completion for this script is triggered for options only, so you need to hav
 
 This is the other extreme, a large program that can separate each command in a separate go package.
 
-The base is located at link:./examples/mygit/main.go[]
+The base is located at link:./examples/complex/main.go[]
 
 The commands are located at:
 
-* link:./examples/mygit/log/log.go[]
-* link:./examples/mygit/show/show.go[]
-* link:./examples/mygit/slow/slow.go[]
+* link:./examples/complex/greet/greet.go[]
+* link:./examples/complex/log/log.go[]
+* link:./examples/complex/show/show.go[]
+* link:./examples/complex/slow/slow.go[]
 
-To use the autocompletion, cd to the link:./examples/mygit[] dir and run: `source sourceme.bash`
-The run `go build` and `./mygit`.
+To use the autocompletion, cd to the link:./examples/complex[] dir and run: `source sourceme.bash`
+The run `go build` and `./complex`.
 
-Tab completion without arguments triggers completion for commands, for option completion add a dash `-` and trigger it: `./mygit -<tab><tab>`
+Tab completion without arguments triggers completion for commands, for option completion add a dash `-` and trigger it: `./complex -<tab><tab>`
 
-The link:./examples/mygit/slow/slow.go[slow] command shows an example of an slow command that can be cancelled with `Ctrl+C`.
+The link:./examples/complex/slow/slow.go[slow] command shows an example of an slow command that can be cancelled with `Ctrl+C`.
 The cancellation is passed to the command through `context.Context` and it is handled at the command to stop taking new work and trigger a cleanup routine.
 Running `Ctrl+C` twice cancels the cancellation routine and fully cancels the program.
+
+The link:./examples/complex/greet/greet.go[greet] command shows an example of using commands and subcommands.
 
 === Directed Acyclic Graph Build System
 
