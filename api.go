@@ -149,27 +149,6 @@ func (n *programTree) AddChildCommand(name string, cmd *programTree) {
 	n.ChildCommands[name] = cmd
 }
 
-// Copy - Returns a copy of programTree that maintains a pointer to the underlying data
-func (n *programTree) Copy() *programTree {
-	// a := *n
-	// c := &a
-	parent := *n.Parent
-	c := &programTree{
-		Type:          n.Type,
-		Name:          n.Name,
-		ChildCommands: n.ChildCommands,
-		ChildOptions:  n.ChildOptions,
-		ChildText:     n.ChildText,
-		Parent:        &parent,
-	}
-	return c
-}
-
-func (n *programTree) SetParent(p *programTree) *programTree {
-	n.Parent = p
-	return n
-}
-
 func getNode(tree *programTree, element ...string) (*programTree, error) {
 	if len(element) == 0 {
 		return tree, nil
@@ -498,7 +477,3 @@ func getAliasNameFromPartialEntry(n *programTree, entry string) []string {
 	}
 	return matches
 }
-
-// TODO:
-// suggestCompletions -
-func suggestCompletions(tree *programTree, args []string, mode Mode) {}
