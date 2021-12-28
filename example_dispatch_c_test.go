@@ -4,29 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var dispatchCommandHelpLogger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
-
-func dispatchCommandHelpListRun(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-	return nil
-}
-
 func ExampleGetOpt_Dispatch_cCommandHelp() {
+	runFn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+		return nil
+	}
+
 	opt := getoptions.New()
-	opt.Bool("help", false, opt.Alias("?"))
 	opt.Bool("debug", false)
-	opt.SetRequireOrder()
-	opt.SetUnknownMode(getoptions.Pass)
-	list := opt.NewCommand("list", "list stuff")
-	list.SetCommandFn(dispatchCommandHelpListRun)
+	list := opt.NewCommand("list", "list stuff").SetCommandFn(runFn)
 	list.Bool("list-opt", false)
-	opt.HelpCommand("")
+	opt.HelpCommand("help", "", opt.Alias("?"))
 	remaining, err := opt.Parse([]string{"help", "list"}) // <- argv set to call command help
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
@@ -35,13 +27,12 @@ func ExampleGetOpt_Dispatch_cCommandHelp() {
 
 	getoptions.Writer = os.Stdout // Print help to stdout instead of stderr for test purpose
 
-	err = opt.Dispatch(context.Background(), "help", remaining)
+	err = opt.Dispatch(context.Background(), remaining)
 	if err != nil {
-		if errors.Is(err, getoptions.ErrorHelpCalled) {
+		if !errors.Is(err, getoptions.ErrorHelpCalled) {
+			fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 			os.Exit(1)
 		}
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
-		os.Exit(1)
 	}
 
 	// Output:
