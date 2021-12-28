@@ -29,6 +29,8 @@ import (
 // Enable debug logging by setting: `Logger.SetOutput(os.Stderr)`.
 var Logger = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
+var Writer io.Writer = os.Stderr // io.Writer to write warnings to. Defaults to os.Stderr.
+
 // exitFn - This variable allows to test os.Exit calls
 var exitFn = os.Exit
 
@@ -90,6 +92,10 @@ func New() *GetOpt {
 	return gopt
 }
 
+// TODO: Get rid of self and instead have a NewDetailed(name, description)
+
+// Self - Set a custom name and description that will show in the automated help.
+// If name is an empty string, it will only use the description and use the name as the executable name.
 func (gopt *GetOpt) Self(name string, description string) *GetOpt {
 	// TODO: Should this only be allowed at the root node level
 	gopt.programTree.Name = name
@@ -253,6 +259,17 @@ func (gopt *GetOpt) SetCommandFn(fn CommandFn) *GetOpt {
 	return gopt
 }
 
+// Parse - Call the parse method when done describing.
+// It will operate on any given slice of strings and return the remaining (non
+// used) command line arguments.
+// This allows to easily subcommand.
+//
+// Parsing style is controlled by the `Set` methods (SetMode, SetRequireOrder, etc).
+//     // Declare the GetOptions object
+//     opt := getoptions.New()
+//     ...
+//     // Parse cmdline arguments or any provided []string
+//     remaining, err := opt.Parse(os.Args[1:])
 func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	compLine := os.Getenv("COMP_LINE")
 	if compLine != "" {
@@ -322,13 +339,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	return node.ChildText, nil
 }
 
-func (gopt *GetOpt) Value(name string) interface{} {
-	if v, ok := gopt.programTree.ChildOptions[name]; ok {
-		return v.Value()
-	}
-	return nil
-}
-
+// Dispatch - Handles calling commands and subcommands after the call to Parse.
 func (gopt *GetOpt) Dispatch(ctx context.Context, remaining []string) error {
 	if gopt.finalNode.HelpCommandName != "" && gopt.Called(gopt.finalNode.HelpCommandName) {
 		fmt.Fprint(Writer, helpOutput(gopt.finalNode))

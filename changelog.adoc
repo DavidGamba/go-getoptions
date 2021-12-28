@@ -57,6 +57,8 @@ If this was ever used, now the canonical way to execute a command function is th
 * WIP: `opt.SetRequireOrder` might be dropped since now we fully track subcommands.
 Need to consider its usefulness when doing wrappers around other programs.
 
+* WIP: `opt.CustomCompletion` might be dropped.
+
 
 === New Features
 

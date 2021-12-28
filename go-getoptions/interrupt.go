@@ -3,16 +3,12 @@ package getoptions
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/DavidGamba/go-getoptions/text"
 )
-
-// TODO: Think about this...
-var Writer io.Writer = os.Stderr // io.Writer to write warnings to. Defaults to os.Stderr.
 
 // InterruptContext - Creates a top level context that listens to os.Interrupt, syscall.SIGHUP and syscall.SIGTERM and calls the CancelFunc if the signals are triggered.
 // When the listener finishes its work, it sends a message to the done channel.
