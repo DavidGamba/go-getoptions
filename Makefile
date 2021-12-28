@@ -1,7 +1,7 @@
 .PHONY: test
 
 test:
-	go test -race -coverprofile=coverage.txt -covermode=atomic ./ ./completion/ ./option ./help ./dag ./sliceiterator ./text
+	go test -race -coverprofile=coverage.txt -covermode=atomic ./ ./completion/ ./option ./help ./dag ./internal/sliceiterator ./text
 
 race:
 	go test -race ./dag -count=1

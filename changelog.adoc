@@ -59,6 +59,8 @@ Need to consider its usefulness when doing wrappers around other programs.
 
 * WIP: `opt.CustomCompletion` might be dropped.
 
+* Move exported packages that this library uses into the `internal` directory so they can't be imported by other projects by mistake.
+
 
 === New Features
 
