@@ -653,6 +653,9 @@ func TestCalled(t *testing.T) {
 	if opt.Called("unknown") {
 		t.Errorf("unknown didn't have expected value %v", false)
 	}
+	if opt.Called("") {
+		t.Errorf("empty didn't have expected value %v", false)
+	}
 }
 
 func TestCalledAs(t *testing.T) {
@@ -713,6 +716,9 @@ func TestCalledAs(t *testing.T) {
 		}
 		if opt.CalledAs("x") != "" {
 			t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs("x"), "")
+		}
+		if opt.CalledAs("") != "" {
+			t.Errorf("Wrong CalledAs! got: %s, expected: %s", opt.CalledAs(""), "")
 		}
 	})
 
