@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DavidGamba/go-getoptions/help"
+	"github.com/DavidGamba/go-getoptions/internal/help"
 	"github.com/DavidGamba/go-getoptions/option"
 )
 
