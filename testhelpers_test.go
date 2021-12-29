@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"testing"
-	// "github.com/davecgh/go-spew/spew"
 )
 
 func checkError(t *testing.T, got, expected error) {
@@ -72,27 +71,8 @@ func programTreeError(expected, got *programTree) string {
 }
 
 func spewToFileDiff(t *testing.T, expected, got interface{}) string {
-	// spewToFileDiff - This implementation shouldn't make it to a release, I don't want any external dependencies for this package.
-	// spewConfig()
 	return fmt.Sprintf("expected, got: %s %s\n", spewToFile(t, expected, "expected"), spewToFile(t, got, "got"))
-
-	// comment out for release
-	// return ""
 }
-
-// func spewConfig() {
-// 	spew.Config = spew.ConfigState{
-// 		Indent:                  "  ",
-// 		MaxDepth:                0,
-// 		DisableMethods:          false,
-// 		DisablePointerMethods:   false,
-// 		DisablePointerAddresses: true,
-// 		DisableCapacities:       true,
-// 		ContinueOnMethod:        false,
-// 		SortKeys:                true,
-// 		SpewKeys:                false,
-// 	}
-// }
 
 func spewToFile(t *testing.T, e interface{}, label string) string {
 	f, err := ioutil.TempFile("/tmp/", "spew-")
@@ -101,7 +81,6 @@ func spewToFile(t *testing.T, e interface{}, label string) string {
 	}
 	defer f.Close()
 	_, _ = f.WriteString(label + "\n")
-	// spew.Fdump(f, e)
 	fmt.Fprintf(f, "%v\n", e)
 	return f.Name()
 }
