@@ -80,14 +80,12 @@ type CommandFn func(context.Context, *GetOpt, []string) error
 //   opt := getoptions.New()
 func New() *GetOpt {
 	gopt := &GetOpt{}
-	globalOptionMap := make(map[string]string)
 	gopt.programTree = &programTree{
-		Type:            argTypeProgname,
-		Name:            filepath.Base(os.Args[0]),
-		ChildCommands:   map[string]*programTree{},
-		ChildOptions:    map[string]*option.Option{},
-		Level:           0,
-		GlobalOptionMap: globalOptionMap,
+		Type:          argTypeProgname,
+		Name:          filepath.Base(os.Args[0]),
+		ChildCommands: map[string]*programTree{},
+		ChildOptions:  map[string]*option.Option{},
+		Level:         0,
 	}
 	return gopt
 }
@@ -189,7 +187,6 @@ func (gopt *GetOpt) HelpSynopsisArgs(args string) *GetOpt {
 // NOTE: commands must be declared after all options are declared.
 func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	cmd := &GetOpt{}
-	globalOptionMap := make(map[string]string)
 	command := &programTree{
 		Type:            argTypeCommand,
 		Name:            name,
@@ -199,7 +196,6 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 		ChildOptions:    map[string]*option.Option{},
 		Parent:          gopt.programTree,
 		Level:           gopt.programTree.Level + 1,
-		GlobalOptionMap: globalOptionMap,
 		mapKeysToLower:  gopt.programTree.mapKeysToLower,
 	}
 
@@ -241,11 +237,6 @@ func copyOptionsFromParent(parent *programTree, fail bool) {
 				}
 			}
 			command.ChildOptions[k] = v
-		}
-	}
-	for _, command := range parent.ChildCommands {
-		for k, v := range parent.GlobalOptionMap {
-			command.GlobalOptionMap[k] = v
 		}
 	}
 	for _, command := range parent.ChildCommands {

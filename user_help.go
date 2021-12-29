@@ -134,7 +134,6 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 				suggestions = append(suggestions, k)
 			}
 		}
-		globalOptionMap := make(map[string]string)
 		cmd := &GetOpt{}
 		command := &programTree{
 			Type:            argTypeCommand,
@@ -143,7 +142,6 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 			HelpCommandName: name,
 			ChildCommands:   map[string]*programTree{},
 			ChildOptions:    map[string]*option.Option{},
-			GlobalOptionMap: globalOptionMap,
 			Parent:          parent,
 			Level:           parent.Level + 1,
 			Suggestions:     suggestions,

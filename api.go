@@ -29,12 +29,7 @@ type programTree struct {
 	HelpCommandName string
 	mode            Mode
 	unknownMode     UnknownMode // Unknown option mode
-	// Used to track option names and aliases at a global level.
-	// So for example, we can have an alias p that globally refers to profile but
-	// once set, no matter the level, p can't refer to password.
-	// Aliases have to be globally consistent.
-	GlobalOptionMap map[string]string // map[option/alias]option
-	Suggestions     []string          // Suggestions used for completions
+	Suggestions     []string    // Suggestions used for completions
 
 	mapKeysToLower bool // controls wether or not map keys are normalized to lowercase
 
@@ -104,10 +99,6 @@ func (n *programTree) AddChildOption(name string, opt *option.Option) {
 		panic(fmt.Sprintf("Option/Alias '%s' is already defined in option '%s'", name, v.Name))
 	}
 
-	if v, ok := n.GlobalOptionMap[name]; ok && v != opt.Name {
-		panic(fmt.Sprintf("Option/Alias '%s' is already globally defined in option '%s'", name, v))
-	}
-
 	switch opt.OptType {
 	case option.StringRepeatType, option.IntRepeatType, option.Float64RepeatType, option.StringMapType:
 		err := opt.ValidateMinMaxArgs()
@@ -117,7 +108,6 @@ func (n *programTree) AddChildOption(name string, opt *option.Option) {
 	}
 
 	n.ChildOptions[name] = opt
-	n.GlobalOptionMap[name] = opt.Name
 }
 
 // AddChildOption - Adds child commands to programTree and runs validations.
@@ -448,12 +438,12 @@ ARGS_LOOP:
 
 func getAliasNameFromPartialEntry(n *programTree, entry string) []string {
 	// Attempt to fully match node option
-	if _, ok := n.GlobalOptionMap[entry]; ok {
+	if _, ok := n.ChildOptions[entry]; ok {
 		return []string{entry}
 	}
 	// Attempt to match initial chars of node option
 	matches := []string{}
-	for k := range n.GlobalOptionMap {
+	for k := range n.ChildOptions {
 		if strings.HasPrefix(k, entry) {
 			matches = append(matches, k)
 		}
