@@ -111,11 +111,11 @@ func TestParseCLIArgs(t *testing.T) {
 			tree := setupOpt().programTree
 			n, err := getNode(tree, "cmd1", "sub2cmd1")
 			if err != nil {
-				t.Fatalf("unexpected error: %s, %s", err, n.Str())
+				t.Fatalf("unexpected error: %s, %s", err, stringPT(n))
 			}
 			opt, ok := n.ChildOptions["-"]
 			if !ok {
-				t.Fatalf("not found: %s", n.Str())
+				t.Fatalf("not found: %s", stringPT(n))
 			}
 			opt.Called = true
 			opt.UsedAlias = "-"
@@ -128,11 +128,11 @@ func TestParseCLIArgs(t *testing.T) {
 			tree := setupOpt().programTree
 			n, err := getNode(tree, "cmd1")
 			if err != nil {
-				t.Fatalf("unexpected error: %s, %s", err, n.Str())
+				t.Fatalf("unexpected error: %s, %s", err, stringPT(n))
 			}
 			opt, ok := n.ChildOptions["rootopt1"]
 			if !ok {
-				t.Fatalf("not found: %s", n.Str())
+				t.Fatalf("not found: %s", stringPT(n))
 			}
 			opt.Called = true
 			opt.UsedAlias = "rootopt1"
@@ -147,11 +147,11 @@ func TestParseCLIArgs(t *testing.T) {
 			tree := setupOpt().programTree
 			n, err := getNode(tree, "cmd1", "sub2cmd1")
 			if err != nil {
-				t.Fatalf("unexpected error: %s, %s", err, n.Str())
+				t.Fatalf("unexpected error: %s, %s", err, stringPT(n))
 			}
 			opt, ok := n.ChildOptions["rootopt1"]
 			if !ok {
-				t.Fatalf("not found: %s", n.Str())
+				t.Fatalf("not found: %s", stringPT(n))
 			}
 			opt.Called = true
 			opt.UsedAlias = "rootopt1"
@@ -166,11 +166,11 @@ func TestParseCLIArgs(t *testing.T) {
 			tree := setupOpt().programTree
 			n, err := getNode(tree, "cmd1", "sub1cmd1")
 			if err != nil {
-				t.Fatalf("unexpected error: %s, %s", err, n.Str())
+				t.Fatalf("unexpected error: %s, %s", err, stringPT(n))
 			}
 			opt, ok := n.ChildOptions["sub1cmd1opt1"]
 			if !ok {
-				t.Fatalf("not found: %s", n.Str())
+				t.Fatalf("not found: %s", stringPT(n))
 			}
 			opt.Called = true
 			opt.UsedAlias = "sub1cmd1opt1"
@@ -185,11 +185,11 @@ func TestParseCLIArgs(t *testing.T) {
 			tree := setupOpt().programTree
 			n, err := getNode(tree, "cmd1", "sub1cmd1")
 			if err != nil {
-				t.Fatalf("unexpected error: %s, %s", err, n.Str())
+				t.Fatalf("unexpected error: %s, %s", err, stringPT(n))
 			}
 			opt, ok := n.ChildOptions["sub1cmd1opt1"]
 			if !ok {
-				t.Fatalf("not found: %s", n.Str())
+				t.Fatalf("not found: %s", stringPT(n))
 			}
 			opt.Called = true
 			opt.UsedAlias = "sub1cmd1opt1"
@@ -204,11 +204,11 @@ func TestParseCLIArgs(t *testing.T) {
 			tree := setupOpt().programTree
 			n, err := getNode(tree, "cmd1", "sub1cmd1")
 			if err != nil {
-				t.Fatalf("unexpected error: %s, %s", err, n.Str())
+				t.Fatalf("unexpected error: %s, %s", err, stringPT(n))
 			}
 			opt, ok := n.ChildOptions["sub1cmd1opt1"]
 			if !ok {
-				t.Fatalf("not found: %s", n.Str())
+				t.Fatalf("not found: %s", stringPT(n))
 			}
 			opt.Called = true
 			opt.UsedAlias = "sub1cmd1opt1"

@@ -2,6 +2,7 @@ package getoptions
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -58,8 +59,16 @@ func firstDiff(got, expected string) string {
 	return ""
 }
 
+func stringPT(n *programTree) string {
+	data, err := json.MarshalIndent(n.str(), "", "  ")
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
 func programTreeError(expected, got *programTree) string {
-	return fmt.Sprintf("expected:\n%s\ngot:\n%s\n", expected.Str(), got.Str())
+	return fmt.Sprintf("expected:\n%s\ngot:\n%s\n", stringPT(expected), stringPT(got))
 }
 
 func spewToFileDiff(t *testing.T, expected, got interface{}) string {

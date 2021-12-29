@@ -41,67 +41,50 @@ type programTree struct {
 	command
 }
 
-func (n *programTree) String() string {
-	return n.Str()
+type strProgramTree struct {
+	Name          string
+	Parent        string
+	Type          string
+	ChildOptions  map[string]strChildOption
+	ChildCommands map[string]*strProgramTree
 }
 
-// Str - not String so it doesn't get called automatically by Spew.
-func (n *programTree) Str() string {
-	level := n.Level
-	if n.Type == argTypeOption {
-		if n.Parent != nil {
-			level = n.Parent.Level + 1
-		}
-	}
-	padding := func(n int) string {
-		return strings.Repeat("  ", n)
-	}
-	out := padding(level) + fmt.Sprintf("Name: %v, Type: %v", n.Name, n.Type)
+type strChildOption struct {
+	Aliases []string
+	Value   string
+}
+
+func (n *programTree) str() *strProgramTree {
+	str := &strProgramTree{}
+	str.ChildOptions = make(map[string]strChildOption)
+	str.ChildCommands = make(map[string]*strProgramTree)
+
+	str.Name = n.Name
 	if n.Parent != nil {
-		out += fmt.Sprintf(", Parent: %v", n.Parent.Name)
+		str.Parent = n.Parent.Name
 	}
-	if len(n.ChildOptions) > 0 {
-		var keys []string
-		for k := range n.ChildOptions {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		out += ", child options: [\n"
-		for _, k := range keys {
-			out += padding(level+1) + fmt.Sprintf("Name: %s, Aliases: %v, Values: %v\n", n.ChildOptions[k].Name, n.ChildOptions[k].Aliases, n.ChildOptions[k].Value())
-		}
-		out += padding(level) + "]"
-	} else {
-		out += ", child options: []"
+	str.Type = fmt.Sprintf("%v", n.Type)
+
+	// options
+	var options []string
+	for k := range n.ChildOptions {
+		options = append(options, k)
 	}
-	if len(n.ChildCommands) > 0 {
-		var keys []string
-		for k := range n.ChildCommands {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		out += ", child commands: [\n"
-		for _, k := range keys {
-			out += n.ChildCommands[k].Str()
-		}
-		out += padding(level) + "]"
-	} else {
-		out += ", child commands: []"
+	sort.Strings(options)
+	for _, e := range options {
+		str.ChildOptions[e] = strChildOption{n.ChildOptions[e].Aliases, fmt.Sprintf("%v", n.ChildOptions[e].Value())}
 	}
-	if len(n.GlobalOptionMap) > 0 {
-		var keys []string
-		for k := range n.GlobalOptionMap {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		out += ", option map: [\n"
-		for _, k := range keys {
-			out += padding(level) + fmt.Sprintf("  { %s = %s }\n", k, n.GlobalOptionMap[k])
-		}
-		out += padding(level) + "]"
+
+	// commands
+	var commands []string
+	for k := range n.ChildCommands {
+		commands = append(commands, k)
 	}
-	out += "\n"
-	return out
+	sort.Strings(commands)
+	for _, k := range commands {
+		str.ChildCommands[k] = n.ChildCommands[k].str()
+	}
+	return str
 }
 
 // AddChildOption - Adds child options to programTree and runs validations.
