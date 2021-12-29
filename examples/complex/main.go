@@ -10,6 +10,7 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 	complexgreet "github.com/DavidGamba/go-getoptions/examples/complex/greet"
 	complexlog "github.com/DavidGamba/go-getoptions/examples/complex/log"
+	complexlswrapper "github.com/DavidGamba/go-getoptions/examples/complex/lswrapper"
 	complexshow "github.com/DavidGamba/go-getoptions/examples/complex/show"
 	complexslow "github.com/DavidGamba/go-getoptions/examples/complex/slow"
 )
@@ -22,11 +23,12 @@ func main() {
 
 func program(args []string) int {
 	opt := getoptions.New()
+	// opt.SetUnknownMode(getoptions.Pass)
 	opt.Bool("debug", false, opt.GetEnv("DEBUG"))
 	opt.String("profile", "default", opt.ValidValues("default", "dev", "staging", "prod"))
-	// opt.SetUnknownMode(getoptions.Pass)
 	complexgreet.NewCommand(opt)
 	complexlog.NewCommand(opt)
+	complexlswrapper.NewCommand(opt)
 	complexshow.NewCommand(opt)
 	complexslow.NewCommand(opt)
 	opt.HelpCommand("help", "", opt.Alias("?"))
@@ -37,7 +39,9 @@ func program(args []string) int {
 	}
 	if opt.Called("debug") {
 		Logger.SetOutput(os.Stderr)
+		complexgreet.Logger.SetOutput(os.Stderr)
 		complexlog.Logger.SetOutput(os.Stderr)
+		complexlswrapper.Logger.SetOutput(os.Stderr)
 		complexshow.Logger.SetOutput(os.Stderr)
 		complexslow.Logger.SetOutput(os.Stderr)
 	}
