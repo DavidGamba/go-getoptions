@@ -58,6 +58,16 @@ func firstDiff(got, expected string) string {
 	return ""
 }
 
+func getNode(tree *programTree, element ...string) (*programTree, error) {
+	if len(element) == 0 {
+		return tree, nil
+	}
+	if child, ok := tree.ChildCommands[element[0]]; ok {
+		return getNode(child, element[1:]...)
+	}
+	return tree, fmt.Errorf("not found")
+}
+
 func stringPT(n *programTree) string {
 	data, err := json.MarshalIndent(n.str(), "", "  ")
 	if err != nil {

@@ -122,16 +122,6 @@ func (n *programTree) AddChildCommand(name string, cmd *programTree) {
 	n.ChildCommands[name] = cmd
 }
 
-func getNode(tree *programTree, element ...string) (*programTree, error) {
-	if len(element) == 0 {
-		return tree, nil
-	}
-	if child, ok := tree.ChildCommands[element[0]]; ok {
-		return getNode(child, element[1:]...)
-	}
-	return tree, fmt.Errorf("not found")
-}
-
 type argType int
 
 const (
