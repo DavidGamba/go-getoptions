@@ -197,6 +197,7 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 		Parent:          gopt.programTree,
 		Level:           gopt.programTree.Level + 1,
 		mapKeysToLower:  gopt.programTree.mapKeysToLower,
+		unknownMode:     gopt.programTree.unknownMode,
 	}
 
 	// TODO: Copying options from parent to child can't be done on declaration
@@ -316,7 +317,8 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	}
 
 	for _, option := range node.UnknownOptions {
-		switch gopt.programTree.unknownMode {
+		// Check for unknown mode at the node that we want to validate
+		switch gopt.finalNode.unknownMode {
 		case Fail:
 			return nil, fmt.Errorf(text.MessageOnUnknown, option.Name)
 		case Warn:

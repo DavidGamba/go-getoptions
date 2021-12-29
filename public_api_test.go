@@ -254,6 +254,7 @@ func TestRequired(t *testing.T) {
 	})
 }
 
+// TODO: Test for unknown set at the command not at the root
 func TestUnknownOptionModes(t *testing.T) {
 	t.Run("default fail", func(t *testing.T) {
 		opt := getoptions.New()
