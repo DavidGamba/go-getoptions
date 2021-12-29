@@ -34,70 +34,74 @@ func firstDiff(got, expected string) string {
 }
 
 func TestDefinitionPanics(t *testing.T) {
-	recoverFn := func() {
+	recoverFn := func(msg string) {
 		t.Helper()
-		if r := recover(); r == nil {
+		r := recover()
+		if r == nil {
 			t.Errorf("definition did not panic")
+		}
+		if r != msg {
+			t.Errorf("wrong panic error: '%s'", r)
 		}
 	}
 	t.Run("Option double defined", func(t *testing.T) {
-		defer recoverFn()
+		defer recoverFn("Option/Alias 'flag' is already defined in option 'flag'")
 		opt := getoptions.New()
 		opt.Bool("flag", false)
 		opt.Bool("flag", false)
 	})
 	t.Run("Option double defined by alias", func(t *testing.T) {
-		defer recoverFn()
+		defer recoverFn("Option/Alias 'flag' is already defined in option 'flag'")
 		opt := getoptions.New()
 		opt.Bool("flag", false)
 		opt.Bool("fleg", false, opt.Alias("flag"))
 	})
 	t.Run("Alias double defined", func(t *testing.T) {
-		defer recoverFn()
+		defer recoverFn("Option/Alias 'f' is already defined in option 'flag'")
 		opt := getoptions.New()
 		opt.Bool("flag", false, opt.Alias("f"))
 		opt.Bool("fleg", false, opt.Alias("f"))
 	})
 	t.Run("Option double defined across commands", func(t *testing.T) {
-		defer recoverFn()
+		defer recoverFn("Option/Alias 'flag' is already defined in option 'flag'")
 		opt := getoptions.New()
 		opt.Bool("flag", false)
 		cmd := opt.NewCommand("cmd", "")
 		cmd.Bool("flag", false)
 	})
 	t.Run("Option double defined across commands by alias", func(t *testing.T) {
-		defer recoverFn()
+		defer recoverFn("Option/Alias 'flag' is already defined in option 'flag'")
 		opt := getoptions.New()
 		opt.Bool("flag", false)
 		cmd := opt.NewCommand("cmd", "")
 		cmd.Bool("fleg", false, opt.Alias("flag"))
 	})
 	t.Run("Alias double defined across commands", func(t *testing.T) {
-		defer recoverFn()
+		defer recoverFn("Option/Alias 'f' is already defined in option 'flag'")
 		opt := getoptions.New()
 		opt.Bool("flag", false, opt.Alias("f"))
 		cmd := opt.NewCommand("cmd", "")
 		cmd.Bool("f", false)
 	})
 	t.Run("Alias double defined across commands", func(t *testing.T) {
-		defer recoverFn()
+		defer recoverFn("Option/Alias 'f' is already defined in option 'flag'")
 		opt := getoptions.New()
 		opt.Bool("flag", false, opt.Alias("f"))
 		cmd := opt.NewCommand("cmd", "")
 		cmd.Bool("fleg", false, opt.Alias("f"))
 	})
 	t.Run("Command double defined", func(t *testing.T) {
-		defer recoverFn()
+		defer recoverFn("Command 'cmd' is already defined in command 'cmd'")
 		opt := getoptions.New()
 		opt.NewCommand("cmd", "")
 		opt.NewCommand("cmd", "")
 	})
 	t.Run("Option name is empty", func(t *testing.T) {
-		defer recoverFn()
+		defer recoverFn("Option/Alias name can't be empty")
 		getoptions.New().Bool("", false)
 	})
 	t.Run("Command name is empty", func(t *testing.T) {
-		defer recoverFn()
+		defer recoverFn("Command name can't be empty")
 		opt := getoptions.New()
 		opt.NewCommand("", "")
 	})
