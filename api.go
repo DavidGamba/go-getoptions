@@ -273,7 +273,10 @@ ARGS_LOOP:
 
 		// handle terminator
 		if iterator.Value() == "--" {
-			storeRemainingAsText(iterator, currentProgramNode)
+			// iterate over --
+			if iterator.Next() {
+				storeRemainingAsText(iterator, currentProgramNode)
+			}
 			break ARGS_LOOP
 		}
 
@@ -287,6 +290,10 @@ ARGS_LOOP:
 					return currentProgramNode, []string{}, err
 				}
 				continue ARGS_LOOP
+			}
+			if currentProgramNode.requireOrder {
+				storeRemainingAsText(iterator, currentProgramNode)
+				break ARGS_LOOP
 			}
 			opt := newUnknownCLIOption(currentProgramNode, "-", iterator.Value())
 			currentProgramNode.UnknownOptions = append(currentProgramNode.UnknownOptions, opt)
@@ -322,6 +329,10 @@ ARGS_LOOP:
 				}
 
 				if len(optionMatches) == 0 {
+					if currentProgramNode.requireOrder {
+						storeRemainingAsText(iterator, currentProgramNode)
+						break ARGS_LOOP
+					}
 					// TODO: This shouldn't append new children but update existing ones and isOption needs to be able to check if the option expects a follow up argument.
 					opt := newUnknownCLIOption(currentProgramNode, p.Option, iterator.Value(), p.Args...)
 					currentProgramNode.UnknownOptions = append(currentProgramNode.UnknownOptions, opt)
@@ -417,6 +428,10 @@ ARGS_LOOP:
 		}
 
 		// handle text
+		if currentProgramNode.requireOrder {
+			storeRemainingAsText(iterator, currentProgramNode)
+			break ARGS_LOOP
+		}
 		value := iterator.Value()
 		currentProgramNode.ChildText = append(currentProgramNode.ChildText, value)
 	}
@@ -430,6 +445,8 @@ ARGS_LOOP:
 }
 
 func storeRemainingAsText(iterator *sliceiterator.Iterator, n *programTree) {
+	value := iterator.Value()
+	n.ChildText = append(n.ChildText, value)
 	for iterator.Next() {
 		value := iterator.Value()
 		n.ChildText = append(n.ChildText, value)

@@ -3223,7 +3223,28 @@ func TestInterruptContext(t *testing.T) {
 }
 
 func TestSetRequireOrder(t *testing.T) {
-	t.SkipNow()
+	t.Run("stop parsing known arguments as soon as unknown - argument is found", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		opt := getoptions.New()
+		getoptions.Writer = buf
+		opt.String("opt", "")
+		opt.Bool("help", false)
+		opt.SetRequireOrder()
+		remaining, err := opt.Parse([]string{"--opt", "arg", "-", "subcommand", "--help"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if buf.String() != "" {
+			t.Errorf("output didn't match expected value: %s", buf.String())
+		}
+		if !reflect.DeepEqual(remaining, []string{"-", "subcommand", "--help"}) {
+			t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"-", "subcommand", "--help"})
+		}
+		if opt.Called("help") {
+			t.Errorf("help called when it wasn't supposed to")
+		}
+	})
+
 	t.Run("stop parsing known arguments as soon as an unkonwn argument is found", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 		opt := getoptions.New()
