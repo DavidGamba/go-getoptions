@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== WIP: v0.25.0-alpha: Major Refactor
+== WIP: v0.25.0: Major Refactor
 
 As the releases before, this release has 100% test coverage.
 Tested with Go 1.14, 1.15, 1.16 and Go 1.17.
@@ -29,6 +29,9 @@ Additionally, when defining `opt.HelpCommand` there is no need to define a help 
 ----
 +
 WIP: The description could be called with opt.Description probably
+But if we want to modifty the line:
+Use 'complex help <command>' for extra details.
+We could do it there, or we can do it as a compilation string like for i18n
 
 * The Dispatch signature has changed.
 There is no need to define the name of the help command at this level anymore since it has been moved to the `HelpCommand` declaration.
@@ -63,8 +66,6 @@ If this was ever used, now the canonical way to execute a command function is th
 * WIP: `opt.CustomCompletion` might be dropped.
 
 * Moved exported packages that this library uses into the `internal` directory so they can't be imported by other projects by mistake.
-
-
 
 === New Features
 
