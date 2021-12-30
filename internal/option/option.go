@@ -390,7 +390,7 @@ func (opt *Option) Save(a ...string) error {
 			_, ok := stringSliceIndex(opt.ValidValues, e)
 			if !ok {
 				// TODO: convert to text variable
-				return fmt.Errorf("wrong value for option '%s', valid values are %#v", opt.Name, opt.ValidValues)
+				return fmt.Errorf("wrong value for option '%s', valid values are %q", opt.Name, opt.ValidValues)
 			}
 		}
 	}

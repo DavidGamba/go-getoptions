@@ -103,7 +103,7 @@ func TestOption(t *testing.T) {
 			o := New("help", StringType, &s)
 			o.ValidValues = []string{"a", "b", "c"}
 			return o
-		}(), []string{"d"}, "", fmt.Errorf("wrong value for option '%s', valid values are %#v", "help", []string{"a", "b", "c"})},
+		}(), []string{"d"}, "", fmt.Errorf("wrong value for option '%s', valid values are %q", "help", []string{"a", "b", "c"})},
 
 		{"int", func() *Option {
 			i := 0

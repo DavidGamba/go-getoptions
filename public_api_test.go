@@ -3497,3 +3497,25 @@ func TestSetRequireOrder(t *testing.T) {
 		}
 	})
 }
+
+func TestValidValues(t *testing.T) {
+	t.Run("valid", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.String("str", "", opt.ValidValues("a", "b", "c"))
+		_, err := opt.Parse([]string{"--str", "a"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+	})
+	t.Run("invalid", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.String("str", "", opt.ValidValues("a", "b", "c"))
+		_, err := opt.Parse([]string{"--str", "d"})
+		if err == nil {
+			t.Error("no error")
+		}
+		if err.Error() != `wrong value for option 'str', valid values are ["a" "b" "c"]` {
+			t.Errorf("wrong error: %s", err)
+		}
+	})
+}
