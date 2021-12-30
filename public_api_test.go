@@ -3519,3 +3519,33 @@ func TestValidValues(t *testing.T) {
 		}
 	})
 }
+
+func TestUnsetOptions(t *testing.T) {
+	t.Run("unset", func(t *testing.T) {
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.Bool("hello", false)
+		opt.NewCommand("cmd", "").UnsetOptions()
+		opt.HelpCommand("help", "")
+		remaining, err := opt.Parse([]string{"help", "cmd"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		expected := `NAME:
+    go-getoptions.test cmd
+
+SYNOPSIS:
+    go-getoptions.test cmd [<args>]
+
+`
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
+}

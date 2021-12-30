@@ -52,10 +52,6 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 		if k != option.Name {
 			continue
 		}
-		// filter out unknown options
-		if option.Unknown {
-			continue
-		}
 		options = append(options, option)
 	}
 
