@@ -3222,64 +3222,70 @@ func TestInterruptContext(t *testing.T) {
 	}
 }
 
-// func TestSetRequireOrder(t *testing.T) {
-// 	buf := new(bytes.Buffer)
-// 	opt := New()
-// 	Writer = buf
-// 	opt.String("opt", "")
-// 	opt.Bool("help", false)
-// 	opt.SetRequireOrder()
-// 	remaining, err := opt.Parse([]string{"--opt", "arg", "subcommand", "--help"})
-// 	if err != nil {
-// 		t.Errorf("Unexpected error: %s", err)
-// 	}
-// 	if buf.String() != "" {
-// 		t.Errorf("output didn't match expected value: %s", buf.String())
-// 	}
-// 	if !reflect.DeepEqual(remaining, []string{"subcommand", "--help"}) {
-// 		t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"subcommand", "--help"})
-// 	}
-// 	if opt.Called("help") {
-// 		t.Errorf("help called when it wasn't supposed to")
-// 	}
+func TestSetRequireOrder(t *testing.T) {
+	t.SkipNow()
+	t.Run("stop parsing known arguments as soon as an unkonwn argument is found", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		opt := getoptions.New()
+		getoptions.Writer = buf
+		opt.String("opt", "")
+		opt.Bool("help", false)
+		opt.SetRequireOrder()
+		remaining, err := opt.Parse([]string{"--opt", "arg", "subcommand", "--help"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if buf.String() != "" {
+			t.Errorf("output didn't match expected value: %s", buf.String())
+		}
+		if !reflect.DeepEqual(remaining, []string{"subcommand", "--help"}) {
+			t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"subcommand", "--help"})
+		}
+		if opt.Called("help") {
+			t.Errorf("help called when it wasn't supposed to")
+		}
+	})
 
-// 	// Tests requireOrder with PassThrough
-// 	buf = new(bytes.Buffer)
-// 	opt = New()
-// 	Writer = buf
-// 	opt.Bool("known", false)
-// 	opt.Bool("another", false)
-// 	opt.SetUnknownMode(Pass)
-// 	opt.SetRequireOrder()
-// 	remaining, err = opt.Parse([]string{"--flags", "--known", "--another", "--unknown"})
-// 	if err != nil {
-// 		t.Errorf("Unexpected error: %s", err)
-// 	}
-// 	if buf.String() != "" {
-// 		t.Errorf("output didn't match expected value: %s", buf.String())
-// 	}
-// 	if !reflect.DeepEqual(remaining, []string{"--flags", "--known", "--another", "--unknown"}) {
-// 		t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags", "--known", "--another", "--unknown"})
-// 	}
+	t.Run("requireOrder with PassThrough", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		opt := getoptions.New()
+		getoptions.Writer = buf
+		opt.Bool("known", false)
+		opt.Bool("another", false)
+		opt.SetUnknownMode(getoptions.Pass)
+		opt.SetRequireOrder()
+		remaining, err := opt.Parse([]string{"--flags", "--known", "--another", "--unknown"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if buf.String() != "" {
+			t.Errorf("output didn't match expected value: %s", buf.String())
+		}
+		if !reflect.DeepEqual(remaining, []string{"--flags", "--known", "--another", "--unknown"}) {
+			t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags", "--known", "--another", "--unknown"})
+		}
+	})
 
-// 	buf = new(bytes.Buffer)
-// 	opt = New()
-// 	Writer = buf
-// 	opt.Bool("known", false)
-// 	opt.Bool("another", false)
-// 	opt.SetUnknownMode(Pass)
-// 	opt.SetRequireOrder()
-// 	remaining, err = opt.Parse([]string{"--known", "--flags", "--another", "--unknown"})
-// 	if err != nil {
-// 		t.Errorf("Unexpected error: %s", err)
-// 	}
-// 	if buf.String() != "" {
-// 		t.Errorf("output didn't match expected value: %s", buf.String())
-// 	}
-// 	if !reflect.DeepEqual(remaining, []string{"--flags", "--another", "--unknown"}) {
-// 		t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags", "--another", "--unknown"})
-// 	}
-// 	if !opt.Called("known") {
-// 		t.Errorf("known was not called")
-// 	}
-// }
+	t.Run("stop parsing known arguments as soon as an unkonwn flag is found and keep them with PassThrough", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		opt := getoptions.New()
+		getoptions.Writer = buf
+		opt.Bool("known", false)
+		opt.Bool("another", false)
+		opt.SetUnknownMode(getoptions.Pass)
+		opt.SetRequireOrder()
+		remaining, err := opt.Parse([]string{"--known", "--flags", "--another", "--unknown"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if buf.String() != "" {
+			t.Errorf("output didn't match expected value: %s", buf.String())
+		}
+		if !reflect.DeepEqual(remaining, []string{"--flags", "--another", "--unknown"}) {
+			t.Errorf("remaining didn't have expected value: %v != %v", remaining, []string{"--flags", "--another", "--unknown"})
+		}
+		if !opt.Called("known") {
+			t.Errorf("known was not called")
+		}
+	})
+}

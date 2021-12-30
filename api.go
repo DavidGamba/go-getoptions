@@ -29,6 +29,7 @@ type programTree struct {
 	HelpCommandName string
 	mode            Mode
 	unknownMode     UnknownMode // Unknown option mode
+	requireOrder    bool        // stop parsing args as soon as an unknown is found
 	Suggestions     []string    // Suggestions used for completions
 
 	mapKeysToLower bool // controls wether or not map keys are normalized to lowercase
