@@ -83,6 +83,15 @@ func TestOption(t *testing.T) {
 			return New("help", StringType, &s).SetString("xxx")
 		}(), []string{"hola"}, "hola", nil},
 
+		{"string optional", func() *Option {
+			s := ""
+			return New("help", StringOptionalType, &s).SetString("xxx")
+		}(), []string{"hola"}, "hola", nil},
+		{"string optional", func() *Option {
+			s := ""
+			return New("help", StringOptionalType, &s).SetString("xxx")
+		}(), []string{}, "xxx", nil},
+
 		{"int", func() *Option {
 			i := 0
 			return New("help", IntType, &i)
@@ -102,6 +111,33 @@ func TestOption(t *testing.T) {
 		}(), []string{"123x"}, 0,
 			fmt.Errorf(text.ErrorConvertToInt, "int", "123x")},
 
+		{"int optinal", func() *Option {
+			i := 0
+			return New("help", IntOptionalType, &i)
+		}(), []string{"123"}, 123, nil},
+		{"int optinal", func() *Option {
+			i := 0
+			return New("help", IntOptionalType, &i)
+		}(), []string{}, 0, nil},
+		{"int optinal", func() *Option {
+			i := 0
+			return New("help", IntOptionalType, &i).SetInt(456)
+		}(), []string{"123"}, 123, nil},
+		{"int optinal", func() *Option {
+			i := 0
+			return New("help", IntOptionalType, &i).SetInt(456)
+		}(), []string{}, 456, nil},
+		{"int optinal error", func() *Option {
+			i := 0
+			return New("help", IntOptionalType, &i)
+		}(), []string{"123x"}, 0,
+			fmt.Errorf(text.ErrorConvertToInt, "", "123x")},
+		{"int optinal error alias", func() *Option {
+			i := 0
+			return New("help", IntOptionalType, &i).SetCalled("int")
+		}(), []string{"123x"}, 0,
+			fmt.Errorf(text.ErrorConvertToInt, "int", "123x")},
+
 		{"float64", func() *Option {
 			f := 0.0
 			return New("help", Float64Type, &f)
@@ -114,6 +150,25 @@ func TestOption(t *testing.T) {
 		{"float64 error alias", func() *Option {
 			f := 0.0
 			return New("help", Float64Type, &f).SetCalled("float")
+		}(), []string{"123x"}, 0.0,
+			fmt.Errorf(text.ErrorConvertToFloat64, "float", "123x")},
+
+		{"float64 optional", func() *Option {
+			f := 0.0
+			return New("help", Float64OptionalType, &f)
+		}(), []string{"123.123"}, 123.123, nil},
+		{"float64 optional", func() *Option {
+			f := 0.0
+			return New("help", Float64OptionalType, &f)
+		}(), []string{}, 0.0, nil},
+		{"float64 optional error", func() *Option {
+			f := 0.0
+			return New("help", Float64OptionalType, &f)
+		}(), []string{"123x"}, 0.0,
+			fmt.Errorf(text.ErrorConvertToFloat64, "", "123x")},
+		{"float64 optional error alias", func() *Option {
+			f := 0.0
+			return New("help", Float64OptionalType, &f).SetCalled("float")
 		}(), []string{"123x"}, 0.0,
 			fmt.Errorf(text.ErrorConvertToFloat64, "float", "123x")},
 
@@ -131,6 +186,16 @@ func TestOption(t *testing.T) {
 			return New("help", IntRepeatType, &ii)
 		}(), []string{"x"}, []int{},
 			fmt.Errorf(text.ErrorConvertToInt, "", "x")},
+
+		{"float64 slice", func() *Option {
+			ii := []float64{}
+			return New("help", Float64RepeatType, &ii)
+		}(), []string{"123.456", "456.789"}, []float64{123.456, 456.789}, nil},
+		{"float64 slice error", func() *Option {
+			ii := []float64{}
+			return New("help", Float64RepeatType, &ii)
+		}(), []string{"x"}, []float64{},
+			fmt.Errorf(text.ErrorConvertToFloat64, "", "x")},
 
 		{"int slice range", func() *Option {
 			ii := []int{}
