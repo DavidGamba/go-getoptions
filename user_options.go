@@ -375,7 +375,7 @@ func (gopt *GetOpt) Increment(name string, def int, fns ...ModifyFn) *int {
 // IncrementVar - When called multiple times it increments the provided int.
 func (gopt *GetOpt) IncrementVar(p *int, name string, def int, fns ...ModifyFn) {
 	*p = def
-	n := option.New(name, option.Increment, p)
+	n := option.New(name, option.IncrementType, p)
 	gopt.programTree.AddChildOption(name, n)
 	for _, fn := range fns {
 		fn(gopt, n)

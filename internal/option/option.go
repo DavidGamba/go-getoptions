@@ -36,7 +36,7 @@ type Type int
 // Option Types
 const (
 	BoolType Type = iota
-	Increment
+	IncrementType
 
 	StringType
 	IntType
@@ -171,7 +171,7 @@ func New(name string, optType Type, data interface{}) *Option {
 		opt.DefaultStr = "{}"
 		opt.MinArgs = 1
 		opt.MaxArgs = 1 // By default we only allow one argument at a time
-	case Increment:
+	case IncrementType:
 		opt.pInt = data.(*int)
 		opt.DefaultStr = fmt.Sprintf("%d", *data.(*int))
 		opt.MinArgs = 0
@@ -226,7 +226,7 @@ func (opt *Option) Value() interface{} {
 		return *opt.pString
 	case StringRepeatType:
 		return *opt.pStringS
-	case IntType, IntOptionalType:
+	case IncrementType, IntType, IntOptionalType:
 		return *opt.pInt
 	case IntRepeatType:
 		return *opt.pIntS
@@ -380,7 +380,7 @@ func (opt *Option) Save(a ...string) error {
 		switch opt.OptType {
 		case BoolType:
 			opt.SetBoolAsOppositeToDefault()
-		case Increment:
+		case IncrementType:
 			opt.SetInt(opt.Int() + 1)
 		}
 		return nil
@@ -476,7 +476,7 @@ func (opt *Option) Save(a ...string) error {
 		}
 		opt.SetKeyValueToStringMap(keyValue[0], keyValue[1])
 		return nil
-	case Increment:
+	case IncrementType:
 		opt.SetInt(opt.Int() + 1)
 		return nil
 	default: // BoolType:

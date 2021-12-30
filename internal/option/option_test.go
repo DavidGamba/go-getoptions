@@ -138,6 +138,19 @@ func TestOption(t *testing.T) {
 		}(), []string{"123x"}, 0,
 			fmt.Errorf(text.ErrorConvertToInt, "int", "123x")},
 
+		{"increment", func() *Option {
+			i := 0
+			return New("help", IncrementType, &i)
+		}(), []string{}, 1, nil},
+		{"increment", func() *Option {
+			i := 0
+			return New("help", IncrementType, &i)
+		}(), []string{"x"}, 1, nil},
+		{"increment", func() *Option {
+			i := 0
+			return New("help", IncrementType, &i).SetInt(456)
+		}(), []string{}, 457, nil},
+
 		{"float64", func() *Option {
 			f := 0.0
 			return New("help", Float64Type, &f)
