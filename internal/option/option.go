@@ -232,6 +232,8 @@ func (opt *Option) Value() interface{} {
 		return *opt.pIntS
 	case Float64Type, Float64OptionalType:
 		return *opt.pFloat64
+	case Float64RepeatType:
+		return *opt.pFloat64S
 	case StringMapType:
 		return *opt.pStringM
 	default: // BoolType:
@@ -345,6 +347,12 @@ func (opt *Option) SetIntSlice(s []int) *Option {
 	return opt
 }
 
+// SetFloat64Slice - Set the option's data.
+func (opt *Option) SetFloat64Slice(s []float64) *Option {
+	*opt.pFloat64S = s
+	return opt
+}
+
 // SetKeyValueToStringMap - Set the option's data.
 func (opt *Option) SetKeyValueToStringMap(k, v string) *Option {
 	if opt.MapKeysToLower {
@@ -401,18 +409,18 @@ func (opt *Option) Save(a ...string) error {
 		return nil
 	case Float64Type, Float64OptionalType:
 		// TODO: Read the different errors when parsing float
-		i, err := strconv.ParseFloat(a[0], 64)
+		f, err := strconv.ParseFloat(a[0], 64)
 		if err != nil {
 			// TODO: Create error type for use in tests with errors.Is
 			return fmt.Errorf(text.ErrorConvertToFloat64, opt.UsedAlias, a[0])
 		}
-		opt.SetFloat64(i)
+		opt.SetFloat64(f)
 		return nil
 	case StringRepeatType:
 		opt.SetStringSlice(append(*opt.pStringS, a...))
 		return nil
 	case IntRepeatType:
-		var is []int
+		var ii []int
 		for _, e := range a {
 			if strings.Contains(e, "..") {
 				Logger.Printf("e: %s\n", e)
@@ -431,7 +439,7 @@ func (opt *Option) Save(a ...string) error {
 				}
 				if in1 < in2 {
 					for j := in1; j <= in2; j++ {
-						is = append(is, j)
+						ii = append(ii, j)
 					}
 				} else {
 					// TODO: Create new error description for this error.
@@ -443,10 +451,22 @@ func (opt *Option) Save(a ...string) error {
 					// TODO: Create error type for use in tests with errors.Is
 					return fmt.Errorf(text.ErrorConvertToInt, opt.UsedAlias, e)
 				}
-				is = append(is, i)
+				ii = append(ii, i)
 			}
 		}
-		opt.SetIntSlice(append(*opt.pIntS, is...))
+		opt.SetIntSlice(append(*opt.pIntS, ii...))
+		return nil
+	case Float64RepeatType:
+		var ff []float64
+		for _, e := range a {
+			f, err := strconv.ParseFloat(e, 64)
+			if err != nil {
+				// TODO: Create error type for use in tests with errors.Is
+				return fmt.Errorf(text.ErrorConvertToFloat64, opt.UsedAlias, e)
+			}
+			ff = append(ff, f)
+		}
+		opt.SetFloat64Slice(append(*opt.pFloat64S, ff...))
 		return nil
 	case StringMapType:
 		keyValue := strings.Split(a[0], "=")

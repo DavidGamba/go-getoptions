@@ -123,6 +123,10 @@ func TestOptionWrongMinMax(t *testing.T) {
 		defer recoverFn()
 		getoptions.New().IntSlice("ss", 0, 1)
 	})
+	t.Run("Float64Slice min < 1", func(t *testing.T) {
+		defer recoverFn()
+		getoptions.New().Float64Slice("ss", 0, 1)
+	})
 	t.Run("StringMap min < 1", func(t *testing.T) {
 		defer recoverFn()
 		getoptions.New().StringMap("sm", 0, 1)
@@ -136,6 +140,10 @@ func TestOptionWrongMinMax(t *testing.T) {
 		defer recoverFn()
 		getoptions.New().IntSlice("ss", 1, 0)
 	})
+	t.Run("Float64Slice max < 1", func(t *testing.T) {
+		defer recoverFn()
+		getoptions.New().Float64Slice("ss", 1, 0)
+	})
 	t.Run("StringMap max < 1", func(t *testing.T) {
 		defer recoverFn()
 		getoptions.New().StringMap("sm", 1, 0)
@@ -148,6 +156,10 @@ func TestOptionWrongMinMax(t *testing.T) {
 	t.Run("IntSlice min > max", func(t *testing.T) {
 		defer recoverFn()
 		getoptions.New().IntSlice("ss", 2, 1)
+	})
+	t.Run("Float64Slice min > max", func(t *testing.T) {
+		defer recoverFn()
+		getoptions.New().Float64Slice("ss", 2, 1)
 	})
 	t.Run("StringMap min > max", func(t *testing.T) {
 		defer recoverFn()
@@ -1612,6 +1624,168 @@ func TestGetOptIntSlice(t *testing.T) {
 		}
 		if !reflect.DeepEqual(isVar, []int{1, 2}) {
 			t.Errorf("Wrong value: %v != %v", isVar, []int{1, 2})
+		}
+	})
+}
+
+func TestGetOptFloat64Slice(t *testing.T) {
+	setup := func() *getoptions.GetOpt {
+		opt := getoptions.New()
+		opt.Float64Slice("float64", 1, 3, opt.Alias("alias"))
+		opt.String("opt", "")
+		return opt
+	}
+	cases := []struct {
+		opt    *getoptions.GetOpt
+		option string
+		input  []string
+		value  []float64
+	}{
+		{setup(),
+			"float64",
+			[]string{"--float64", "123"},
+			[]float64{123},
+		},
+		{setup(),
+			"float64",
+			[]string{"--float64=-123"},
+			[]float64{-123},
+		},
+		{setup(),
+			"float64",
+			[]string{"--float64", "123", "456", "hello"},
+			[]float64{123, 456},
+		},
+		{setup(),
+			"float64",
+			[]string{"--float64=123", "456"},
+			[]float64{123, 456},
+		},
+		{setup(),
+			"float64",
+			[]string{"--float64", "123", "456", "789"},
+			[]float64{123, 456, 789},
+		},
+		{setup(),
+			"float64",
+			[]string{"--alias", "123", "456", "789"},
+			[]float64{123, 456, 789},
+		},
+		{setup(),
+			"float64",
+			[]string{"--float64=123", "456", "789"},
+			[]float64{123, 456, 789},
+		},
+		{setup(),
+			"float64",
+			[]string{"--float64", "123", "--opt", "world"},
+			[]float64{123},
+		},
+		{setup(),
+			"float64",
+			[]string{"--float64", "123", "--float64", "456"},
+			[]float64{123, 456},
+		},
+		{setup(),
+			"float64",
+			[]string{"--float64", "123.456", "--float64", "456.789"},
+			[]float64{123.456, 456.789},
+		},
+	}
+	for _, c := range cases {
+		t.Run("cases", func(t *testing.T) {
+			_, err := c.opt.Parse(c.input)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+			if !reflect.DeepEqual(c.opt.Value(c.option), c.value) {
+				t.Errorf("Wrong value: %v != %v", c.opt.Value(c.option), c.value)
+			}
+		})
+	}
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64Slice("float64", 2, 3)
+		_, err := opt.Parse([]string{"--float64", "123"})
+		if err == nil {
+			t.Errorf("Passing less than min didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorMissingArgument, "float64") {
+			t.Errorf("Error float64 didn't match expected value")
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64Slice("float64", 1, 3)
+		_, err := opt.Parse([]string{"--float64", "hello"})
+		if err == nil {
+			t.Errorf("Passing string didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToFloat64, "float64", "hello") {
+			t.Errorf("Error float64 didn't match expected value: %s", err)
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64Slice("float64", 1, 3)
+		_, err := opt.Parse([]string{"--float64", "hello..3"})
+		if err == nil {
+			t.Errorf("Passing string didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToFloat64, "float64", "hello..3") {
+			t.Errorf("Error float64 didn't match expected value: %s", err)
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64Slice("float64", 1, 3)
+		_, err := opt.Parse([]string{"--float64", "1..hello"})
+		if err == nil {
+			t.Errorf("Passing string didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToFloat64, "float64", "1..hello") {
+			t.Errorf("Error float64 didn't match expected value: %s", err)
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64Slice("float64", 1, 3)
+		_, err := opt.Parse([]string{"--float64", "3..1"})
+		if err == nil {
+			t.Errorf("Passing string didn't raise error")
+		}
+		if err != nil && err.Error() != fmt.Sprintf(text.ErrorConvertToFloat64, "float64", "3..1") {
+			t.Errorf("Error float64 didn't match expected value: %s", err)
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		is := opt.Float64Slice("float64", 1, 1)
+		_, err := opt.Parse([]string{"--float64", "1", "--float64", "2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(*is, []float64{1, 2}) {
+			t.Errorf("Wrong value: %v != %v", *is, []float64{1, 2})
+		}
+	})
+
+	t.Run("", func(t *testing.T) {
+		opt := getoptions.New()
+		var isVar []float64
+		opt.Float64SliceVar(&isVar, "float64", 1, 1)
+		_, err := opt.Parse([]string{"--float64", "1", "--float64", "2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !reflect.DeepEqual(isVar, []float64{1, 2}) {
+			t.Errorf("Wrong value: %v != %v", isVar, []float64{1, 2})
 		}
 	})
 }

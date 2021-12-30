@@ -416,21 +416,22 @@ func (gopt *GetOpt) Float64VarOptional(p *float64, name string, def float64, fns
 	}
 }
 
-// // TODO: Before publishing this complete the opt save part for it
-// func (gopt *GetOpt) Float64Slice(name string, min, max int, fns ...ModifyFn) *[]float64 {
-// 	s := []float64{}
-// 	gopt.Float64SliceVar(&s, name, min, max, fns...)
-// 	return &s
-// }
-//
-// // TODO: Before publishing this complete the opt save part for it
-// func (gopt *GetOpt) Float64SliceVar(p *[]float64, name string, min, max int, fns ...ModifyFn) {
-// 	n := option.New(name, option.Float64RepeatType, p)
-// 	n.MinArgs = min
-// 	n.MaxArgs = max
-// 	gopt.programTree.AddChildOption(name, n)
-// n.Synopsis()
-// }
+func (gopt *GetOpt) Float64Slice(name string, min, max int, fns ...ModifyFn) *[]float64 {
+	s := []float64{}
+	gopt.Float64SliceVar(&s, name, min, max, fns...)
+	return &s
+}
+
+func (gopt *GetOpt) Float64SliceVar(p *[]float64, name string, min, max int, fns ...ModifyFn) {
+	n := option.New(name, option.Float64RepeatType, p)
+	n.MinArgs = min
+	n.MaxArgs = max
+	gopt.programTree.AddChildOption(name, n)
+	for _, fn := range fns {
+		fn(gopt, n)
+	}
+	n.Synopsis()
+}
 
 // StringMap - define a `map[string]string` option and its aliases.
 //
