@@ -60,9 +60,6 @@ If this was ever used, now the canonical way to execute a command function is th
 
 * Remove `opt.Stringer`, this was used to print a text representation of the parsed structure but other than in test code there is little value for it.
 
-* WIP: `opt.SetRequireOrder` might be dropped since now we fully track subcommands.
-Need to consider its usefulness when doing wrappers around other programs.
-
 * WIP: `opt.CustomCompletion` might be dropped.
 
 * Moved exported packages that this library uses into the `internal` directory so they can't be imported by other projects by mistake.
