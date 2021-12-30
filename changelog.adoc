@@ -70,6 +70,11 @@ If this was ever used, now the canonical way to execute a command function is th
 
 Autocompletion is super useful now.
 
+* New setting: `opt.UnsetOptions`
++
+Since options are automatically inherited to commands and subcommands, in cases where you want to override that inheritance and delete the inherited options use this.
+This is useful for wrapper commands.
+
 == v0.24.0: New Features
 
 As the releases before, this release has 100% test coverage.

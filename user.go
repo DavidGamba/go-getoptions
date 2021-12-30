@@ -172,8 +172,20 @@ func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) *GetOpt {
 //
 // `--help` is not handled by `program` since there was a unknown-command that caused the parsing to stop.
 // In this case, the `remaining` slice will contain `['unknown-command', '--help']` and that can be send to the wrapper handling code.
+//
+// NOTE: In cases when the wrapper is written as a command use `opt.UnsetOptions` instead.
 func (gopt *GetOpt) SetRequireOrder() *GetOpt {
 	gopt.programTree.requireOrder = true
+	return gopt
+}
+
+// UnsetOptions - Unsets inherited options from parent program and parent commands.
+// This is useful when writing wrappers around other commands.
+//
+// NOTE: Use in combination with `opt.SetUnknownMode(getoptions.Pass)`
+func (gopt *GetOpt) UnsetOptions() *GetOpt {
+	gopt.programTree.ChildOptions = map[string]*option.Option{}
+	gopt.programTree.skipOptionsCopy = true
 	return gopt
 }
 
@@ -233,6 +245,9 @@ func copyOptionsFromParent(parent *programTree, fail bool) {
 		for _, command := range parent.ChildCommands {
 			// don't copy options to help command
 			if command.Name == parent.HelpCommandName {
+				continue
+			}
+			if command.skipOptionsCopy {
 				continue
 			}
 			if fail {

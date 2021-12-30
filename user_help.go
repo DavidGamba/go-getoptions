@@ -158,6 +158,7 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 	})
 
 	// Add help command to all commands
+	// TODO: Only the ones that have children
 	runOnParentAndChildrenCommands(gopt.programTree, func(n *programTree) {
 		if n.Name != name {
 			cmdFn(n)

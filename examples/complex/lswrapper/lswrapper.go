@@ -16,7 +16,7 @@ var Logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
 func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
 	opt := parent.NewCommand("lswrapper", "wrapper to ls").SetCommandFn(Run)
 	opt.SetUnknownMode(getoptions.Pass)
-	opt.SetRequireOrder()
+	opt.UnsetOptions()
 	return opt
 }
 
