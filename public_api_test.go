@@ -1869,18 +1869,31 @@ func TestIncrement(t *testing.T) {
 }
 
 func TestLonesomeDash(t *testing.T) {
-	var stdin bool
-	opt := getoptions.New()
-	opt.BoolVar(&stdin, "-", false)
-	_, err := opt.Parse([]string{
-		"-",
+	t.Run("lonesome dash", func(t *testing.T) {
+		var stdin bool
+		opt := getoptions.New()
+		opt.BoolVar(&stdin, "-", false)
+		_, err := opt.Parse([]string{"-"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !opt.Called("-") || stdin != true {
+			t.Errorf("stdin didn't have expected value: %v != %v", stdin, true)
+		}
 	})
-	if err != nil {
-		t.Errorf("Unexpected error: %s", err)
-	}
-	if !opt.Called("-") || stdin != true {
-		t.Errorf("stdin didn't have expected value: %v != %v", stdin, true)
-	}
+
+	t.Run("lonesome dash as alias", func(t *testing.T) {
+		var stdin bool
+		opt := getoptions.New()
+		opt.BoolVar(&stdin, "stdin", false, opt.Alias("-"))
+		_, err := opt.Parse([]string{"-"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !opt.Called("-") || stdin != true {
+			t.Errorf("stdin didn't have expected value: %v != %v", stdin, true)
+		}
+	})
 }
 
 func TestSynopsis(t *testing.T) {

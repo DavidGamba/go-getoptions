@@ -180,6 +180,10 @@ ARGS_LOOP:
 	for iterator.Next() ||
 		(completionMode && len(args) == 0) { // enter at least once if running in completion mode.
 
+		///////////////////////////////////
+		// Completions
+		///////////////////////////////////
+
 		// We only generate completions when we reached the end of the provided args
 		if completionMode && (iterator.IsLast() || len(args) == 0) {
 			completions := []string{}
@@ -262,28 +266,26 @@ ARGS_LOOP:
 			return currentProgramNode, completions, nil
 		}
 
+		///////////////////////////////////
+		// Normal parsing
+		///////////////////////////////////
+
 		// handle terminator
 		if iterator.Value() == "--" {
-			for iterator.Next() {
-				value := iterator.Value()
-				currentProgramNode.ChildText = append(currentProgramNode.ChildText, value)
-			}
+			storeRemainingAsText(iterator, currentProgramNode)
 			break ARGS_LOOP
 		}
 
 		// Handle lonesome dash
 		if iterator.Value() == "-" {
-			for _, v := range currentProgramNode.ChildOptions {
-				// handle full option match, this allows to have - defined as an alias
-				if _, ok := stringSliceIndex(v.Aliases, "-"); ok {
-					v.Called = true
-					v.UsedAlias = "-"
-					err := v.Save()
-					if err != nil {
-						return currentProgramNode, []string{}, err
-					}
-					continue ARGS_LOOP
+			if v, ok := currentProgramNode.ChildOptions["-"]; ok {
+				v.Called = true
+				v.UsedAlias = "-"
+				err := v.Save()
+				if err != nil {
+					return currentProgramNode, []string{}, err
 				}
+				continue ARGS_LOOP
 			}
 			opt := newUnknownCLIOption(currentProgramNode, "-", iterator.Value())
 			currentProgramNode.UnknownOptions = append(currentProgramNode.UnknownOptions, opt)
@@ -424,6 +426,13 @@ ARGS_LOOP:
 	// Errors can be unknown options, options without values, etc
 
 	return currentProgramNode, []string{}, nil
+}
+
+func storeRemainingAsText(iterator *sliceiterator.Iterator, n *programTree) {
+	for iterator.Next() {
+		value := iterator.Value()
+		n.ChildText = append(n.ChildText, value)
+	}
 }
 
 func getAliasNameFromPartialEntry(n *programTree, entry string) []string {
