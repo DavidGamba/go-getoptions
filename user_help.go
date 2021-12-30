@@ -160,7 +160,7 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 		}
 	})
 
-	copyOptionsFromParent(gopt.programTree, false)
+	copyOptionsFromParent(gopt.programTree)
 }
 
 func runHelp(ctx context.Context, opt *GetOpt, args []string) error {

@@ -236,11 +236,11 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 
 	cmd.programTree = command
 	gopt.programTree.AddChildCommand(name, command)
-	copyOptionsFromParent(gopt.programTree, false)
+	copyOptionsFromParent(gopt.programTree)
 	return cmd
 }
 
-func copyOptionsFromParent(parent *programTree, fail bool) {
+func copyOptionsFromParent(parent *programTree) {
 	for k, v := range parent.ChildOptions {
 		for _, command := range parent.ChildCommands {
 			// don't copy options to help command
@@ -250,16 +250,11 @@ func copyOptionsFromParent(parent *programTree, fail bool) {
 			if command.skipOptionsCopy {
 				continue
 			}
-			if fail {
-				if _, ok := command.ChildOptions[k]; ok {
-					panic("duplicate option definition")
-				}
-			}
 			command.ChildOptions[k] = v
 		}
 	}
 	for _, command := range parent.ChildCommands {
-		copyOptionsFromParent(command, fail)
+		copyOptionsFromParent(command)
 	}
 }
 
