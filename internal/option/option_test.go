@@ -92,6 +92,19 @@ func TestOption(t *testing.T) {
 			return New("help", StringOptionalType, &s).SetString("xxx")
 		}(), []string{}, "xxx", nil},
 
+		{"string valid values", func() *Option {
+			s := ""
+			o := New("help", StringType, &s)
+			o.ValidValues = []string{"a", "b", "c"}
+			return o
+		}(), []string{"a"}, "a", nil},
+		{"string valid values", func() *Option {
+			s := ""
+			o := New("help", StringType, &s)
+			o.ValidValues = []string{"a", "b", "c"}
+			return o
+		}(), []string{"d"}, "", fmt.Errorf("wrong value for option '%s', valid values are %#v", "help", []string{"a", "b", "c"})},
+
 		{"int", func() *Option {
 			i := 0
 			return New("help", IntType, &i)
