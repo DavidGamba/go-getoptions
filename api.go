@@ -46,8 +46,10 @@ type strProgramTree struct {
 }
 
 type strChildOption struct {
-	Aliases []string
-	Value   string
+	Aliases   []string
+	Value     string
+	UsedAlias string
+	Called    bool
 }
 
 func (n *programTree) str() *strProgramTree {
@@ -68,7 +70,12 @@ func (n *programTree) str() *strProgramTree {
 	}
 	sort.Strings(options)
 	for _, e := range options {
-		str.ChildOptions[e] = strChildOption{n.ChildOptions[e].Aliases, fmt.Sprintf("%v", n.ChildOptions[e].Value())}
+		str.ChildOptions[e] = strChildOption{
+			Aliases:   n.ChildOptions[e].Aliases,
+			Value:     fmt.Sprintf("%v", n.ChildOptions[e].Value()),
+			UsedAlias: n.ChildOptions[e].UsedAlias,
+			Called:    n.ChildOptions[e].Called,
+		}
 	}
 
 	// commands
@@ -278,26 +285,6 @@ ARGS_LOOP:
 				storeRemainingAsText(iterator, currentProgramNode)
 			}
 			break ARGS_LOOP
-		}
-
-		// Handle lonesome dash
-		if iterator.Value() == "-" {
-			if v, ok := currentProgramNode.ChildOptions["-"]; ok {
-				v.Called = true
-				v.UsedAlias = "-"
-				err := v.Save()
-				if err != nil {
-					return currentProgramNode, []string{}, err
-				}
-				continue ARGS_LOOP
-			}
-			if currentProgramNode.requireOrder {
-				storeRemainingAsText(iterator, currentProgramNode)
-				break ARGS_LOOP
-			}
-			opt := newUnknownCLIOption(currentProgramNode, "-", iterator.Value())
-			currentProgramNode.UnknownOptions = append(currentProgramNode.UnknownOptions, opt)
-			continue ARGS_LOOP
 		}
 
 		// TODO: Handle unknown option.

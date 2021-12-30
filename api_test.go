@@ -119,7 +119,10 @@ func TestParseCLIArgs(t *testing.T) {
 			}
 			opt.Called = true
 			opt.UsedAlias = "-"
-			n.ChildText = append(n.ChildText, "txt")
+			err = opt.Save("txt")
+			if err != nil {
+				t.Fatalf("unexpected error: %s", err)
+			}
 			n.ChildText = append(n.ChildText, "txt2")
 			return n
 		}(), []string{"-", "--cmd1opt1", "--rootopt1"}, nil},

@@ -1894,6 +1894,19 @@ func TestLonesomeDash(t *testing.T) {
 			t.Errorf("stdin didn't have expected value: %v != %v", stdin, true)
 		}
 	})
+
+	t.Run("lonesome dash as not boolean flag", func(t *testing.T) {
+		var stdin string
+		opt := getoptions.New()
+		opt.StringVar(&stdin, "-", "")
+		_, err := opt.Parse([]string{"-", "hello"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !opt.Called("-") || stdin != "hello" {
+			t.Errorf("stdin didn't have expected value: %#v != %v", stdin, "hello")
+		}
+	})
 }
 
 func TestSynopsis(t *testing.T) {
