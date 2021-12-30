@@ -368,3 +368,47 @@ func TestOther(t *testing.T) {
 		t.Errorf("got = '%#v', want '%#v'", opt.HelpSynopsis, "--help <int>...")
 	}
 }
+
+func TestValidateMinMaxArgs(t *testing.T) {
+	tests := []struct {
+		name   string
+		option *Option
+		err    error
+	}{
+		{"valid", func() *Option {
+			ii := []int{}
+			o := New("help", IntRepeatType, &ii)
+			o.MinArgs = 1
+			o.MaxArgs = 1
+			return o
+		}(), nil},
+		{"invalid", func() *Option {
+			ii := []int{}
+			o := New("help", IntRepeatType, &ii)
+			o.MinArgs = 2
+			o.MaxArgs = 1
+			return o
+		}(), fmt.Errorf("max should be > 0 and > min")},
+		{"invalid", func() *Option {
+			ii := []int{}
+			o := New("help", IntRepeatType, &ii)
+			o.MinArgs = -1
+			o.MaxArgs = 1
+			return o
+		}(), fmt.Errorf("min should be > 0")},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.option.ValidateMinMaxArgs()
+			if err == nil && tt.err != nil {
+				t.Errorf("got = '%#v', want '%#v'", err, tt.err)
+			}
+			if err != nil && tt.err == nil {
+				t.Errorf("got = '%#v', want '%#v'", err, tt.err)
+			}
+			if err != nil && tt.err != nil && err.Error() != tt.err.Error() {
+				t.Errorf("got = '%#v', want '%#v'", err, tt.err)
+			}
+		})
+	}
+}
