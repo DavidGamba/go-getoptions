@@ -204,7 +204,8 @@ ARGS_LOOP:
 
 					// Options are stored without leading dashes, remove them to compare
 					// TODO: Also remove the / when dealing with windows.
-					value := strings.TrimPrefix(strings.TrimPrefix(iterator.Value(), "-"), "-")
+					partialOption := strings.TrimPrefix(strings.TrimPrefix(iterator.Value(), "-"), "-")
+					// value = strings.SplitN(value, "=", 2)[0]
 					for k, v := range currentProgramNode.ChildOptions {
 						// handle lonesome dash
 						if k == "-" {
@@ -213,12 +214,26 @@ ARGS_LOOP:
 							}
 							continue
 						}
-						if strings.HasPrefix(k, value) {
+						// The entry is not fully complete here
+						if strings.HasPrefix(k, partialOption) {
 							lastOpt = v
 							if currentProgramNode.ChildOptions[k].OptType != option.BoolType {
-								completions = append(completions, "--"+k+"=")
+								completions = append(completions, "--"+k+`=`)
 							} else {
 								completions = append(completions, "--"+k)
+							}
+						}
+						// The entry is complete here and has suggestions
+						if strings.Contains(partialOption, "=") && strings.HasPrefix(partialOption, k) {
+							lastOpt = v
+							if lastOpt.SuggestedValues != nil && len(lastOpt.SuggestedValues) > 0 {
+								for _, e := range lastOpt.SuggestedValues {
+									c := fmt.Sprintf("--%s=%s", k, e)
+									if strings.HasPrefix(c, iterator.Value()) {
+										tc := strings.SplitN(c, "=", 2)[1]
+										completions = append(completions, tc)
+									}
+								}
 							}
 						}
 					}
@@ -228,7 +243,7 @@ ARGS_LOOP:
 					// extra completion so there is no trailing space automatically
 					// inserted by bash.
 					// This extra completion has nice documentation on what the option expects.
-					if len(completions) == 1 && strings.HasSuffix((completions)[0], "=") {
+					if len(completions) == 1 && strings.Contains((completions)[0], "=") {
 						if lastOpt.SuggestedValues != nil && len(lastOpt.SuggestedValues) > 0 {
 							for _, e := range lastOpt.SuggestedValues {
 								completions = append(completions, completions[0]+e)
@@ -241,6 +256,8 @@ ARGS_LOOP:
 							completions = append(completions, completions[0]+valueStr)
 						}
 					}
+
+					sort.Strings(completions)
 					return currentProgramNode, completions, nil
 				}
 			}

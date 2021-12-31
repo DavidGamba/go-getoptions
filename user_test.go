@@ -195,6 +195,7 @@ func TestCompletion(t *testing.T) {
 	cleanup := func() {
 		os.Setenv("COMP_LINE", "")
 		completionWriter = os.Stdout
+		Writer = os.Stderr
 		called = false
 	}
 
@@ -203,19 +204,29 @@ func TestCompletion(t *testing.T) {
 		setup    func()
 		expected string
 	}{
-		{"option", func() { os.Setenv("COMP_LINE", "test --f") }, "--f\n--flag\n"},
+		{"option", func() { os.Setenv("COMP_LINE", "test --f") }, "--f\n--flag\n--fleg\n"},
+		{"option", func() { os.Setenv("COMP_LINE", "--fl") }, "--flag\n--fleg\n"},
+		{"option", func() { os.Setenv("COMP_LINE", "--d") }, "--debug\n"},
 		{"command", func() { os.Setenv("COMP_LINE", "test h") }, "help \n"},
 		{"command", func() { os.Setenv("COMP_LINE", "test help ") }, "log\nshow\n"},
+		// TODO: --profile= when there are suggestions is probably not wanted
+		{"command", func() { os.Setenv("COMP_LINE", "--profile") }, "--profile=\n--profile=dev\n--profile=production\n--profile=staging\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "--profile=") }, "dev\nproduction\nstaging\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "--profile=p") }, "production\n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setup()
-			s := ""
-			buf := bytes.NewBufferString(s)
-			completionWriter = buf
+			completionBuf := new(bytes.Buffer)
+			completionWriter = completionBuf
+			buf := new(bytes.Buffer)
+			Writer = buf
 
 			opt := New()
 			opt.Bool("flag", false, opt.Alias("f"))
+			opt.Bool("fleg", false)
+			opt.Bool("debug", false)
+			opt.String("profile", "", opt.ValidValues("dev", "staging", "production"))
 			logCmd := opt.NewCommand("log", "").SetCommandFn(fn)
 			logCmd.NewCommand("sub-log", "").SetCommandFn(fn)
 			showCmd := opt.NewCommand("show", "").SetCommandFn(fn)
@@ -228,9 +239,12 @@ func TestCompletion(t *testing.T) {
 			if !called {
 				t.Errorf("COMP_LINE set and exit wasn't called")
 			}
-			if buf.String() != tt.expected {
-				t.Errorf("Error\ngot: '%s', expected: '%s'\n", buf.String(), tt.expected)
-				t.Errorf("diff:\n%s", firstDiff(buf.String(), tt.expected))
+			if completionBuf.String() != tt.expected {
+				t.Errorf("Error\ngot: '%s', expected: '%s'\n", completionBuf.String(), tt.expected)
+				t.Errorf("diff:\n%s", firstDiff(completionBuf.String(), tt.expected))
+			}
+			if buf.String() != "" {
+				t.Errorf("buf: %s\n", buf.String())
 			}
 			cleanup()
 		})

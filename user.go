@@ -290,6 +290,8 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 		// 	compLineParts = compLineParts[:len(compLineParts)-1]
 		// }
 		// In some cases, the first completion only gets one space
+
+		// NOTE: Bash completions have = as a special char and results should be trimmed form the = on.
 		Logger.SetPrefix("\n")
 		Logger.Printf("COMP_LINE: '%s', parts: %#v, args: %#v\n", compLine, compLineParts, args)
 		_, completions, err := parseCLIArgs(true, gopt.programTree, compLineParts, Normal)
@@ -300,8 +302,10 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 			// Ignore errors in completion mode
 			return nil, nil
 		}
+		Logger.Printf("completions: %#v\n", completions)
 		fmt.Fprintln(completionWriter, strings.Join(completions, "\n"))
 		exitFn(124) // programmable completion restarts from the beginning, with an attempt to find a new compspec for that command.
+		return nil, nil
 	}
 
 	// WIP:

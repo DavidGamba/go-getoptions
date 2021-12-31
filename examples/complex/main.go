@@ -22,9 +22,12 @@ func main() {
 }
 
 func program(args []string) int {
+	// getoptions.Logger.SetOutput(os.Stderr)
 	opt := getoptions.New()
 	// opt.SetUnknownMode(getoptions.Pass)
 	opt.Bool("debug", false, opt.GetEnv("DEBUG"))
+	opt.Bool("flag", false)
+	opt.Bool("fleg", false)
 	opt.String("profile", "default", opt.ValidValues("default", "dev", "staging", "prod"))
 	complexgreet.NewCommand(opt)
 	complexlog.NewCommand(opt)
