@@ -121,7 +121,7 @@ func Synopsis(scriptName, name, args string, options []*option.Option, commands 
 // CommandList -
 // commandMap => name: description
 func CommandList(commandMap map[string]string) string {
-	if len(commandMap) <= 0 {
+	if len(commandMap) == 0 {
 		return ""
 	}
 	names := []string{}

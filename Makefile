@@ -23,4 +23,6 @@ lint:
 		-D funlen \
 		-D dupl \
 		-D lll \
-		-D gocognit
+		-D gocognit \
+		-D exhaustivestruct \
+		-D cyclop
