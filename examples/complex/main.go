@@ -22,7 +22,7 @@ func main() {
 }
 
 func program(args []string) int {
-	// getoptions.Logger.SetOutput(os.Stderr)
+	getoptions.Logger.SetOutput(os.Stderr)
 	opt := getoptions.New()
 	// opt.SetUnknownMode(getoptions.Pass)
 	opt.Bool("debug", false, opt.GetEnv("DEBUG"))

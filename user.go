@@ -282,6 +282,14 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 		re := regexp.MustCompile(`\s+`)
 		compLineParts := re.Split(compLine, -1)
 		// Drop the trailing "" part if the second argument is not "". COMP_LINE alone isn't enough to tell if we are triggering a completion or not.
+		// Dropping
+		// $ ./complex message
+		// 2022/01/01 00:30:23 user.go:296: COMP_LINE: './complex message ', parts: []string{"./complex", "message"}, args: []string{"./complex", "message", "./complex"}
+		// 2022/01/01 00:30:23 user.go:305: completions: getoptions.completions{"message"}
+		// Not dropping -> Stuck
+		// $ ./complex mes
+		// 2022/01/01 00:32:14 user.go:299: COMP_LINE: './complex mes ', parts: []string{"./complex", "mes", ""}, args: []string{"./complex", "mes", "./complex"}
+		// 2022/01/01 00:32:14 user.go:308: completions: getoptions.completions{"help", "log", "lswrapper", "message", "show", "slow"}
 		if len(compLineParts) > 0 && compLineParts[len(compLineParts)-1] == "" && len(args) > 2 && args[1] != "" {
 			compLineParts = compLineParts[:len(compLineParts)-1]
 		}

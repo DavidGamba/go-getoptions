@@ -202,17 +202,20 @@ func TestCompletion(t *testing.T) {
 	tests := []struct {
 		name     string
 		setup    func()
+		args     []string
 		expected string
 	}{
-		{"option", func() { os.Setenv("COMP_LINE", "test --f") }, "--f\n--flag\n--fleg\n"},
-		{"option", func() { os.Setenv("COMP_LINE", "--fl") }, "--flag\n--fleg\n"},
-		{"option", func() { os.Setenv("COMP_LINE", "--d") }, "--debug\n"},
-		{"command", func() { os.Setenv("COMP_LINE", "test h") }, "help \n"},
-		{"command", func() { os.Setenv("COMP_LINE", "test help ") }, "log\nshow\n"},
+		{"option", func() { os.Setenv("COMP_LINE", "./program --f") }, []string{}, "--f\n--flag\n--fleg\n"},
+		{"option", func() { os.Setenv("COMP_LINE", "./program --fl") }, []string{}, "--flag\n--fleg\n"},
+		{"option", func() { os.Setenv("COMP_LINE", "./program --d") }, []string{}, "--debug\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "./program h") }, []string{}, "help \n"},
+		{"command", func() { os.Setenv("COMP_LINE", "./program help ") }, []string{}, "log\nshow\n"},
 		// TODO: --profile= when there are suggestions is probably not wanted
-		{"command", func() { os.Setenv("COMP_LINE", "--profile") }, "--profile=\n--profile=dev\n--profile=production\n--profile=staging\n"},
-		{"command", func() { os.Setenv("COMP_LINE", "--profile=") }, "dev\nproduction\nstaging\n"},
-		{"command", func() { os.Setenv("COMP_LINE", "--profile=p") }, "production\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "./program --profile") }, []string{}, "--profile=\n--profile=dev\n--profile=production\n--profile=staging\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=") }, []string{}, "dev\nproduction\nstaging\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=p") }, []string{}, "production\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=p") }, []string{}, "production\n"},
+		{"command", func() { os.Setenv("COMP_LINE", "./program lo ") }, []string{"./program", "lo", "./program"}, "log \n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -232,7 +235,7 @@ func TestCompletion(t *testing.T) {
 			showCmd := opt.NewCommand("show", "").SetCommandFn(fn)
 			showCmd.NewCommand("sub-show", "").SetCommandFn(fn)
 			opt.HelpCommand("help", "")
-			_, err := opt.Parse([]string{})
+			_, err := opt.Parse(tt.args)
 			if err != nil {
 				t.Errorf("Unexpected error: %s", err)
 			}

@@ -286,6 +286,7 @@ ARGS_LOOP:
 
 			sort.Strings(completions)
 			// Add trailing space to force next completion, makes for nicer UI when there is a single result.
+			// In most cases this is not required but sometimes the compspec just seems to get stuck.
 			if len(completions) == 1 {
 				(completions)[0] = completions[0] + " "
 			}
