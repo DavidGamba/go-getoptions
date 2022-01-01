@@ -2149,19 +2149,19 @@ OPTIONS:
 `
 
 		if name != expectedName {
-			fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
+			t.Errorf("got:\n%s\nexpected:\n%s\n", name, expectedName)
 			t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
 		}
 		if synopsis != expectedSynopsis {
-			fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+			t.Errorf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
 			t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
 		}
 		if commandList != expectedCommandList {
-			fmt.Printf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
+			t.Errorf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
 			t.Errorf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
 		}
 		if optionList != expectedOptionList {
-			fmt.Printf("got:\n%s\nexpected:\n%s\n", optionList, expectedOptionList)
+			t.Errorf("got:\n%s\nexpected:\n%s\n", optionList, expectedOptionList)
 			t.Errorf("Unexpected option list:\n%s", firstDiff(optionList, expectedOptionList))
 		}
 		if opt.Help() != expectedSynopsis+expectedCommandList+expectedOptionList {
@@ -2189,11 +2189,11 @@ OPTIONS:
 
 `
 		if name != expectedName {
-			fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
+			t.Errorf("got:\n%s\nexpected:\n%s\n", name, expectedName)
 			t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
 		}
 		if synopsis != expectedSynopsis {
-			fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+			t.Errorf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
 			t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
 		}
 		if opt.Help() != expectedName+expectedSynopsis+opt.Help(getoptions.HelpCommandList)+opt.Help(getoptions.HelpOptionList) {
@@ -2216,11 +2216,11 @@ OPTIONS:
 `
 		expectedCommandList := ""
 		if synopsis != expectedSynopsis {
-			fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+			t.Errorf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
 			t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
 		}
 		if commandList != expectedCommandList {
-			fmt.Printf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
+			t.Errorf("got:\n%s\nexpected:\n%s\n", commandList, expectedCommandList)
 			t.Errorf("Unexpected commandList:\n%s", firstDiff(commandList, expectedCommandList))
 		}
 	})
@@ -2244,11 +2244,11 @@ OPTIONS:
 
 `
 		if name != expectedName {
-			fmt.Printf("got:\n%s\nexpected:\n%s\n", name, expectedName)
+			t.Errorf("got:\n%s\nexpected:\n%s\n", name, expectedName)
 			t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
 		}
 		if synopsis != expectedSynopsis {
-			fmt.Printf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+			t.Errorf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
 			t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
 		}
 		if subLogCmd.Help() != expectedName+expectedSynopsis+subLogCmd.Help(getoptions.HelpCommandList)+subLogCmd.Help(getoptions.HelpOptionList) {
@@ -3385,13 +3385,13 @@ func TestInterruptContext(t *testing.T) {
 		}
 		if i == 0 {
 			id := os.Getpid()
-			fmt.Printf("process id %d\n", id)
+			t.Logf("process id %d\n", id)
 			p, err := os.FindProcess(id)
 			if err != nil {
 				t.Errorf("Unexpected error: %s\n", err)
 				continue
 			}
-			fmt.Printf("process %v\n", p)
+			t.Logf("process %v\n", p)
 			err = p.Signal(os.Interrupt)
 			if err != nil {
 				t.Errorf("Unexpected error: %s\n", err)

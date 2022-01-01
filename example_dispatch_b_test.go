@@ -9,10 +9,6 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
-func dispatchHelpListRun(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-	return nil
-}
-
 func ExampleGetOpt_Dispatch_bHelp() {
 	runFn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 		return nil
