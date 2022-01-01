@@ -133,14 +133,6 @@ func (n *programTree) AddChildCommand(name string, cmd *programTree) {
 
 type argType int
 
-const (
-	argTypeProgname   argType = iota // The root node type
-	argTypeCommand                   // The node type used for commands and subcommands
-	argTypeOption                    // The node type used for options
-	argTypeText                      // The node type used for regular cli arguments
-	argTypeTerminator                // --
-)
-
 // command - Fields that only make sense for a command
 type command struct {
 	CommandFn CommandFn

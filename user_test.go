@@ -43,7 +43,6 @@ func TestTrees(t *testing.T) {
 
 	t.Run("programTree", func(t *testing.T) {
 		root := &programTree{
-			Type:          argTypeProgname,
 			Name:          filepath.Base(os.Args[0]),
 			ChildCommands: map[string]*programTree{},
 			ChildOptions:  map[string]*option.Option{},
@@ -51,7 +50,6 @@ func TestTrees(t *testing.T) {
 		rootopt1Data := ""
 		rootopt1 := option.New("rootopt1", option.StringType, &rootopt1Data)
 		cmd1 := &programTree{
-			Type:          argTypeCommand,
 			Name:          "cmd1",
 			Parent:        root,
 			ChildCommands: map[string]*programTree{},
@@ -61,7 +59,6 @@ func TestTrees(t *testing.T) {
 		cmd1opt1Data := ""
 		cmd1opt1 := option.New("cmd1opt1", option.StringType, &cmd1opt1Data)
 		sub1cmd1 := &programTree{
-			Type:          argTypeCommand,
 			Name:          "sub1cmd1",
 			Parent:        cmd1,
 			ChildCommands: map[string]*programTree{},
@@ -71,7 +68,6 @@ func TestTrees(t *testing.T) {
 		sub1cmd1opt1Data := ""
 		sub1cmd1opt1 := option.New("sub1cmd1opt1", option.StringType, &sub1cmd1opt1Data)
 		sub2cmd1 := &programTree{
-			Type:          argTypeCommand,
 			Name:          "sub2cmd1",
 			Parent:        cmd1,
 			ChildCommands: map[string]*programTree{},
@@ -81,7 +77,6 @@ func TestTrees(t *testing.T) {
 		sub2cmd1opt1Data := ""
 		sub2cmd1opt1 := option.New("-", option.StringType, &sub2cmd1opt1Data)
 		cmd2 := &programTree{
-			Type:          argTypeCommand,
 			Name:          "cmd2",
 			Parent:        root,
 			ChildCommands: map[string]*programTree{},

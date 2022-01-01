@@ -81,7 +81,6 @@ type CommandFn func(context.Context, *GetOpt, []string) error
 func New() *GetOpt {
 	gopt := &GetOpt{}
 	gopt.programTree = &programTree{
-		Type:          argTypeProgname,
 		Name:          filepath.Base(os.Args[0]),
 		ChildCommands: map[string]*programTree{},
 		ChildOptions:  map[string]*option.Option{},
@@ -202,7 +201,6 @@ func (gopt *GetOpt) HelpSynopsisArgs(args string) *GetOpt {
 func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	cmd := &GetOpt{}
 	command := &programTree{
-		Type:            argTypeCommand,
 		Name:            name,
 		Description:     description,
 		HelpCommandName: gopt.programTree.HelpCommandName,

@@ -132,7 +132,6 @@ func (gopt *GetOpt) HelpCommand(name string, description string, fns ...ModifyFn
 		}
 		cmd := &GetOpt{}
 		command := &programTree{
-			Type:            argTypeCommand,
 			Name:            name,
 			Description:     description,
 			HelpCommandName: name,
