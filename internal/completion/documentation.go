@@ -29,7 +29,7 @@ Example Tree:
 A tree node can have children and leaves.
 The children are commands, the leaves can be options, file completions, custom completions and options that trigger custom file completions (--dir=<dir-comletion>).
 
-Completions have a hierachy, commands are shown before file completions, and options are only shown if `-` is passed as part of the COMPLINE.
+Completions have a hierarchy, commands are shown before file completions, and options are only shown if `-` is passed as part of the COMPLINE.
 
 For custom completions a full list of completions must be passed as leaves to the node.
 However, there file and dir completions are provided as a convenience.

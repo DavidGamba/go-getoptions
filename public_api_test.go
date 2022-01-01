@@ -2273,7 +2273,7 @@ func TestCommandAmbiguosOption(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		remaining, err = command.Parse(remaining)
+		_, err = command.Parse(remaining)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
@@ -3432,7 +3432,7 @@ func TestSetRequireOrder(t *testing.T) {
 		}
 	})
 
-	t.Run("stop parsing known arguments as soon as an unkonwn argument is found", func(t *testing.T) {
+	t.Run("stop parsing known arguments as soon as an unknown argument is found", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 		opt := getoptions.New()
 		getoptions.Writer = buf
@@ -3474,7 +3474,7 @@ func TestSetRequireOrder(t *testing.T) {
 		}
 	})
 
-	t.Run("stop parsing known arguments as soon as an unkonwn flag is found and keep them with PassThrough", func(t *testing.T) {
+	t.Run("stop parsing known arguments as soon as an unknown flag is found and keep them with PassThrough", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 		opt := getoptions.New()
 		getoptions.Writer = buf

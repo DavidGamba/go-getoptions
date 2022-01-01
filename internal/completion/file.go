@@ -60,7 +60,7 @@ func trimLeftDashes(s string) (int, string) {
 	})
 }
 
-// sortForCompletion - Places hidden files in the same sort possition as their non hidden counterparts.
+// sortForCompletion - Places hidden files in the same sort position as their non hidden counterparts.
 // Also used for sorting options in the same fashion.
 // Example:
 //   file.txt

@@ -79,7 +79,7 @@ func (gopt *GetOpt) GetEnv(name string) ModifyFn {
 			case option.BoolType:
 				v := strings.ToLower(value)
 				if v == "true" || v == "false" {
-					opt.Save(v)
+					_ = opt.Save(v)
 					opt.SetCalled(name)
 				}
 			case option.StringType,
@@ -89,7 +89,7 @@ func (gopt *GetOpt) GetEnv(name string) ModifyFn {
 				option.IntOptionalType,
 				option.Float64OptionalType:
 
-				opt.Save(value)
+				_ = opt.Save(value)
 				opt.SetCalled(name)
 			}
 		}

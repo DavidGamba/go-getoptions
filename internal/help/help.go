@@ -62,9 +62,6 @@ func Synopsis(scriptName, name, args string, options []*option.Option, commands 
 		synopsisName += name
 	}
 	synopsisName = indent(synopsisName)
-	if name != "" {
-		scriptName += " " + name
-	}
 	normalOptions := []*option.Option{}
 	requiredOptions := []*option.Option{}
 	for _, option := range options {
