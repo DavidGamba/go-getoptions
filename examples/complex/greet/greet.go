@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/DavidGamba/go-getoptions"
 )
@@ -14,14 +13,14 @@ var Logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
 
 // NewCommand - Populate Options definition
 func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
-	opt := parent.NewCommand("message", "Subcommands example").SetCommandFn(Run)
+	opt := parent.NewCommand("message", "Subcommands example")
 	GreetNewCommand(opt)
 	ByeNewCommand(opt)
 	return opt
 }
 
 func GreetNewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
-	opt := parent.NewCommand("greet", "Hi in multiple languages").SetCommandFn(Run)
+	opt := parent.NewCommand("greet", "Hi in multiple languages")
 	en := opt.NewCommand("en", "greet in English").SetCommandFn(RunEnglish)
 	en.String("name", "", opt.Required(""))
 	es := opt.NewCommand("es", "greet in Spanish").SetCommandFn(RunSpanish)
@@ -30,18 +29,12 @@ func GreetNewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
 }
 
 func ByeNewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
-	opt := parent.NewCommand("bye", "Bye in multiple languages").SetCommandFn(Run)
+	opt := parent.NewCommand("bye", "Bye in multiple languages")
 	en := opt.NewCommand("en", "bye in English").SetCommandFn(RunByeEnglish)
 	en.String("name", "", opt.Required(""))
 	es := opt.NewCommand("es", "bye in Spanish").SetCommandFn(RunByeSpanish)
 	es.String("name", "", opt.Required(""))
 	return opt
-}
-
-// Run - Command entry point
-func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-	fmt.Fprint(os.Stderr, opt.Help())
-	return getoptions.ErrorHelpCalled
 }
 
 func RunEnglish(ctx context.Context, opt *getoptions.GetOpt, args []string) error {

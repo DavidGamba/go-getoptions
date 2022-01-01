@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== v0.25.0-alpha.1: Major Refactor
+== WIP v0.25.0: Major Refactor
 
 As the releases before, this release has 100% test coverage.
 Tested with Go 1.14, 1.15, 1.16 and Go 1.17.
@@ -66,12 +66,14 @@ If this was ever used, now the canonical way to execute a command function is th
 
 === New Features
 
-Autocompletion is super useful now.
+* Autocompletion is super useful now.
 
 * New setting: `opt.UnsetOptions`
 +
 Since options are automatically inherited to commands and subcommands, in cases where you want to override that inheritance and delete the inherited options use this.
 This is useful for wrapper commands.
+
+* When a command doesn't have a defined command fn but that command has children, a help landing page is displayed automatically.
 
 == v0.24.0: New Features
 

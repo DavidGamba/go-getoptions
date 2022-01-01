@@ -378,9 +378,12 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, remaining []string) error {
 		return gopt.finalNode.CommandFn(ctx, &GetOpt{gopt.finalNode, gopt.finalNode}, remaining)
 	}
 	if gopt.finalNode.Parent != nil {
+		// landing help for commands without fn that have children
+		if len(gopt.finalNode.ChildCommands) > 0 {
+			fmt.Fprint(Writer, helpOutput(gopt.finalNode))
+			return ErrorHelpCalled
+		}
 		// TODO: This should probably panic at the parse call with validation instead of waiting for a runtime error.
-		// Then in that case it makes sense to just make it as a required argument in the constructor.
-		// Though empty could be considered as a help landing to avoid having to create one...
 		return fmt.Errorf("command '%s' has no defined CommandFn", gopt.finalNode.Name)
 	}
 	fmt.Fprint(Writer, gopt.Help())
