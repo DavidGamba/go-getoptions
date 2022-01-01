@@ -204,18 +204,22 @@ func TestCompletion(t *testing.T) {
 		setup    func()
 		args     []string
 		expected string
+		err      string
 	}{
-		{"option", func() { os.Setenv("COMP_LINE", "./program --f") }, []string{}, "--f\n--flag\n--fleg\n"},
-		{"option", func() { os.Setenv("COMP_LINE", "./program --fl") }, []string{}, "--flag\n--fleg\n"},
-		{"option", func() { os.Setenv("COMP_LINE", "./program --d") }, []string{}, "--debug\n"},
-		{"command", func() { os.Setenv("COMP_LINE", "./program h") }, []string{}, "help \n"},
-		{"command", func() { os.Setenv("COMP_LINE", "./program help ") }, []string{}, "log\nshow\n"},
+		{"option", func() { os.Setenv("COMP_LINE", "./program --f") }, []string{}, "--f\n--flag\n--fleg\n", ""},
+		{"option", func() { os.Setenv("COMP_LINE", "./program --fl") }, []string{}, "--flag\n--fleg\n", ""},
+		{"option", func() { os.Setenv("COMP_LINE", "./program --d") }, []string{}, "--debug\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program h") }, []string{}, "help \n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program help ") }, []string{}, "log\nshow\n", ""},
 		// TODO: --profile= when there are suggestions is probably not wanted
-		{"command", func() { os.Setenv("COMP_LINE", "./program --profile") }, []string{}, "--profile=\n--profile=dev\n--profile=production\n--profile=staging\n"},
-		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=") }, []string{}, "dev\nproduction\nstaging\n"},
-		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=p") }, []string{}, "production\n"},
-		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=p") }, []string{}, "production\n"},
-		{"command", func() { os.Setenv("COMP_LINE", "./program lo ") }, []string{"./program", "lo", "./program"}, "log \n"},
+		{"command", func() { os.Setenv("COMP_LINE", "./program --profile") }, []string{}, "--profile=\n--profile=dev\n--profile=production\n--profile=staging\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=") }, []string{}, "dev\nproduction\nstaging\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=p") }, []string{}, "production\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=p") }, []string{}, "production\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=a ") }, []string{}, "", `
+ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "production"]
+`},
+		{"command", func() { os.Setenv("COMP_LINE", "./program lo ") }, []string{"./program", "lo", "./program"}, "log \n", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -246,8 +250,9 @@ func TestCompletion(t *testing.T) {
 				t.Errorf("Error\ngot: '%s', expected: '%s'\n", completionBuf.String(), tt.expected)
 				t.Errorf("diff:\n%s", firstDiff(completionBuf.String(), tt.expected))
 			}
-			if buf.String() != "" {
+			if buf.String() != tt.err {
 				t.Errorf("buf: %s\n", buf.String())
+				t.Errorf("diff:\n%s", firstDiff(buf.String(), tt.err))
 			}
 			cleanup()
 		})
