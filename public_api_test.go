@@ -779,23 +779,27 @@ func TestGetOptAliases(t *testing.T) {
 		input  []string
 		value  bool
 	}{
-		{setup(),
+		{
+			setup(),
 			"flag",
 			[]string{"--flag"},
 			true,
 		},
-		{setup(),
+		{
+			setup(),
 			"flag",
 			[]string{"-f"},
 			true,
 		},
-		{setup(),
+		{
+			setup(),
 			"flag",
 			[]string{"-h"},
 			true,
 		},
 		// TODO: Add flag to allow for this.
-		{setup(),
+		{
+			setup(),
 			"flag",
 			[]string{"--fl"},
 			true,
@@ -869,40 +873,47 @@ func TestGetOptString(t *testing.T) {
 		input  []string
 		value  string
 	}{
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string=hello"},
 			"hello",
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string=hello", "world"},
 			"hello",
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string", "hello"},
 			"hello",
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--alias", "hello"},
 			"hello",
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string", "hello", "world"},
 			"hello",
 		},
 		// String should only accept an option looking string as an argument when passed after =
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string=--hello", "world"},
 			"--hello",
 		},
 		// TODO: Set up a flag to decide whether or not to err on this
 		// To have the definition of string overridden. This should probably fail since it is most likely not what the user intends.
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string", "hello", "--string", "world"},
 			"world",
@@ -944,27 +955,32 @@ func TestGetOptInt(t *testing.T) {
 		input  []string
 		value  int
 	}{
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int=-123"},
 			-123,
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int=-123", "world"},
 			-123,
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int", "123"},
 			123,
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--alias", "123"},
 			123,
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int", "123", "world"},
 			123,
@@ -1042,27 +1058,32 @@ func TestGetOptFloat64(t *testing.T) {
 		input  []string
 		value  float64
 	}{
-		{setup(),
+		{
+			setup(),
 			"float",
 			[]string{"--float=-1.23"},
 			-1.23,
 		},
-		{setup(),
+		{
+			setup(),
 			"float",
 			[]string{"--float=-1.23", "world"},
 			-1.23,
 		},
-		{setup(),
+		{
+			setup(),
 			"float",
 			[]string{"--float", "1.23"},
 			1.23,
 		},
-		{setup(),
+		{
+			setup(),
 			"float",
 			[]string{"--alias", "1.23"},
 			1.23,
 		},
-		{setup(),
+		{
+			setup(),
 			"float",
 			[]string{"--float", "1.23", "world"},
 			1.23,
@@ -1143,67 +1164,78 @@ func TestGetOptStringMap(t *testing.T) {
 		input  []string
 		value  map[string]string
 	}{
-		{"arg inline with option",
+		{
+			"arg inline with option",
 			setup(),
 			"string",
 			[]string{"--string=hello=world"},
 			map[string]string{"hello": "world"},
 		},
-		{"arg inline with alias",
+		{
+			"arg inline with alias",
 			setup(),
 			"string",
 			[]string{"--alias=hello=world"},
 			map[string]string{"hello": "world"},
 		},
-		{"inline arg with following non key value text",
+		{
+			"inline arg with following non key value text",
 			setup(),
 			"string",
 			[]string{"--string=hello=happy", "world"},
 			map[string]string{"hello": "happy"},
 		},
-		{"arg with following non key value text",
+		{
+			"arg with following non key value text",
 			setup(),
 			"string",
 			[]string{"--string", "hello=happy", "world"},
 			map[string]string{"hello": "happy"},
 		},
-		{"arg with following string option",
+		{
+			"arg with following string option",
 			setup(),
 			"string",
 			[]string{"--string", "hello=world", "--opt", "happy"},
 			map[string]string{"hello": "world"},
 		},
-		{"inline arg with leading dashes",
+		{
+			"inline arg with leading dashes",
 			setup(),
 			"string",
 			[]string{"--string=--hello=happy", "world"},
 			map[string]string{"--hello": "happy"},
 		},
-		{"multiple calls",
+		{
+			"multiple calls",
 			setup(),
 			"string",
 			[]string{"--string", "hello=world", "--string", "key=value", "--string", "key2=value2"},
 			map[string]string{"hello": "world", "key": "value", "key2": "value2"},
 		},
-		{"multiple calls using maximum",
+		{
+			"multiple calls using maximum",
 			setup(),
 			"string",
 			[]string{"--string", "hello=world", "key=value", "key2=value2"},
 			map[string]string{"hello": "world", "key": "value", "key2": "value2"},
 		},
-		{"2 args",
+		{
+			"2 args",
 			setup(),
 			"string",
 			[]string{"--string", "hello=happy", "happy=world"},
 			map[string]string{"hello": "happy", "happy": "world"},
 		},
-		{"inline arg plus extra arg",
+		{
+			"inline arg plus extra arg",
 			setup(),
 			"string",
 			[]string{"--string=--hello=happy", "happy=world"},
 			map[string]string{"--hello": "happy", "happy": "world"},
 		},
-		{"validate case",
+		{
+			"validate case",
 			setup(),
 			"string",
 			[]string{"--string", "key=value", "Key=value1", "kEy=value2"},
@@ -1346,47 +1378,56 @@ func TestGetOptStringSlice(t *testing.T) {
 		input  []string
 		value  []string
 	}{
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string", "hello"},
 			[]string{"hello"},
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string=hello"},
 			[]string{"hello"},
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string", "hello", "world"},
 			[]string{"hello", "world"},
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--alias", "hello", "world"},
 			[]string{"hello", "world"},
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string=hello", "world"},
 			[]string{"hello", "world"},
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string", "hello", "happy", "world"},
 			[]string{"hello", "happy", "world"},
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string=hello", "happy", "world"},
 			[]string{"hello", "happy", "world"},
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string", "hello", "--opt", "world"},
 			[]string{"hello"},
 		},
-		{setup(),
+		{
+			setup(),
 			"string",
 			[]string{"--string", "hello", "--string", "world"},
 			[]string{"hello", "world"},
@@ -1479,52 +1520,62 @@ func TestGetOptIntSlice(t *testing.T) {
 		input  []string
 		value  []int
 	}{
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int", "123"},
 			[]int{123},
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int=-123"},
 			[]int{-123},
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int", "123", "456", "hello"},
 			[]int{123, 456},
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int=123", "456"},
 			[]int{123, 456},
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int", "123", "456", "789"},
 			[]int{123, 456, 789},
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--alias", "123", "456", "789"},
 			[]int{123, 456, 789},
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int=123", "456", "789"},
 			[]int{123, 456, 789},
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int", "123", "--opt", "world"},
 			[]int{123},
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int", "123", "--int", "456"},
 			[]int{123, 456},
 		},
-		{setup(),
+		{
+			setup(),
 			"int",
 			[]string{"--int", "1..5"},
 			[]int{1, 2, 3, 4, 5},
@@ -1641,52 +1692,62 @@ func TestGetOptFloat64Slice(t *testing.T) {
 		input  []string
 		value  []float64
 	}{
-		{setup(),
+		{
+			setup(),
 			"float64",
 			[]string{"--float64", "123"},
 			[]float64{123},
 		},
-		{setup(),
+		{
+			setup(),
 			"float64",
 			[]string{"--float64=-123"},
 			[]float64{-123},
 		},
-		{setup(),
+		{
+			setup(),
 			"float64",
 			[]string{"--float64", "123", "456", "hello"},
 			[]float64{123, 456},
 		},
-		{setup(),
+		{
+			setup(),
 			"float64",
 			[]string{"--float64=123", "456"},
 			[]float64{123, 456},
 		},
-		{setup(),
+		{
+			setup(),
 			"float64",
 			[]string{"--float64", "123", "456", "789"},
 			[]float64{123, 456, 789},
 		},
-		{setup(),
+		{
+			setup(),
 			"float64",
 			[]string{"--alias", "123", "456", "789"},
 			[]float64{123, 456, 789},
 		},
-		{setup(),
+		{
+			setup(),
 			"float64",
 			[]string{"--float64=123", "456", "789"},
 			[]float64{123, 456, 789},
 		},
-		{setup(),
+		{
+			setup(),
 			"float64",
 			[]string{"--float64", "123", "--opt", "world"},
 			[]float64{123},
 		},
-		{setup(),
+		{
+			setup(),
 			"float64",
 			[]string{"--float64", "123", "--float64", "456"},
 			[]float64{123, 456},
 		},
-		{setup(),
+		{
+			setup(),
 			"float64",
 			[]string{"--float64", "123.456", "--float64", "456.789"},
 			[]float64{123.456, 456.789},
@@ -1879,7 +1940,6 @@ func TestDefaultValues(t *testing.T) {
 	opt.StringMap("string-map", 1, 1)
 
 	_, err := opt.Parse([]string{})
-
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -3309,7 +3369,6 @@ func TestAll(t *testing.T) {
 		"--string-map", "hello=world", "--string-map", "server=name",
 		"world",
 	})
-
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}

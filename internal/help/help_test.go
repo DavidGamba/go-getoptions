@@ -64,70 +64,82 @@ func TestHelp(t *testing.T) {
 		{"Synopsis", Synopsis(scriptName, "log", "<filename>", nil, []string{}), `SYNOPSIS:
     help.test log <filename>
 `},
-		{"Synopsis", Synopsis(scriptName, "log", "",
-			[]*option.Option{func() *option.Option { b := false; return option.New("bool", option.BoolType, &b) }()}, []string{}),
+		{
+			"Synopsis", Synopsis(scriptName, "log", "",
+				[]*option.Option{func() *option.Option { b := false; return option.New("bool", option.BoolType, &b) }()}, []string{}),
 			`SYNOPSIS:
     help.test log [--bool] [<args>]
-`},
-		{"Synopsis", Synopsis(scriptName, "log", "",
-			[]*option.Option{boolOpt()}, []string{}),
+`,
+		},
+		{
+			"Synopsis", Synopsis(scriptName, "log", "",
+				[]*option.Option{boolOpt()}, []string{}),
 			`SYNOPSIS:
     help.test log [--bool|-b] [<args>]
-`},
-		{"Synopsis", Synopsis(scriptName, "log", "",
-			[]*option.Option{
-				boolOpt(),
-				intOpt(),
-				floatOpt(),
-				ssOpt(),
-				iiOpt(),
-				mOpt(),
-			}, []string{}),
+`,
+		},
+		{
+			"Synopsis", Synopsis(scriptName, "log", "",
+				[]*option.Option{
+					boolOpt(),
+					intOpt(),
+					floatOpt(),
+					ssOpt(),
+					iiOpt(),
+					mOpt(),
+				}, []string{}),
 			`SYNOPSIS:
     help.test log [--bool|-b] [--float <float64>] [--ii <int>]... [--int <int>]
                   [-m <key=value>]... [--ss <string>]... [<args>]
-`},
-		{"Synopsis", Synopsis(scriptName, "log", "",
-			[]*option.Option{
-				boolOpt().SetRequired(""),
-				intOpt().SetRequired(""),
-				floatOpt().SetRequired(""),
-				ssOpt().SetRequired(""),
-				iiOpt().SetRequired(""),
-				mOpt().SetRequired(""),
-			}, []string{}),
+`,
+		},
+		{
+			"Synopsis", Synopsis(scriptName, "log", "",
+				[]*option.Option{
+					boolOpt().SetRequired(""),
+					intOpt().SetRequired(""),
+					floatOpt().SetRequired(""),
+					ssOpt().SetRequired(""),
+					iiOpt().SetRequired(""),
+					mOpt().SetRequired(""),
+				}, []string{}),
 			`SYNOPSIS:
     help.test log --bool|-b --float <float64> <--ii <int>>... --int <int>
                   <-m <key=value>>... <--ss <string>>... [<args>]
-`},
-		{"Synopsis", Synopsis(scriptName, "log", "",
-			[]*option.Option{
-				boolOpt().SetRequired(""),
-				intOpt().SetRequired(""),
-				floatOpt().SetRequired(""),
-				ssOpt().SetRequired(""),
-				iiOpt().SetRequired(""),
-				mOpt().SetRequired(""),
-			}, []string{"log", "show"}),
+`,
+		},
+		{
+			"Synopsis", Synopsis(scriptName, "log", "",
+				[]*option.Option{
+					boolOpt().SetRequired(""),
+					intOpt().SetRequired(""),
+					floatOpt().SetRequired(""),
+					ssOpt().SetRequired(""),
+					iiOpt().SetRequired(""),
+					mOpt().SetRequired(""),
+				}, []string{"log", "show"}),
 			`SYNOPSIS:
     help.test log --bool|-b --float <float64> <--ii <int>>... --int <int>
                   <-m <key=value>>... <--ss <string>>... <command> [<args>]
-`},
-		{"Synopsis", Synopsis(scriptName, "log", "",
-			[]*option.Option{
-				boolOpt().SetRequired(""),
-				intOpt().SetRequired(""),
-				floatOpt().SetRequired(""),
-				ssOpt().SetRequired(""),
-				iiOpt().SetRequired(""),
-				mOpt().SetRequired(""),
-				func() *option.Option { m := map[string]string{}; return option.New("z", option.StringMapType, &m) }().SetRequired(""),
-			}, []string{"log", "show"}),
+`,
+		},
+		{
+			"Synopsis", Synopsis(scriptName, "log", "",
+				[]*option.Option{
+					boolOpt().SetRequired(""),
+					intOpt().SetRequired(""),
+					floatOpt().SetRequired(""),
+					ssOpt().SetRequired(""),
+					iiOpt().SetRequired(""),
+					mOpt().SetRequired(""),
+					func() *option.Option { m := map[string]string{}; return option.New("z", option.StringMapType, &m) }().SetRequired(""),
+				}, []string{"log", "show"}),
 			`SYNOPSIS:
     help.test log --bool|-b --float <float64> <--ii <int>>... --int <int>
                   <-m <key=value>>... <--ss <string>>... <-z <key=value>>...
                   <command> [<args>]
-`},
+`,
+		},
 		{"OptionList nil", OptionList(nil), ""},
 		{"OptionList empty", OptionList([]*option.Option{}), ""},
 		{"OptionList default str", OptionList([]*option.Option{
@@ -151,14 +163,15 @@ func TestHelp(t *testing.T) {
     --ss <string>        (default: [])
 
 `},
-		{"OptionList required", OptionList([]*option.Option{
-			boolOpt().SetRequired(""),
-			intOpt().SetRequired(""),
-			floatOpt().SetRequired(""),
-			ssOpt().SetRequired(""),
-			iiOpt().SetRequired(""),
-			mOpt().SetRequired(""),
-		}),
+		{
+			"OptionList required", OptionList([]*option.Option{
+				boolOpt().SetRequired(""),
+				intOpt().SetRequired(""),
+				floatOpt().SetRequired(""),
+				ssOpt().SetRequired(""),
+				iiOpt().SetRequired(""),
+				mOpt().SetRequired(""),
+			}),
 			`REQUIRED PARAMETERS:
     --bool|-b
 
@@ -172,7 +185,8 @@ func TestHelp(t *testing.T) {
 
     --ss <string>
 
-`},
+`,
+		},
 		{"OptionList multi line", OptionList([]*option.Option{
 			boolOpt().SetDefaultStr("false").SetDescription("bool"),
 			intOpt().SetDefaultStr("0").SetDescription("int\nmultiline description"),

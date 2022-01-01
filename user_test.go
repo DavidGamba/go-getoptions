@@ -174,7 +174,6 @@ func TestTrees(t *testing.T) {
 			t.Errorf(spewToFileDiff(t, cmd2, n))
 			t.Fatalf(programTreeError(cmd2, n))
 		}
-
 	})
 
 	t.Cleanup(func() { t.Log(buf.String()) })

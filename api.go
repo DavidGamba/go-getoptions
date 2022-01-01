@@ -262,7 +262,6 @@ ARGS_LOOP:
 						completions = append(completions, k)
 					}
 				}
-
 			}
 
 			// Suggestions

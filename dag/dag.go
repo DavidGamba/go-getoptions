@@ -101,14 +101,16 @@ const (
 	traversed
 )
 
-var ErrorTaskNil = fmt.Errorf("nil task given")
-var ErrorTaskID = fmt.Errorf("missing task ID")
-var ErrorTaskFn = fmt.Errorf("missing task function")
-var ErrorTaskDuplicate = fmt.Errorf("task definition already exists")
-var ErrorTaskNotFound = fmt.Errorf("task not found")
-var ErrorTaskDependencyDuplicate = fmt.Errorf("task dependency already defined")
-var ErrorGraphHasCycle = fmt.Errorf("graph has a cycle")
-var ErrorTaskSkipped = fmt.Errorf("skipped")
+var (
+	ErrorTaskNil                 = fmt.Errorf("nil task given")
+	ErrorTaskID                  = fmt.Errorf("missing task ID")
+	ErrorTaskFn                  = fmt.Errorf("missing task function")
+	ErrorTaskDuplicate           = fmt.Errorf("task definition already exists")
+	ErrorTaskNotFound            = fmt.Errorf("task not found")
+	ErrorTaskDependencyDuplicate = fmt.Errorf("task dependency already defined")
+	ErrorGraphHasCycle           = fmt.Errorf("graph has a cycle")
+	ErrorTaskSkipped             = fmt.Errorf("skipped")
+)
 
 // ErrorSkipParents - Allows for conditional tasks that allow a task to Skip all parent tasks without failing the run
 var ErrorSkipParents = fmt.Errorf("skip parents without failing")

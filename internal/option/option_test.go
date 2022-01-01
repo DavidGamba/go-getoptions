@@ -113,16 +113,24 @@ func TestOption(t *testing.T) {
 			i := 0
 			return New("help", IntType, &i).SetInt(456)
 		}(), []string{"123"}, 123, nil},
-		{"int error", func() *Option {
-			i := 0
-			return New("help", IntType, &i)
-		}(), []string{"123x"}, 0,
-			fmt.Errorf(text.ErrorConvertToInt, "", "123x")},
-		{"int error alias", func() *Option {
-			i := 0
-			return New("help", IntType, &i).SetCalled("int")
-		}(), []string{"123x"}, 0,
-			fmt.Errorf(text.ErrorConvertToInt, "int", "123x")},
+		{
+			"int error", func() *Option {
+				i := 0
+				return New("help", IntType, &i)
+			}(),
+			[]string{"123x"},
+			0,
+			fmt.Errorf(text.ErrorConvertToInt, "", "123x"),
+		},
+		{
+			"int error alias", func() *Option {
+				i := 0
+				return New("help", IntType, &i).SetCalled("int")
+			}(),
+			[]string{"123x"},
+			0,
+			fmt.Errorf(text.ErrorConvertToInt, "int", "123x"),
+		},
 
 		{"int optinal", func() *Option {
 			i := 0
@@ -140,16 +148,24 @@ func TestOption(t *testing.T) {
 			i := 0
 			return New("help", IntOptionalType, &i).SetInt(456)
 		}(), []string{}, 456, nil},
-		{"int optinal error", func() *Option {
-			i := 0
-			return New("help", IntOptionalType, &i)
-		}(), []string{"123x"}, 0,
-			fmt.Errorf(text.ErrorConvertToInt, "", "123x")},
-		{"int optinal error alias", func() *Option {
-			i := 0
-			return New("help", IntOptionalType, &i).SetCalled("int")
-		}(), []string{"123x"}, 0,
-			fmt.Errorf(text.ErrorConvertToInt, "int", "123x")},
+		{
+			"int optinal error", func() *Option {
+				i := 0
+				return New("help", IntOptionalType, &i)
+			}(),
+			[]string{"123x"},
+			0,
+			fmt.Errorf(text.ErrorConvertToInt, "", "123x"),
+		},
+		{
+			"int optinal error alias", func() *Option {
+				i := 0
+				return New("help", IntOptionalType, &i).SetCalled("int")
+			}(),
+			[]string{"123x"},
+			0,
+			fmt.Errorf(text.ErrorConvertToInt, "int", "123x"),
+		},
 
 		{"increment", func() *Option {
 			i := 0
@@ -168,16 +184,24 @@ func TestOption(t *testing.T) {
 			f := 0.0
 			return New("help", Float64Type, &f)
 		}(), []string{"123.123"}, 123.123, nil},
-		{"float64 error", func() *Option {
-			f := 0.0
-			return New("help", Float64Type, &f)
-		}(), []string{"123x"}, 0.0,
-			fmt.Errorf(text.ErrorConvertToFloat64, "", "123x")},
-		{"float64 error alias", func() *Option {
-			f := 0.0
-			return New("help", Float64Type, &f).SetCalled("float")
-		}(), []string{"123x"}, 0.0,
-			fmt.Errorf(text.ErrorConvertToFloat64, "float", "123x")},
+		{
+			"float64 error", func() *Option {
+				f := 0.0
+				return New("help", Float64Type, &f)
+			}(),
+			[]string{"123x"},
+			0.0,
+			fmt.Errorf(text.ErrorConvertToFloat64, "", "123x"),
+		},
+		{
+			"float64 error alias", func() *Option {
+				f := 0.0
+				return New("help", Float64Type, &f).SetCalled("float")
+			}(),
+			[]string{"123x"},
+			0.0,
+			fmt.Errorf(text.ErrorConvertToFloat64, "float", "123x"),
+		},
 
 		{"float64 optional", func() *Option {
 			f := 0.0
@@ -187,16 +211,24 @@ func TestOption(t *testing.T) {
 			f := 0.0
 			return New("help", Float64OptionalType, &f)
 		}(), []string{}, 0.0, nil},
-		{"float64 optional error", func() *Option {
-			f := 0.0
-			return New("help", Float64OptionalType, &f)
-		}(), []string{"123x"}, 0.0,
-			fmt.Errorf(text.ErrorConvertToFloat64, "", "123x")},
-		{"float64 optional error alias", func() *Option {
-			f := 0.0
-			return New("help", Float64OptionalType, &f).SetCalled("float")
-		}(), []string{"123x"}, 0.0,
-			fmt.Errorf(text.ErrorConvertToFloat64, "float", "123x")},
+		{
+			"float64 optional error", func() *Option {
+				f := 0.0
+				return New("help", Float64OptionalType, &f)
+			}(),
+			[]string{"123x"},
+			0.0,
+			fmt.Errorf(text.ErrorConvertToFloat64, "", "123x"),
+		},
+		{
+			"float64 optional error alias", func() *Option {
+				f := 0.0
+				return New("help", Float64OptionalType, &f).SetCalled("float")
+			}(),
+			[]string{"123x"},
+			0.0,
+			fmt.Errorf(text.ErrorConvertToFloat64, "float", "123x"),
+		},
 
 		{"string slice", func() *Option {
 			ss := []string{}
@@ -207,41 +239,61 @@ func TestOption(t *testing.T) {
 			ii := []int{}
 			return New("help", IntRepeatType, &ii)
 		}(), []string{"123", "456"}, []int{123, 456}, nil},
-		{"int slice error", func() *Option {
-			ii := []int{}
-			return New("help", IntRepeatType, &ii)
-		}(), []string{"x"}, []int{},
-			fmt.Errorf(text.ErrorConvertToInt, "", "x")},
+		{
+			"int slice error", func() *Option {
+				ii := []int{}
+				return New("help", IntRepeatType, &ii)
+			}(),
+			[]string{"x"},
+			[]int{},
+			fmt.Errorf(text.ErrorConvertToInt, "", "x"),
+		},
 
 		{"float64 slice", func() *Option {
 			ii := []float64{}
 			return New("help", Float64RepeatType, &ii)
 		}(), []string{"123.456", "456.789"}, []float64{123.456, 456.789}, nil},
-		{"float64 slice error", func() *Option {
-			ii := []float64{}
-			return New("help", Float64RepeatType, &ii)
-		}(), []string{"x"}, []float64{},
-			fmt.Errorf(text.ErrorConvertToFloat64, "", "x")},
+		{
+			"float64 slice error", func() *Option {
+				ii := []float64{}
+				return New("help", Float64RepeatType, &ii)
+			}(),
+			[]string{"x"},
+			[]float64{},
+			fmt.Errorf(text.ErrorConvertToFloat64, "", "x"),
+		},
 
 		{"int slice range", func() *Option {
 			ii := []int{}
 			return New("help", IntRepeatType, &ii)
 		}(), []string{"1..5"}, []int{1, 2, 3, 4, 5}, nil},
-		{"int slice range error", func() *Option {
-			ii := []int{}
-			return New("help", IntRepeatType, &ii)
-		}(), []string{"x..5"}, []int{},
-			fmt.Errorf(text.ErrorConvertToInt, "", "x..5")},
-		{"int slice range error", func() *Option {
-			ii := []int{}
-			return New("help", IntRepeatType, &ii)
-		}(), []string{"1..x"}, []int{},
-			fmt.Errorf(text.ErrorConvertToInt, "", "1..x")},
-		{"int slice range error", func() *Option {
-			ii := []int{}
-			return New("help", IntRepeatType, &ii)
-		}(), []string{"5..1"}, []int{},
-			fmt.Errorf(text.ErrorConvertToInt, "", "5..1")},
+		{
+			"int slice range error", func() *Option {
+				ii := []int{}
+				return New("help", IntRepeatType, &ii)
+			}(),
+			[]string{"x..5"},
+			[]int{},
+			fmt.Errorf(text.ErrorConvertToInt, "", "x..5"),
+		},
+		{
+			"int slice range error", func() *Option {
+				ii := []int{}
+				return New("help", IntRepeatType, &ii)
+			}(),
+			[]string{"1..x"},
+			[]int{},
+			fmt.Errorf(text.ErrorConvertToInt, "", "1..x"),
+		},
+		{
+			"int slice range error", func() *Option {
+				ii := []int{}
+				return New("help", IntRepeatType, &ii)
+			}(),
+			[]string{"5..1"},
+			[]int{},
+			fmt.Errorf(text.ErrorConvertToInt, "", "5..1"),
+		},
 
 		{"map", func() *Option {
 			m := make(map[string]string)
@@ -259,11 +311,15 @@ func TestOption(t *testing.T) {
 		// 	m := make(map[string]string)
 		// 	return New("help", StringMapType, &m)
 		// }(), []string{"hola=mundo", "hello=world"}, map[string]string{"hola": "mundo", "hello": "world"}, nil},
-		{"map error", func() *Option {
-			m := make(map[string]string)
-			return New("help", StringMapType, &m)
-		}(), []string{"hola"}, map[string]string{},
-			fmt.Errorf(text.ErrorArgumentIsNotKeyValue, "")},
+		{
+			"map error", func() *Option {
+				m := make(map[string]string)
+				return New("help", StringMapType, &m)
+			}(),
+			[]string{"hola"},
+			map[string]string{},
+			fmt.Errorf(text.ErrorArgumentIsNotKeyValue, ""),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

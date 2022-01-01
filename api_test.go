@@ -14,7 +14,6 @@ func TestParseCLIArgs(t *testing.T) {
 		completions completions
 		err         error
 	}{
-
 		{"empty", nil, Normal, setupOpt().programTree, []string{}, nil},
 
 		{"empty", []string{}, Normal, setupOpt().programTree, []string{}, nil},
@@ -341,7 +340,6 @@ func TestParseCLIArgsCompletions(t *testing.T) {
 		completions completions
 		err         error
 	}{
-
 		{"empty", nil, Normal, []string{"cmd1", "cmd2"}, nil},
 
 		{"empty", []string{}, Normal, []string{"cmd1", "cmd2"}, nil},

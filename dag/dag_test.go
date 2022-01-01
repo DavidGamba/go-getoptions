@@ -728,7 +728,6 @@ func TestMaxParallel(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestBufferedOutput(t *testing.T) {
