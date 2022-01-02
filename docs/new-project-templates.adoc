@@ -18,7 +18,7 @@ The template also creates a default context that captures `os.Interrupt`, `sysca
 
 When creating a complex tool (in other words, one that implements sub-commands) use the template below:
 
-include::complex/main.go[]
+include::tool/main.go[]
 
 The template has a single `os.Exit`.
 `os.Exit` shouldn't be used anywhere else on your script (otherwise defer statements will not run).

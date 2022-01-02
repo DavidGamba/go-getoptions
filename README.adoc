@@ -5,7 +5,7 @@ David Gamba, https://github.com/DavidGamba
 :toc: macro
 :toclevels: 4
 
-Go option parser inspired on the flexibility of Perl’s GetOpt::Long.
+Fully featured Go (golang) command line option parser with built-in auto-completion support.
 
 image:https://pkg.go.dev/badge/github.com/DavidGamba/go-getoptions.svg["Go Reference", link="https://pkg.go.dev/github.com/DavidGamba/go-getoptions"]
 image:https://github.com/DavidGamba/go-getoptions/actions/workflows/test.yml/badge.svg?branch=master["Build Status", link="https://github.com/DavidGamba/go-getoptions/actions/workflows/test.yml?query=branch:master"]
