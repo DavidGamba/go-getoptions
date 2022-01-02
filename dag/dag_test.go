@@ -40,7 +40,7 @@ func TestDag(t *testing.T) {
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			sm.Lock()
-			time.Sleep(1 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			results = append(results, n)
 			sm.Unlock()
 			return nil
@@ -271,7 +271,7 @@ func TestDagTaskError(t *testing.T) {
 				return fmt.Errorf("failure reason")
 			}
 			sm.Lock()
-			time.Sleep(1 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			results = append(results, n)
 			sm.Unlock()
 			return nil
@@ -347,7 +347,7 @@ func TestDagContexDone(t *testing.T) {
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			sm.Lock()
-			time.Sleep(1 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			results = append(results, n)
 			sm.Unlock()
 			if n == 4 {
@@ -423,7 +423,7 @@ func TestDagTaskSkipParents(t *testing.T) {
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			sm.Lock()
-			time.Sleep(1 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			if n == 4 {
 				sm.Unlock()
 				return ErrorSkipParents
@@ -641,14 +641,14 @@ func TestMaxParallel(t *testing.T) {
 	currentConcurrency := 0
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-			time.Sleep(3 * time.Millisecond)
+			time.Sleep(30 * time.Millisecond)
 			sm.Lock()
 			currentConcurrency += 1
 			if currentConcurrency > peakConcurrency {
 				peakConcurrency = currentConcurrency
 			}
 			sm.Unlock()
-			time.Sleep(3 * time.Millisecond)
+			time.Sleep(30 * time.Millisecond)
 			sm.Lock()
 			currentConcurrency -= 1
 			sm.Unlock()
