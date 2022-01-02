@@ -5,7 +5,7 @@ test:
 	cd examples/complex && go build . && cd ../..
 	cd examples/dag && go build . && cd ../..
 	cd examples/myscript && go build . && cd ../..
-	cd docs/complex && go build . && cd ../..
+	cd docs/tool && go build . && cd ../..
 	cd docs/script && go build . && cd ../..
 
 race:
