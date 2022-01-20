@@ -343,6 +343,29 @@ func TestUnknownOptionModes(t *testing.T) {
 			t.Errorf("known or another were not called")
 		}
 	})
+	t.Run("maintain order of unknown flags intermingled with arguments", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		opt := getoptions.New()
+		getoptions.Writer = buf
+		opt.Bool("known", false)
+		opt.Bool("another", false)
+		opt.SetUnknownMode(getoptions.Pass)
+		remaining, err := opt.Parse([]string{
+			"arg1", "--flags", "arg2", "--known", "arg3", "--another", "arg4", "--unknown", "arg5", "--unknown-2", "arg6", "--unknown-3", "arg7", "--unknown-4"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if buf.String() != "" {
+			t.Errorf("output didn't match expected value: %s", buf.String())
+		}
+		expected := []string{"arg1", "--flags", "arg2", "arg3", "arg4", "--unknown", "arg5", "--unknown-2", "arg6", "--unknown-3", "arg7", "--unknown-4"}
+		if !reflect.DeepEqual(remaining, expected) {
+			t.Errorf("remaining didn't have expected value: %v != %v", remaining, expected)
+		}
+		if !opt.Called("known") && !opt.Called("another") {
+			t.Errorf("known or another were not called")
+		}
+	})
 }
 
 func TestOptionals(t *testing.T) {

@@ -333,6 +333,11 @@ ARGS_LOOP:
 					// TODO: This shouldn't append new children but update existing ones and isOption needs to be able to check if the option expects a follow up argument.
 					opt := newUnknownCLIOption(currentProgramNode, p.Option, iterator.Value(), p.Args...)
 					currentProgramNode.UnknownOptions = append(currentProgramNode.UnknownOptions, opt)
+
+					switch currentProgramNode.unknownMode {
+					case Pass, Warn:
+						currentProgramNode.ChildText = append(currentProgramNode.ChildText, iterator.Value())
+					}
 					continue
 				}
 				// TODO: Check min, check max and keep ingesting until something starts with `-` or matches a command.

@@ -353,10 +353,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 		case Warn:
 			fmt.Fprintf(Writer, text.WarningOnUnknown+"\n", option.Name)
 		}
-		node.ChildText = append(node.ChildText, option.Verbatim)
 	}
-
-	// TODO: Validate unknown options
 
 	return node.ChildText, nil
 }
