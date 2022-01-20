@@ -376,7 +376,7 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, remaining []string) error {
 	}
 	if gopt.finalNode.Parent != nil {
 		// landing help for commands without fn that have children
-		if len(gopt.finalNode.ChildCommands) > 0 {
+		if len(gopt.finalNode.ChildCommands) > 1 {
 			fmt.Fprint(Writer, helpOutput(gopt.finalNode))
 			return ErrorHelpCalled
 		}

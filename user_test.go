@@ -214,7 +214,7 @@ func TestCompletion(t *testing.T) {
 ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "production"]
 `},
 		{"command", func() { os.Setenv("COMP_LINE", "./program lo ") }, []string{"./program", "lo", "./program"}, "log \n", ""},
-		{"command", func() { os.Setenv("COMP_LINE", "./program show sub-show ") }, []string{}, "hello\npassword\nprofile\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program show sub-show ") }, []string{}, "hello\nhelp\npassword\nprofile\n", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
