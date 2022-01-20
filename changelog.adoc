@@ -1,6 +1,22 @@
 = Changelog
 :toc:
 
+== WIP v0.25.1: Minor Fixes
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.14, 1.15, 1.16 and Go 1.17.
+
+=== Minor changes
+
+* When `HelpCommand` is declared, inject a `help` subcommand to all commands, not just the ones that have children.
+This really simplifies discoverabilty for new users.
+
+=== Fixes
+
+* Maintain order of unknown options intermingled with arguments.
+When using getoptions.Pass ensure that unknown options are passthrough in the same order they were given.
+This is useful when doing wrappers.
+
 == v0.25.0: Major Refactor
 
 As the releases before, this release has 100% test coverage.
