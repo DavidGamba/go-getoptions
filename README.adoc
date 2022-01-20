@@ -11,10 +11,14 @@ image:https://pkg.go.dev/badge/github.com/DavidGamba/go-getoptions.svg["Go Refer
 image:https://github.com/DavidGamba/go-getoptions/actions/workflows/test.yml/badge.svg?branch=master["Build Status", link="https://github.com/DavidGamba/go-getoptions/actions/workflows/test.yml?query=branch:master"]
 image:https://codecov.io/github/DavidGamba/go-getoptions/coverage.svg?branch=master["Coverage via Codecov", link="https://codecov.io/github/DavidGamba/go-getoptions?branch=release"]
 
+Video Demo: https://youtu.be/1ZGyIkC5shM
+
 toc::[]
 
 [[quick_overview]]
 == Quick overview
+
+. See a detailed video demonstration: https://youtu.be/1ZGyIkC5shM
 
 . Define your command line specification:
 +
