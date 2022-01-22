@@ -1,6 +1,15 @@
 = Changelog
 :toc:
 
+== WIP v0.25.2: Minor Fixes
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.14, 1.15, 1.16 and Go 1.17.
+
+=== Fixes
+
+* Fix bug when running in `SingleDash` mode, if calling a single letter option with a single dash, and the option expects a value and the value wasn't provided with `=` or as a bundle then the option value wouldn't get registered.
+
 == v0.25.1: Minor Fixes
 
 As the releases before, this release has 100% test coverage.

@@ -100,15 +100,10 @@ func isOption(s string, mode Mode, windows bool) ([]optionPair, bool) {
 			}
 			return opts, true
 		case SingleDash:
-			opts := []optionPair{}
-			for _, option := range []string{strings.Split(match[2], "")[0]} {
-				opt := optionPair{}
-				opt.Option = option
-				opts = append(opts, opt)
-			}
-			if len(opts) > 0 {
-				args := strings.Join(strings.Split(match[2], "")[1:], "") + match[3]
-				opts[len(opts)-1].Args = []string{args}
+			opts := []optionPair{{Option: string([]rune(match[2])[0])}}
+			if len(match[2]) > 1 || len(match[3]) > 0 {
+				args := string([]rune(match[2])[1:]) + match[3]
+				opts[0].Args = []string{args}
 			}
 			return opts, true
 		default:

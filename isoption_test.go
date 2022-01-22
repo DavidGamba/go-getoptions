@@ -45,6 +45,10 @@ func TestIsOption(t *testing.T) {
 		{"short option", "-opt", Bundling, []optionPair{{Option: "o"}, {Option: "p"}, {Option: "t"}}, true},
 		{"short option", "-opt", SingleDash, []optionPair{{Option: "o", Args: []string{"pt"}}}, true},
 
+		{"short option single letter", "-o", Normal, []optionPair{{Option: "o"}}, true},
+		{"short option single letter", "-o", Bundling, []optionPair{{Option: "o"}}, true},
+		{"short option single letter", "-o", SingleDash, []optionPair{{Option: "o"}}, true},
+
 		{"short option with arg", "-opt=arg", Normal, []optionPair{{Option: "opt", Args: []string{"arg"}}}, true},
 		{"short option with arg", "-opt=arg", Bundling, []optionPair{{Option: "o"}, {Option: "p"}, {Option: "t", Args: []string{"arg"}}}, true},
 		{"short option with arg", "-opt=arg", SingleDash, []optionPair{{Option: "o", Args: []string{"pt=arg"}}}, true},
