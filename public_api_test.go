@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"runtime"
 	"testing"
 	"time"
 
@@ -14,6 +15,14 @@ import (
 	"github.com/DavidGamba/go-getoptions/internal/option"
 	"github.com/DavidGamba/go-getoptions/text"
 )
+
+func GetExecutableName() string {
+	if runtime.GOOS == "windows" {
+		return "go-getoptions.test.exe"
+	} else {
+		return "go-getoptions.test"
+	}
+}
 
 // Test helper to compare two string outputs and find the first difference
 func firstDiff(got, expected string) string {
@@ -2167,6 +2176,7 @@ func TestLonesomeDash(t *testing.T) {
 }
 
 func TestSynopsis(t *testing.T) {
+	executableName := GetExecutableName()
 	t.Run("full help", func(t *testing.T) {
 		opt := getoptions.New()
 		opt.Bool("flag", false, opt.Alias("f"))
@@ -2189,18 +2199,18 @@ func TestSynopsis(t *testing.T) {
 		synopsis := opt.Help(getoptions.HelpSynopsis)
 		commandList := opt.Help(getoptions.HelpCommandList)
 		optionList := opt.Help(getoptions.HelpOptionList)
-		expectedName := `NAME:
-    go-getoptions.test
+		expectedName := fmt.Sprintf(`NAME:
+    %s
 
-`
-		expectedSynopsis := `SYNOPSIS:
-    go-getoptions.test --int <int> <--req-list <item>...>... --str <string>
+`, executableName)
+		expectedSynopsis := fmt.Sprintf(`SYNOPSIS:
+    %s --int <int> <--req-list <item>...>... --str <string>
                        [--flag|-f] [--float|--fl <float64>] [--intSlice <int>]...
                        [--list <string>]... [--strMap <key=value>...]...
                        [--strSlice <my_value>...]... [--string <string>]
                        <command> [<args>]
 
-`
+`, executableName)
 		expectedCommandList := `COMMANDS:
     log     Log stuff
     show    Show stuff
@@ -2295,14 +2305,14 @@ OPTIONS:
 		}
 		name := opt.Help(getoptions.HelpName)
 		synopsis := opt.Help(getoptions.HelpSynopsis)
-		expectedName := `NAME:
-    go-getoptions.test - description...
+		expectedName := fmt.Sprintf(`NAME:
+    %s - description...
 
-`
-		expectedSynopsis := `SYNOPSIS:
-    go-getoptions.test <command> [<args>]
+`, executableName)
+		expectedSynopsis := fmt.Sprintf(`SYNOPSIS:
+    %s <command> [<args>]
 
-`
+`, executableName)
 		if name != expectedName {
 			t.Errorf("got:\n%s\nexpected:\n%s\n", name, expectedName)
 			t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
@@ -2325,10 +2335,10 @@ OPTIONS:
 		}
 		synopsis := opt.Help(getoptions.HelpSynopsis)
 		commandList := opt.Help(getoptions.HelpCommandList)
-		expectedSynopsis := `SYNOPSIS:
-    go-getoptions.test [<filename>]
+		expectedSynopsis := fmt.Sprintf(`SYNOPSIS:
+    %s [<filename>]
 
-`
+`, executableName)
 		expectedCommandList := ""
 		if synopsis != expectedSynopsis {
 			t.Errorf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
@@ -2350,14 +2360,14 @@ OPTIONS:
 		}
 		name := subLogCmd.Help(getoptions.HelpName)
 		synopsis := subLogCmd.Help(getoptions.HelpSynopsis)
-		expectedName := `NAME:
-    go-getoptions.test log sublog - Sub Log stuff
+		expectedName := fmt.Sprintf(`NAME:
+    %s log sublog - Sub Log stuff
 
-`
-		expectedSynopsis := `SYNOPSIS:
-    go-getoptions.test log sublog [<args>]
+`, executableName)
+		expectedSynopsis := fmt.Sprintf(`SYNOPSIS:
+    %s log sublog [<args>]
 
-`
+`, executableName)
 		if name != expectedName {
 			t.Errorf("got:\n%s\nexpected:\n%s\n", name, expectedName)
 			t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
@@ -2584,6 +2594,7 @@ func TestCommandAmbiguosOption(t *testing.T) {
 }
 
 func TestDispatch(t *testing.T) {
+	executableName := GetExecutableName()
 	t.Run("no args", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
@@ -2601,8 +2612,8 @@ func TestDispatch(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		expected := `SYNOPSIS:
-    go-getoptions.test [--help] <command> [<args>]
+		expected := fmt.Sprintf(`SYNOPSIS:
+    %s [--help] <command> [<args>]
 
 COMMANDS:
     command    
@@ -2610,8 +2621,8 @@ COMMANDS:
 OPTIONS:
     --help    (default: false)
 
-Use 'go-getoptions.test help <command>' for extra details.
-`
+Use '%[1]s help <command>' for extra details.
+`, executableName)
 		if helpBuf.String() != expected {
 			t.Errorf("Unexpected output:\n%s", firstDiff(helpBuf.String(), expected))
 		}
@@ -2639,8 +2650,8 @@ Use 'go-getoptions.test help <command>' for extra details.
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		expected := `SYNOPSIS:
-    go-getoptions.test [--help] <command> [<args>]
+		expected := fmt.Sprintf(`SYNOPSIS:
+    %s [--help] <command> [<args>]
 
 COMMANDS:
     command    
@@ -2648,8 +2659,8 @@ COMMANDS:
 OPTIONS:
     --help    (default: false)
 
-Use 'go-getoptions.test help <command>' for extra details.
-`
+Use '%[1]s help <command>' for extra details.
+`, executableName)
 		if helpBuf.String() != expected {
 			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
 		}
@@ -2675,16 +2686,16 @@ Use 'go-getoptions.test help <command>' for extra details.
 		if !errors.Is(err, getoptions.ErrorHelpCalled) {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		expected := `NAME:
-    go-getoptions.test command
+		expected := fmt.Sprintf(`NAME:
+    %s command
 
 SYNOPSIS:
-    go-getoptions.test command [--help] [<args>]
+    %[1]s command [--help] [<args>]
 
 OPTIONS:
     --help    (default: false)
 
-`
+`, executableName)
 		if helpBuf.String() != expected {
 			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
 		}
@@ -2712,11 +2723,11 @@ OPTIONS:
 		if !errors.Is(err, getoptions.ErrorHelpCalled) {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		expected := `NAME:
-    go-getoptions.test command
+		expected := fmt.Sprintf(`NAME:
+    %s command
 
 SYNOPSIS:
-    go-getoptions.test command [--flag] [--help] <command> [<args>]
+    %[1]s command [--flag] [--help] <command> [<args>]
 
 COMMANDS:
     sub-command    
@@ -2726,8 +2737,8 @@ OPTIONS:
 
     --help    (default: false)
 
-Use 'go-getoptions.test command help <command>' for extra details.
-`
+Use '%[1]s command help <command>' for extra details.
+`, executableName)
 		if helpBuf.String() != expected {
 			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
 		}
@@ -2755,11 +2766,11 @@ Use 'go-getoptions.test command help <command>' for extra details.
 		if !errors.Is(err, getoptions.ErrorHelpCalled) {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		expected := `NAME:
-    go-getoptions.test command
+		expected := fmt.Sprintf(`NAME:
+    %s command
 
 SYNOPSIS:
-    go-getoptions.test command [--flag] [--help] <command> [<args>]
+    %[1]s command [--flag] [--help] <command> [<args>]
 
 COMMANDS:
     sub-command    
@@ -2769,8 +2780,8 @@ OPTIONS:
 
     --help    (default: false)
 
-Use 'go-getoptions.test command help <command>' for extra details.
-`
+Use '%[1]s command help <command>' for extra details.
+`, executableName)
 		if helpBuf.String() != expected {
 			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
 		}
@@ -2797,16 +2808,16 @@ Use 'go-getoptions.test command help <command>' for extra details.
 		if err != nil && !errors.Is(err, getoptions.ErrorHelpCalled) {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		expected := `NAME:
-    go-getoptions.test command sub-command
+		expected := fmt.Sprintf(`NAME:
+    %s command sub-command
 
 SYNOPSIS:
-    go-getoptions.test command sub-command [--help] [<args>]
+    %[1]s command sub-command [--help] [<args>]
 
 OPTIONS:
     --help    (default: false)
 
-`
+`, executableName)
 		if helpBuf.String() != expected {
 			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
 		}
@@ -2834,11 +2845,11 @@ OPTIONS:
 		if err != nil && !errors.Is(err, getoptions.ErrorHelpCalled) {
 			t.Errorf("Unexpected error: %s", err)
 		}
-		expected := `NAME:
-    go-getoptions.test command sub-command
+		expected := fmt.Sprintf(`NAME:
+    %s command sub-command
 
 SYNOPSIS:
-    go-getoptions.test command sub-command --required <string> [--help] [<args>]
+    %[1]s command sub-command --required <string> [--help] [<args>]
 
 REQUIRED PARAMETERS:
     --required <string>
@@ -2846,7 +2857,7 @@ REQUIRED PARAMETERS:
 OPTIONS:
     --help                 (default: false)
 
-`
+`, executableName)
 		if helpBuf.String() != expected {
 			t.Errorf("Wrong output:\n%s\n", helpBuf.String())
 		}
@@ -3678,6 +3689,7 @@ func TestValidValues(t *testing.T) {
 }
 
 func TestUnsetOptions(t *testing.T) {
+	executableName := GetExecutableName()
 	t.Run("unset", func(t *testing.T) {
 		helpBuf := new(bytes.Buffer)
 		getoptions.Writer = helpBuf
@@ -3694,13 +3706,13 @@ func TestUnsetOptions(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		expected := `NAME:
-    go-getoptions.test cmd
+		expected := fmt.Sprintf(`NAME:
+    %s cmd
 
 SYNOPSIS:
-    go-getoptions.test cmd [<args>]
+    %[1]s cmd [<args>]
 
-`
+`, executableName)
 		if helpBuf.String() != expected {
 			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
 		}
