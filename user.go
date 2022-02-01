@@ -95,6 +95,9 @@ func New() *GetOpt {
 // If name is an empty string, it will only use the description and use the name as the executable name.
 func (gopt *GetOpt) Self(name string, description string) *GetOpt {
 	// TODO: Should this only be allowed at the root node level
+	if name == "" {
+		name = filepath.Base(os.Args[0])
+	}
 	gopt.programTree.Name = name
 	gopt.programTree.Description = description
 	return gopt

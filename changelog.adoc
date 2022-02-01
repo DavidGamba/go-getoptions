@@ -1,6 +1,15 @@
 = Changelog
 :toc:
 
+== WIP v0.25.3: Minor Fixes
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.14, 1.15, 1.16 and Go 1.17.
+
+=== Fixes
+
+* When using opt.Self, if name is empty, use `filepath.Base(os.Args[0])`.
+
 == v0.25.2: Minor Fixes
 
 As the releases before, this release has 100% test coverage.

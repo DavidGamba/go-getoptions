@@ -2284,6 +2284,38 @@ OPTIONS:
 		}
 	})
 
+	t.Run("test self without a name", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.NewCommand("log", "Log stuff")
+		opt.NewCommand("show", "Show stuff")
+		opt.Self("", "description...")
+		_, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		name := opt.Help(getoptions.HelpName)
+		synopsis := opt.Help(getoptions.HelpSynopsis)
+		expectedName := `NAME:
+    go-getoptions.test - description...
+
+`
+		expectedSynopsis := `SYNOPSIS:
+    go-getoptions.test <command> [<args>]
+
+`
+		if name != expectedName {
+			t.Errorf("got:\n%s\nexpected:\n%s\n", name, expectedName)
+			t.Errorf("Unexpected name:\n%s", firstDiff(name, expectedName))
+		}
+		if synopsis != expectedSynopsis {
+			t.Errorf("got:\n%s\nexpected:\n%s\n", synopsis, expectedSynopsis)
+			t.Errorf("Unexpected synopsis:\n%s", firstDiff(synopsis, expectedSynopsis))
+		}
+		if opt.Help() != expectedName+expectedSynopsis+opt.Help(getoptions.HelpCommandList)+opt.Help(getoptions.HelpOptionList) {
+			t.Errorf("Unexpected help:\n---\n%s\n---\n", opt.Help())
+		}
+	})
+
 	t.Run("", func(t *testing.T) {
 		opt := getoptions.New()
 		opt.HelpSynopsisArgs("[<filename>]")
