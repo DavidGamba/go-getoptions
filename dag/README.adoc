@@ -91,6 +91,11 @@ This one is on you!
 
 Finally, having an easy to use `os/exec` wrapper also helps a lot: https://github.com/DavidGamba/dgtools/tree/master/run["github.com/DavidGamba/dgtools/run"]
 
+== ROADMAP
+
+* Allow changing the ticker duration
+* Add message every 30 seconds on what task is running.
+
 == License
 
 This file is part of go-getoptions.

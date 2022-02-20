@@ -909,11 +909,10 @@ Defaults to "--" and "-" but could include "/" to support Win32 style argument h
 
 * Allow grouping commands so they can have a different order other than alphabetical in the help output.
 
-* DAG concurrency tests sporadically fail in macos when testing for race conditions.
-Testing concurrency and completion order is very difficult in Go.
-
 * Some Windows tests fail because the binary name includes .exe at the end.
 Update test suite to accommodate for Windows.
+
+* Introduce a opt.NoArgs so there are no `[<args>]` listed in the help output.
 
 == License
 
