@@ -40,7 +40,6 @@ func TestDag(t *testing.T) {
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			sm.Lock()
-			time.Sleep(10 * time.Millisecond)
 			results = append(results, n)
 			sm.Unlock()
 			return nil
@@ -271,7 +270,6 @@ func TestDagTaskError(t *testing.T) {
 				return fmt.Errorf("failure reason")
 			}
 			sm.Lock()
-			time.Sleep(10 * time.Millisecond)
 			results = append(results, n)
 			sm.Unlock()
 			return nil
@@ -347,7 +345,6 @@ func TestDagContexDone(t *testing.T) {
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			sm.Lock()
-			time.Sleep(10 * time.Millisecond)
 			results = append(results, n)
 			sm.Unlock()
 			if n == 4 {
@@ -423,7 +420,6 @@ func TestDagTaskSkipParents(t *testing.T) {
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			sm.Lock()
-			time.Sleep(10 * time.Millisecond)
 			if n == 4 {
 				sm.Unlock()
 				return ErrorSkipParents
@@ -631,49 +627,6 @@ func TestTaskMapErrors(t *testing.T) {
 }
 
 func TestMaxParallel(t *testing.T) {
-	buf := setupLogging()
-	t.Cleanup(func() { t.Log(buf.String()) })
-
-	var err error
-
-	sm := sync.Mutex{}
-	peakConcurrency := 0
-	currentConcurrency := 0
-	generateFn := func(n int) getoptions.CommandFn {
-		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-			time.Sleep(30 * time.Millisecond)
-			sm.Lock()
-			currentConcurrency += 1
-			if currentConcurrency > peakConcurrency {
-				peakConcurrency = currentConcurrency
-			}
-			sm.Unlock()
-			time.Sleep(30 * time.Millisecond)
-			sm.Lock()
-			currentConcurrency -= 1
-			sm.Unlock()
-			return nil
-		}
-	}
-
-	tm := NewTaskMap()
-	tm.Add("t1", generateFn(1))
-	tm.Add("t2", generateFn(2))
-	tm.Add("t3", generateFn(3))
-	tm.Add("t4", generateFn(4))
-	tm.Add("t5", generateFn(5))
-	tm.Add("t6", generateFn(6))
-	tm.Add("t7", generateFn(7))
-	tm.Add("t8", generateFn(8))
-	tm.Add("t9", generateFn(9))
-	tm.Add("t10", generateFn(10))
-	tm.Add("t11", generateFn(11))
-	tm.Add("t12", generateFn(12))
-	tm.Add("t13", generateFn(13))
-	tm.Add("t14", generateFn(14))
-	tm.Add("t15", generateFn(15))
-	tm.Add("t16", generateFn(16))
-
 	tests := []struct {
 		concurrency int
 		expected    int
@@ -698,8 +651,51 @@ func TestMaxParallel(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%d", test.concurrency), func(t *testing.T) {
-			peakConcurrency = 0
-			currentConcurrency = 0
+			buf := setupLogging()
+			t.Cleanup(func() { t.Log(buf.String()) })
+			Logger.SetOutput(buf)
+
+			var err error
+			sm := sync.Mutex{}
+			workMutex := sync.Mutex{}
+			peakConcurrency := 0
+			currentConcurrency := 0
+
+			generateFn := func(n int) getoptions.CommandFn {
+				return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+					sm.Lock()
+					currentConcurrency += 1
+					if currentConcurrency > peakConcurrency {
+						peakConcurrency = currentConcurrency
+					}
+					sm.Unlock()
+					workMutex.Lock()
+					workMutex.Unlock()
+					sm.Lock()
+					currentConcurrency -= 1
+					sm.Unlock()
+					return nil
+				}
+			}
+
+			tm := NewTaskMap()
+			tm.Add("t1", generateFn(1))
+			tm.Add("t2", generateFn(2))
+			tm.Add("t3", generateFn(3))
+			tm.Add("t4", generateFn(4))
+			tm.Add("t5", generateFn(5))
+			tm.Add("t6", generateFn(6))
+			tm.Add("t7", generateFn(7))
+			tm.Add("t8", generateFn(8))
+			tm.Add("t9", generateFn(9))
+			tm.Add("t10", generateFn(10))
+			tm.Add("t11", generateFn(11))
+			tm.Add("t12", generateFn(12))
+			tm.Add("t13", generateFn(13))
+			tm.Add("t14", generateFn(14))
+			tm.Add("t15", generateFn(15))
+			tm.Add("t16", generateFn(16))
+
 			g := NewGraph("test graph")
 			g.SetMaxParallel(test.concurrency)
 			g.AddTask(tm.Get("t1"))
@@ -718,6 +714,14 @@ func TestMaxParallel(t *testing.T) {
 			g.AddTask(tm.Get("t14"))
 			g.AddTask(tm.Get("t15"))
 			g.AddTask(tm.Get("t16"))
+
+			// Start a goroutine and keep the mutex locked for enough time for all
+			// routines to reach it then release the lock.
+			workMutex.Lock()
+			go func() {
+				time.Sleep(30 * time.Millisecond)
+				workMutex.Unlock()
+			}()
 
 			err = g.Run(context.Background(), nil, nil)
 			if err != nil {

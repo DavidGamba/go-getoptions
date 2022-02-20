@@ -1,6 +1,13 @@
 = Changelog
 :toc:
 
+== WIP v0.25.4: Test refactoring
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.14, 1.15, 1.16 and Go 1.17.
+
+* Refactor dag package tests to remove most sleeps.
+
 == v0.25.3: Minor Fixes
 
 As the releases before, this release has 100% test coverage.
