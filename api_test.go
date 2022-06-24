@@ -96,7 +96,7 @@ func TestParseCLIArgs(t *testing.T) {
 			opt.Called = true
 			opt.UsedAlias = "rootopt1"
 			return n
-		}(), []string{}, ErrorMissingArgument},
+		}(), []string{}, ErrorParsing},
 
 		{"terminator", []string{"--", "--opt1", "txt", "txt2"}, Normal, func() *programTree {
 			n := setupOpt().programTree
@@ -215,7 +215,7 @@ func TestParseCLIArgs(t *testing.T) {
 			opt.Called = true
 			opt.UsedAlias = "sub1cmd1opt1"
 			return n
-		}(), []string{}, ErrorMissingArgument},
+		}(), []string{}, ErrorParsing},
 
 		// {"command", []string{"--opt1", "cmd1", "--cmd1opt1"}, Normal, &programTree{
 		// 	Type:   argTypeProgname,
@@ -384,7 +384,7 @@ func TestParseCLIArgsCompletions(t *testing.T) {
 
 		{"option to subcommand", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1", "hello"}, Normal, []string{}, nil},
 
-		{"option argument with dash", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1", "-hello"}, Normal, []string{}, ErrorMissingArgument},
+		{"option argument with dash", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1", "-hello"}, Normal, []string{}, ErrorParsing},
 	}
 
 	for _, test := range tests {

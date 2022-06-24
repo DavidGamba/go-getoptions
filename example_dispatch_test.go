@@ -32,6 +32,9 @@ func ExampleGetOpt_Dispatch() {
 			os.Exit(1)
 		}
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		if errors.Is(err, getoptions.ErrorParsing) {
+			fmt.Fprintf(os.Stderr, "\n"+opt.Help())
+		}
 		os.Exit(1)
 	}
 

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/DavidGamba/go-getoptions"
-	"github.com/DavidGamba/go-getoptions/internal/option"
 	"github.com/DavidGamba/go-getoptions/text"
 )
 
@@ -184,7 +183,7 @@ func TestRequired(t *testing.T) {
 		if err == nil {
 			t.Errorf("Required option missing didn't raise error")
 		}
-		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
+		if err != nil && !errors.Is(err, getoptions.ErrorParsing) {
 			t.Errorf("Error type didn't match")
 		}
 		if err != nil && err.Error() != "Missing required parameter 'flag'" {
@@ -199,7 +198,7 @@ func TestRequired(t *testing.T) {
 		if err == nil {
 			t.Errorf("Required option missing didn't raise error")
 		}
-		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
+		if err != nil && !errors.Is(err, getoptions.ErrorParsing) {
 			t.Errorf("Error type didn't match")
 		}
 		if err != nil && err.Error() != "please provide 'flag'" {
@@ -237,7 +236,7 @@ func TestRequired(t *testing.T) {
 		if err == nil {
 			t.Errorf("Required option missing didn't raise error")
 		}
-		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
+		if err != nil && !errors.Is(err, getoptions.ErrorParsing) {
 			t.Errorf("Error type didn't match")
 		}
 		if err != nil && err.Error() != "Missing required parameter 'flag'" {
@@ -257,7 +256,7 @@ func TestRequired(t *testing.T) {
 		if err == nil {
 			t.Errorf("Required option missing didn't raise error")
 		}
-		if err != nil && !errors.Is(err, option.ErrorMissingRequiredOption) {
+		if err != nil && !errors.Is(err, getoptions.ErrorParsing) {
 			t.Errorf("Error type didn't match")
 		}
 		if err != nil && err.Error() != "please provide 'flag'" {

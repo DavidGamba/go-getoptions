@@ -343,7 +343,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 		for _, option := range node.ChildOptions {
 			err := option.CheckRequired()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("%w%s", ErrorParsing, err.Error())
 			}
 		}
 	}
@@ -371,7 +371,7 @@ func (gopt *GetOpt) Dispatch(ctx context.Context, remaining []string) error {
 	for _, option := range gopt.finalNode.ChildOptions {
 		err := option.CheckRequired()
 		if err != nil {
-			return err
+			return fmt.Errorf("%w%s", ErrorParsing, err.Error())
 		}
 	}
 	if gopt.finalNode.CommandFn != nil {

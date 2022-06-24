@@ -1,7 +1,6 @@
 package getoptions
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -11,8 +10,6 @@ import (
 	"github.com/DavidGamba/go-getoptions/internal/sliceiterator"
 	"github.com/DavidGamba/go-getoptions/text"
 )
-
-var ErrorMissingArgument = errors.New("")
 
 type programTree struct {
 	Type            argType
@@ -356,12 +353,12 @@ ARGS_LOOP:
 					i := len(p.Args) // if the value is part of the option, for example --opt=value then the minimum of 1 is already met.
 					for ; i < cOpt.MinArgs; i++ {
 						if !iterator.ExistsNext() && !cOpt.IsOptional {
-							err := fmt.Errorf(text.ErrorMissingArgument+"%w", cOpt.UsedAlias, ErrorMissingArgument)
+							err := fmt.Errorf(text.ErrorMissingArgument+"%w", cOpt.UsedAlias, ErrorParsing)
 							return currentProgramNode, []string{}, err
 						}
 						iterator.Next()
 						if _, is := isOption(iterator.Value(), mode, false); is && !cOpt.IsOptional {
-							err := fmt.Errorf(text.ErrorArgumentWithDash+"%w", cOpt.UsedAlias, ErrorMissingArgument)
+							err := fmt.Errorf(text.ErrorArgumentWithDash+"%w", cOpt.UsedAlias, ErrorParsing)
 							return currentProgramNode, []string{}, err
 						}
 						err := cOpt.Save(iterator.Value())

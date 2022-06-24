@@ -21,9 +21,6 @@ const (
 	HelpCommandInfo
 )
 
-// ErrorHelpCalled - Indicates the help has been handled.
-var ErrorHelpCalled = fmt.Errorf("help called")
-
 func getCurrentNodeName(n *programTree) string {
 	if n.Parent != nil {
 		parentName := getCurrentNodeName(n.Parent)
