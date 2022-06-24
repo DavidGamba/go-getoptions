@@ -331,10 +331,10 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 
 	// TODO: parseCLIArgs needs to return the remaining array
 	node, _, err := parseCLIArgs(false, gopt.programTree, args, gopt.programTree.mode)
+	gopt.finalNode = node
 	if err != nil {
 		return nil, err
 	}
-	gopt.finalNode = node
 
 	// Only validate required options at the parse call when the final node is the parent
 	// This to enable handling the help option in a command

@@ -31,6 +31,9 @@ func getCurrentNodeName(n *programTree) string {
 
 // Help - Default help string that is composed of all available sections.
 func (gopt *GetOpt) Help(sections ...HelpSection) string {
+	if gopt.finalNode != nil {
+		return helpOutput(gopt.finalNode, sections...)
+	}
 	return helpOutput(gopt.programTree, sections...)
 }
 
