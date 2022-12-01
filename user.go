@@ -339,11 +339,15 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	// Only validate required options at the parse call when the final node is the parent
 	// This to enable handling the help option in a command
 	if gopt.finalNode.Parent == nil {
-		// Validate required options
-		for _, option := range node.ChildOptions {
-			err := option.CheckRequired()
-			if err != nil {
-				return nil, fmt.Errorf("%w%s", ErrorParsing, err.Error())
+		// Check for help options before checking required.
+		// If the help is called, don't check for required options since the program wont run.
+		if gopt.finalNode.HelpCommandName == "" || !gopt.Called(gopt.finalNode.HelpCommandName) {
+			// Validate required options
+			for _, option := range node.ChildOptions {
+				err := option.CheckRequired()
+				if err != nil {
+					return nil, fmt.Errorf("%w%s", ErrorParsing, err.Error())
+				}
 			}
 		}
 	}

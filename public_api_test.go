@@ -2851,6 +2851,49 @@ OPTIONS:
 		}
 	})
 
+	t.Run("help option alias for program with required option", func(t *testing.T) {
+		// Ensure help has precedence over required options
+		// https://github.com/DavidGamba/go-getoptions/issues/12
+		helpBuf := new(bytes.Buffer)
+		commandFn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			return nil
+		}
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			return nil
+		}
+		opt := getoptions.New()
+		opt.String("required", "", opt.Required())
+		getoptions.Writer = helpBuf
+		command := opt.NewCommand("command", "").SetCommandFn(commandFn)
+		command.NewCommand("sub-command", "").SetCommandFn(fn)
+		opt.HelpCommand("help", opt.Alias("h", "?"))
+		remaining, err := opt.Parse([]string{"-h"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil && !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		expected := `SYNOPSIS:
+    go-getoptions.test --required <string> [--help|-h|-?] <command> [<args>]
+
+COMMANDS:
+    command    
+
+REQUIRED PARAMETERS:
+    --required <string>
+
+OPTIONS:
+    --help|-h|-?           (default: false)
+
+Use 'go-getoptions.test help <command>' for extra details.
+`
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
+
 	t.Run("command", func(t *testing.T) {
 		called := false
 		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
