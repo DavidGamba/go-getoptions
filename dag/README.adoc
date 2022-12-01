@@ -83,7 +83,7 @@ It builds a tree for you that it then runs in parallel when possible.
 
 * Define target and sources dependencies.
 In other words, if my sources have changed I need to rebuild my targets.
-(That is in the works in another place, in the meanwhile use mage's https://github.com/magefile/mage/blob/master/target/target.go[target package].
+Use the github.com/DavidGamba/dgtools/fsmodtime[fsmodtime package]
 
 * Task idempotency.
 This so you can run your build system tasks over and over without risk.
