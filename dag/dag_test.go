@@ -266,6 +266,7 @@ func TestDagTaskError(t *testing.T) {
 	g := NewGraph("test graph")
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			time.Sleep(30 * time.Millisecond)
 			if n == 4 {
 				return fmt.Errorf("failure reason")
 			}
@@ -307,13 +308,13 @@ func TestDagTaskError(t *testing.T) {
 		t.Fatalf("Unexpected error: %s\n", errs.Errors[1])
 	}
 	if !errors.Is(errs.Errors[2], ErrorTaskSkipped) {
-		t.Fatalf("Unexpected error: %s\n", errs.Errors[1])
+		t.Fatalf("Unexpected error: %s\n", errs.Errors[2])
 	}
 	if !errors.Is(errs.Errors[3], ErrorTaskSkipped) {
-		t.Fatalf("Unexpected error: %s\n", errs.Errors[1])
+		t.Fatalf("Unexpected error: %s\n", errs.Errors[3])
 	}
 	if !errors.Is(errs.Errors[4], ErrorTaskSkipped) {
-		t.Fatalf("Unexpected error: %s\n", errs.Errors[1])
+		t.Fatalf("Unexpected error: %s\n", errs.Errors[4])
 	}
 	if len(results) > 3 {
 		t.Errorf("Wrong list: %v\n", results)
