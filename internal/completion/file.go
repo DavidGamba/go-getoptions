@@ -17,10 +17,10 @@ import (
 
 // readDirNoSort - Same as ioutil/ReadDir but doesn't sort results.
 //
-//   Taken from https://golang.org/src/io/ioutil/ioutil.go
-//   Copyright 2009 The Go Authors. All rights reserved.
-//   Use of this source code is governed by a BSD-style
-//   license that can be found in the LICENSE file.
+//	Taken from https://golang.org/src/io/ioutil/ioutil.go
+//	Copyright 2009 The Go Authors. All rights reserved.
+//	Use of this source code is governed by a BSD-style
+//	license that can be found in the LICENSE file.
 func readDirNoSort(dirname string) ([]os.FileInfo, error) {
 	f, err := os.Open(dirname)
 	if err != nil {
@@ -63,15 +63,16 @@ func trimLeftDashes(s string) (int, string) {
 // sortForCompletion - Places hidden files in the same sort position as their non hidden counterparts.
 // Also used for sorting options in the same fashion.
 // Example:
-//   file.txt
-//   .file.txt.~
-//   .hidden.txt
-//   ..hidden.txt.~
 //
-//   -d
-//   --debug
-//   -h
-//   --help
+//	file.txt
+//	.file.txt.~
+//	.hidden.txt
+//	..hidden.txt.~
+//
+//	-d
+//	--debug
+//	-h
+//	--help
 func sortForCompletion(list []string) {
 	sort.Slice(list,
 		func(i, j int) bool {

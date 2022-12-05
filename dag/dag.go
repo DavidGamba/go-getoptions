@@ -219,11 +219,11 @@ func (g *Graph) SetMaxParallel(max int) *Graph {
 // The context keys are 'StdoutBuffer' and 'StderrBuffer' which can be retrieved with the helper functions.
 // The helper functions default to os.Stdout and os.Stderr when no buffering is defined.
 //
-//   g.SetOutputBuffer(os.Stdout)
-//   stdout := dag.Stdout(ctx)
-//   stderr := dag.Stderr(ctx)
-//   fmt.Fprintf(stdout, "Output")
-//   fmt.Fprintf(stderr, "Error")
+//	g.SetOutputBuffer(os.Stdout)
+//	stdout := dag.Stdout(ctx)
+//	stderr := dag.Stderr(ctx)
+//	fmt.Fprintf(stdout, "Output")
+//	fmt.Fprintf(stderr, "Error")
 //
 // NOTE: Even though both stdout and stderr contex keys are provided, currently both are combined into a single output and written into the given io.Writer.
 func (g *Graph) SetOutputBuffer(w io.Writer) *Graph {

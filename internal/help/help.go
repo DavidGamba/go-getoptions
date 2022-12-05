@@ -151,7 +151,8 @@ func longestStringLen(s []string) int {
 // pad - Given a string and a padding factor it will return the string padded with spaces.
 //
 // Example:
-//     pad(true, "--flag", 8) -> '--flag  '
+//
+//	pad(true, "--flag", 8) -> '--flag  '
 func pad(do bool, s string, factor int) string {
 	if do {
 		return fmt.Sprintf("%-"+strconv.Itoa(factor)+"s", s)

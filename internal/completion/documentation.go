@@ -11,20 +11,20 @@ Package completion - provides a Tree structure that can be used to define a prog
 
 Example Tree:
 
-  mygit
-  ├ log
-  │ ├ sublog
-  │ │ ├ --help
-  │ │ ├ <file-completion>
-  │ │ └ <custom-completion (sha1 list)>
-  │ ├ --help
-  │ └ <file-completion>
-  ├ show
-  │ ├ --help
-  │ ├ --dir=<dir-completion>
-  │ └ <file-completion>
-  ├ --help
-  └ --version
+	mygit
+	├ log
+	│ ├ sublog
+	│ │ ├ --help
+	│ │ ├ <file-completion>
+	│ │ └ <custom-completion (sha1 list)>
+	│ ├ --help
+	│ └ <file-completion>
+	├ show
+	│ ├ --help
+	│ ├ --dir=<dir-completion>
+	│ └ <file-completion>
+	├ --help
+	└ --version
 
 A tree node can have children and leaves.
 The children are commands, the leaves can be options, file completions, custom completions and options that trigger custom file completions (--dir=<dir-comletion>).
@@ -35,6 +35,5 @@ For custom completions a full list of completions must be passed as leaves to th
 However, there file and dir completions are provided as a convenience.
 
 Custom completions for options are triggered with the `=` sing after the full option test has been provided.
-
 */
 package completion

@@ -23,20 +23,20 @@ Node -
 
 Example:
 
-  mygit
-  ├ log
-  │ ├ sublog
-  │ │ ├ --help
-  │ │ ├ <file-completion>
-  │ │ └ <custom-completion (sha1 list)>
-  │ ├ --help
-  │ └ <file-completion>
-  ├ show
-  │ ├ --help
-  │ ├ --dir=<dir-completion>
-  │ └ <file-completion>
-  ├ --help
-  └ --version
+	mygit
+	├ log
+	│ ├ sublog
+	│ │ ├ --help
+	│ │ ├ <file-completion>
+	│ │ └ <custom-completion (sha1 list)>
+	│ ├ --help
+	│ └ <file-completion>
+	├ show
+	│ ├ --help
+	│ ├ --dir=<dir-completion>
+	│ └ <file-completion>
+	├ --help
+	└ --version
 */
 type Node struct {
 	Name     string // Name of the node. For StringNode Kinds, this is the completion.

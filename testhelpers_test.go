@@ -27,8 +27,9 @@ func setupLogging() *bytes.Buffer {
 // function that prints the output if the output is not empty.
 //
 // Usage:
-//   logTestOutput := setupTestLogging(t)
-//   defer logTestOutput()
+//
+//	logTestOutput := setupTestLogging(t)
+//	defer logTestOutput()
 func setupTestLogging(t *testing.T) func() {
 	s := ""
 	buf := bytes.NewBufferString(s)

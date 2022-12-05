@@ -77,7 +77,7 @@ type CommandFn func(context.Context, *GetOpt, []string) error
 // This is the starting point when using go-getoptions.
 // For example:
 //
-//   opt := getoptions.New()
+//	opt := getoptions.New()
 func New() *GetOpt {
 	gopt := &GetOpt{}
 	gopt.programTree = &programTree{
@@ -109,24 +109,24 @@ func (gopt *GetOpt) Self(name string, description string) *GetOpt {
 //
 // The following table shows the different operation modes given the string "-opt=arg".
 //
-//     .Operation Modes for string "-opt=arg"
-//     |===
-//     |Mode             |Description
+//	.Operation Modes for string "-opt=arg"
+//	|===
+//	|Mode             |Description
 //
-//     |normal           |option: opt
-//                         argument: arg
+//	|normal           |option: opt
+//	                    argument: arg
 //
-//     |bundling         |option: o
-//                         argument: nil
-//                        option: p
-//                         argument: nil
-//                        option: t
-//                         argument: arg
+//	|bundling         |option: o
+//	                    argument: nil
+//	                   option: p
+//	                    argument: nil
+//	                   option: t
+//	                    argument: arg
 //
-//     |singleDash       |option: o
-//                         argument: pt=arg
+//	|singleDash       |option: o
+//	                    argument: pt=arg
 //
-//     |===
+//	|===
 //
 // See https://github.com/DavidGamba/go-getoptions#operation_modes for more details.
 func (gopt *GetOpt) SetMode(mode Mode) *GetOpt {
@@ -158,7 +158,7 @@ func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) *GetOpt {
 // When a subcommand is found, stop parsing arguments and let a subcommand handler handle the remaining arguments.
 // For example:
 //
-//     program --opt arg unknown-command --subopt subarg
+//	program --opt arg unknown-command --subopt subarg
 //
 // In the example above, `--opt` is an option and `arg` is an argument to an option, making `unknown-command` the first non option argument.
 //
@@ -166,11 +166,11 @@ func (gopt *GetOpt) SetUnknownMode(mode UnknownMode) *GetOpt {
 //
 // For example, with:
 //
-//     program --help
+//	program --help
 //
 // `--help` is handled by `program`, and with:
 //
-//     program unknown-command --help
+//	program unknown-command --help
 //
 // `--help` is not handled by `program` since there was a unknown-command that caused the parsing to stop.
 // In this case, the `remaining` slice will contain `['unknown-command', '--help']` and that can be send to the wrapper handling code.
@@ -277,11 +277,12 @@ func (gopt *GetOpt) SetCommandFn(fn CommandFn) *GetOpt {
 // This allows to easily subcommand.
 //
 // Parsing style is controlled by the `Set` methods (SetMode, SetRequireOrder, etc).
-//     // Declare the GetOptions object
-//     opt := getoptions.New()
-//     ...
-//     // Parse cmdline arguments or any provided []string
-//     remaining, err := opt.Parse(os.Args[1:])
+//
+//	// Declare the GetOptions object
+//	opt := getoptions.New()
+//	...
+//	// Parse cmdline arguments or any provided []string
+//	remaining, err := opt.Parse(os.Args[1:])
 func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	compLine := os.Getenv("COMP_LINE")
 	if compLine != "" {

@@ -99,11 +99,11 @@ func (gopt *GetOpt) GetEnv(name string) ModifyFn {
 // ArgName - Add an argument name to an option for use in automated help.
 // For example, by default a string option will have a default synopsis as follows:
 //
-//     --host <string>
+//	--host <string>
 //
 // If ArgName("hostname") is used, the synopsis will read:
 //
-//     --host <hostname>
+//	--host <hostname>
 func (gopt *GetOpt) ArgName(name string) ModifyFn {
 	return func(parent *GetOpt, opt *option.Option) {
 		opt.SetHelpArgName(name)
@@ -487,11 +487,11 @@ func (gopt *GetOpt) StringMapVar(m *map[string]string, name string, min, max int
 // SetMapKeysToLower - StringMap keys captured from StringMap are lower case.
 // For example:
 //
-//     command --opt key=value
+//	command --opt key=value
 //
 // And:
 //
-//     command --opt KEY=value
+//	command --opt KEY=value
 //
 // Would both return `map[string]string{"key":"value"}`.
 func (gopt *GetOpt) SetMapKeysToLower() *GetOpt {

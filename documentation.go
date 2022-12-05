@@ -15,7 +15,7 @@ used) command line arguments. This allows to easily subcommand.
 
 See https://github.com/DavidGamba/go-getoptions for extra documentation details.
 
-Features
+# Features
 
 • Allow passing options and non-options in any order.
 
@@ -23,9 +23,9 @@ Features
 
 • Support for short (`-s`) options with flexible behaviour (see https://github.com/DavidGamba/go-getoptions#operation_modes for details):
 
- - Normal (default)
- - Bundling
- - SingleDash
+  - Normal (default)
+  - Bundling
+  - SingleDash
 
 • `Called()` method indicates if the option was passed on the command line.
 
@@ -92,7 +92,7 @@ For example, you can use `v` to define `verbose` and `V` to define `Version`.
 • Require order: Allows for subcommands. Stop parsing arguments when the first non-option is found.
 When mixed with Pass through, it also stops parsing arguments when the first unmatched option is found.
 
-Panic
+# Panic
 
 The library will panic if it finds that the programmer (not end user):
 

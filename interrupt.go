@@ -14,9 +14,10 @@ import (
 // When the listener finishes its work, it sends a message to the done channel.
 //
 // Use:
-//     func main() { ...
-//     ctx, cancel, done := getoptions.InterruptContext()
-//     defer func() { cancel(); <-done }()
+//
+//	func main() { ...
+//	ctx, cancel, done := getoptions.InterruptContext()
+//	defer func() { cancel(); <-done }()
 //
 // NOTE: InterruptContext is a method to reuse gopt.Writer
 func InterruptContext() (ctx context.Context, cancel context.CancelFunc, done chan struct{}) {

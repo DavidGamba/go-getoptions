@@ -108,7 +108,7 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 //
 // For example:
 //
-//     opt.HelpCommand("help", opt.Description("show this help"), opt.Alias("?"))
+//	opt.HelpCommand("help", opt.Description("show this help"), opt.Alias("?"))
 //
 // NOTE: Define after all other commands have been defined.
 func (gopt *GetOpt) HelpCommand(name string, fns ...ModifyFn) {
