@@ -83,7 +83,7 @@ It builds a tree for you that it then runs in parallel when possible.
 
 * Define target and sources dependencies.
 In other words, if my sources have changed I need to rebuild my targets.
-Use the github.com/DavidGamba/dgtools/fsmodtime[fsmodtime package]
+Use the https://github.com/DavidGamba/dgtools/tree/master/fsmodtime["github.com/DavidGamba/dgtools/fsmodtime"] package.
 
 * Task idempotency.
 This so you can run your build system tasks over and over without risk.
