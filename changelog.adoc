@@ -1,12 +1,20 @@
 = Changelog
 :toc:
 
-== WIP v0.25.4: Test refactoring
+== v0.26.0: New ErrorParsing and minor fixes
 
 As the releases before, this release has 100% test coverage.
-Tested with Go 1.14, 1.15, 1.16 and Go 1.17.
+Tested with Go 1.14, 1.15, 1.16, 1.17, 1.18 and 1.19.
+
+* Expose ErrorParsing as a generic error
+
+The ErrorParsing error indicates there was a problem parsing the cli args.
+
+This can be used for example, to print the help only in cases where the user didn't enter valid cli args.
 
 * Refactor dag package tests to remove most sleeps.
+
+* Bug fix: Don't check for required options when the help option is passed
 
 == v0.25.3: Minor Fixes
 
