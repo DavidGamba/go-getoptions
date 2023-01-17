@@ -412,7 +412,7 @@ LOOP:
 		case iderr := <-done:
 			g.Vertices[iderr.ID].status = runDone
 			if iderr.Error != nil {
-				err := fmt.Errorf("Task %s error: %w", iderr.ID, iderr.Error)
+				err := fmt.Errorf("Task %s:%s error: %w", g.Name, iderr.ID, iderr.Error)
 				Logger.Printf("%s\n", err)
 				if !errors.Is(iderr.Error, ErrorSkipParents) {
 					g.errs.Errors = append(g.errs.Errors, err)
@@ -445,7 +445,7 @@ LOOP:
 			}
 			if v.status == runSkip {
 				v.status = runInProgress
-				Logger.Printf("Skipped Task %s\n", v.ID)
+				Logger.Printf("Skipped Task %s:%s\n", g.Name, v.ID)
 				go func(done chan IDErr, v *Vertex) {
 					done <- IDErr{v.ID, nil}
 				}(done, v)
@@ -461,7 +461,7 @@ LOOP:
 			go func(ctx context.Context, done chan IDErr, v *Vertex) {
 				semaphore <- struct{}{}
 				defer func() { <-semaphore }()
-				Logger.Printf("Running Task %s\n", v.ID)
+				Logger.Printf("Running Task %s:%s\n", g.Name, v.ID)
 				start := time.Now()
 				v.Task.Lock()
 				defer v.Task.Unlock()
@@ -479,12 +479,12 @@ LOOP:
 					_, _ = combinedBuffer.WriteTo(g.bufferWriter)
 					g.bufferMutex.Unlock()
 				}
-				Logger.Printf("Completed Task %s in %s\n", v.ID, durationStr(time.Since(start)))
+				Logger.Printf("Completed Task %s:%s in %s\n", g.Name, v.ID, durationStr(time.Since(start)))
 				done <- IDErr{v.ID, err}
 			}(ctx, done, v)
 		}
 	}
-	Logger.Printf("Completed Run in %s\n", durationStr(time.Since(runStart)))
+	Logger.Printf("Completed %s Run in %s\n", g.Name, durationStr(time.Since(runStart)))
 
 	if len(g.errs.Errors) != 0 {
 		return g.errs

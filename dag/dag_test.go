@@ -301,7 +301,7 @@ func TestDagTaskError(t *testing.T) {
 	if len(errs.Errors) != 5 {
 		t.Fatalf("Unexpected error size, %d: %s\n", len(errs.Errors), err)
 	}
-	if errs.Errors[0].Error() != "Task t4 error: failure reason" {
+	if errs.Errors[0].Error() != "Task test graph:t4 error: failure reason" {
 		t.Fatalf("Unexpected error: %s\n", errs.Errors[0])
 	}
 	if !errors.Is(errs.Errors[1], ErrorTaskSkipped) {
