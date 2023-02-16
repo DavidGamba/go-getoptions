@@ -1,6 +1,18 @@
 = Changelog
 :toc:
 
+== WIP v0.26.1: Minor fixes
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.14, 1.15, 1.16, 1.17, 1.18, 1.19 and 1.20.
+
+* dag: Add extra context in log output.
+
+Add graph name in log entries.
+Helpful when using more than one graph (graph of graphs).
+
+* Fix lonesome dash in help and in completion results.
+
 == v0.26.0: New ErrorParsing and minor fixes
 
 As the releases before, this release has 100% test coverage.

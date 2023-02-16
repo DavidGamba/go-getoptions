@@ -2169,6 +2169,7 @@ func TestSynopsis(t *testing.T) {
 	t.Run("full help", func(t *testing.T) {
 		opt := getoptions.New()
 		opt.Bool("flag", false, opt.Alias("f"))
+		opt.Bool("-", false, opt.Description("Read from STDIN"))
 		opt.String("string", "")
 		opt.String("str", "str", opt.Required(), opt.GetEnv("_STR"))
 		opt.Int("int", 0, opt.Required())
@@ -2193,7 +2194,7 @@ func TestSynopsis(t *testing.T) {
 
 `
 		expectedSynopsis := `SYNOPSIS:
-    go-getoptions.test --int <int> <--req-list <item>...>... --str <string>
+    go-getoptions.test --int <int> <--req-list <item>...>... --str <string> [-]
                        [--flag|-f] [--float|--fl <float64>] [--intSlice <int>]...
                        [--list <string>]... [--strMap <key=value>...]...
                        [--strSlice <my_value>...]... [--string <string>]
@@ -2213,6 +2214,8 @@ func TestSynopsis(t *testing.T) {
     --str <string>              (env: _STR)
 
 OPTIONS:
+    -                           Read from STDIN (default: false)
+
     --flag|-f                   (default: false)
 
     --float|--fl <float64>      (default: 0.000000)

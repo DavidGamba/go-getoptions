@@ -206,7 +206,10 @@ func (opt *Option) Synopsis() {
 		if len(e) > 1 {
 			e = "--" + e
 		} else {
-			e = "-" + e
+			// Don't add extra dash for lonesome dash
+			if e != "-" {
+				e = "-" + e
+			}
 		}
 		aliases = append(aliases, e)
 	}
