@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/DavidGamba/go-getoptions/internal/help"
 	"github.com/DavidGamba/go-getoptions/internal/option"
 	"github.com/DavidGamba/go-getoptions/internal/sliceiterator"
 	"github.com/DavidGamba/go-getoptions/text"
@@ -15,7 +16,7 @@ type programTree struct {
 	Type            argType
 	Name            string
 	Description     string
-	SynopsisArgs    string
+	SynopsisArgs    []help.SynopsisArg
 	ChildCommands   map[string]*programTree
 	ChildOptions    map[string]*option.Option
 	UnknownOptions  []*option.Option // Track unknown options in order in case they need to be passed to the remaining array.

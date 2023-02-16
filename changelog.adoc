@@ -1,10 +1,28 @@
 = Changelog
 :toc:
 
-== WIP v0.26.1: Minor fixes
+== WIP v0.27.0: Breaking changes
 
 As the releases before, this release has 100% test coverage.
 Tested with Go 1.14, 1.15, 1.16, 1.17, 1.18, 1.19 and 1.20.
+
+=== Breaking
+
+Refactor and rename HelpSynopsisArgs
+
+* Rename and allow description:
+
+[source,diff]
+----
+- opt.HelpSynopsisArgs("name")
++ opt.HelpSynopsisArg("name", "description")
+----
+
+* Allow to be called multiple times
+
+* Add ARGUMENTS section in help.
+
+=== Minor
 
 * dag: Add extra context in log output.
 

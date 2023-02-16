@@ -130,10 +130,10 @@ func ExampleGetOpt_CalledAs() {
 
 func ExampleGetOpt_Description() {
 	opt := getoptions.New()
-	opt.HelpSynopsisArgs("[<commands>]")
 	opt.Bool("help", false, opt.Alias("?"), opt.Description("Show help."))
 	opt.String("hostname", "golang.org", opt.ArgName("host|IP"), opt.Description("Hostname to use."))
 	opt.String("user", "", opt.ArgName("user_id"), opt.Required(), opt.Description("User to login as."))
+	opt.HelpSynopsisArg("[<filename>]", "File with hostnames.")
 	_, _ = opt.Parse([]string{"-?"})
 
 	if opt.Called("help") {
@@ -142,7 +142,10 @@ func ExampleGetOpt_Description() {
 	// Output:
 	// SYNOPSIS:
 	//     go-getoptions.test --user <user_id> [--help|-?] [--hostname <host|IP>]
-	//                        [<commands>]
+	//                        [<filename>]
+	//
+	// ARGUMENTS:
+	//     [<filename>]            File with hostnames.
 	//
 	// REQUIRED PARAMETERS:
 	//     --user <user_id>        User to login as.

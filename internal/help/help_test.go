@@ -55,31 +55,34 @@ func TestHelp(t *testing.T) {
         description
         that is very long
 `},
-		{"Synopsis", Synopsis("", scriptName, "", nil, []string{}), `SYNOPSIS:
+		{"Synopsis", Synopsis("", scriptName, []SynopsisArg{}, nil, []string{}), `SYNOPSIS:
     help.test [<args>]
 `},
-		{"Synopsis", Synopsis(scriptName, "log", "", nil, []string{}), `SYNOPSIS:
+		{"Synopsis", Synopsis(scriptName, "log", []SynopsisArg{}, nil, []string{}), `SYNOPSIS:
     help.test log [<args>]
 `},
-		{"Synopsis", Synopsis(scriptName, "log", "<filename>", nil, []string{}), `SYNOPSIS:
+		{"Synopsis", Synopsis(scriptName, "log", []SynopsisArg{{Arg: "<filename>"}}, nil, []string{}), `SYNOPSIS:
     help.test log <filename>
 `},
+		{"Synopsis", Synopsis(scriptName, "log", []SynopsisArg{{Arg: "<branch>"}, {Arg: "<filename>"}}, nil, []string{}), `SYNOPSIS:
+    help.test log <branch> <filename>
+`},
 		{
-			"Synopsis", Synopsis(scriptName, "log", "",
+			"Synopsis", Synopsis(scriptName, "log", []SynopsisArg{},
 				[]*option.Option{func() *option.Option { b := false; return option.New("bool", option.BoolType, &b) }()}, []string{}),
 			`SYNOPSIS:
     help.test log [--bool] [<args>]
 `,
 		},
 		{
-			"Synopsis", Synopsis(scriptName, "log", "",
+			"Synopsis", Synopsis(scriptName, "log", []SynopsisArg{},
 				[]*option.Option{boolOpt()}, []string{}),
 			`SYNOPSIS:
     help.test log [--bool|-b] [<args>]
 `,
 		},
 		{
-			"Synopsis", Synopsis(scriptName, "log", "",
+			"Synopsis", Synopsis(scriptName, "log", []SynopsisArg{},
 				[]*option.Option{
 					boolOpt(),
 					intOpt(),
@@ -94,7 +97,7 @@ func TestHelp(t *testing.T) {
 `,
 		},
 		{
-			"Synopsis", Synopsis(scriptName, "log", "",
+			"Synopsis", Synopsis(scriptName, "log", []SynopsisArg{},
 				[]*option.Option{
 					boolOpt().SetRequired(""),
 					intOpt().SetRequired(""),
@@ -109,7 +112,7 @@ func TestHelp(t *testing.T) {
 `,
 		},
 		{
-			"Synopsis", Synopsis(scriptName, "log", "",
+			"Synopsis", Synopsis(scriptName, "log", []SynopsisArg{},
 				[]*option.Option{
 					boolOpt().SetRequired(""),
 					intOpt().SetRequired(""),
@@ -124,7 +127,7 @@ func TestHelp(t *testing.T) {
 `,
 		},
 		{
-			"Synopsis", Synopsis(scriptName, "log", "",
+			"Synopsis", Synopsis(scriptName, "log", []SynopsisArg{},
 				[]*option.Option{
 					boolOpt().SetRequired(""),
 					intOpt().SetRequired(""),
@@ -140,9 +143,22 @@ func TestHelp(t *testing.T) {
                   <command> [<args>]
 `,
 		},
-		{"OptionList nil", OptionList(nil), ""},
-		{"OptionList empty", OptionList([]*option.Option{}), ""},
-		{"OptionList default str", OptionList([]*option.Option{
+		{"OptionList nil", OptionList(nil, nil), ""},
+		{"OptionList empty", OptionList(nil, []*option.Option{}), ""},
+		{"OptionList args without description", OptionList([]SynopsisArg{{Arg: "<filename>"}}, []*option.Option{}), ""},
+		{"OptionList args", OptionList([]SynopsisArg{{Arg: "<filename>", Description: "File with inputs"}}, []*option.Option{}), `ARGUMENTS:
+    <filename>    File with inputs
+
+`},
+		{"OptionList multiple args", OptionList([]SynopsisArg{
+			{Arg: "<filename>", Description: "File with inputs"},
+			{Arg: "<dir>", Description: "output dir"}}, []*option.Option{}), `ARGUMENTS:
+    <filename>    File with inputs
+
+    <dir>         output dir
+
+`},
+		{"OptionList default str", OptionList(nil, []*option.Option{
 			boolOpt().SetDefaultStr("false"),
 			intOpt().SetDefaultStr("0"),
 			floatOpt().SetDefaultStr("0.0"),
@@ -164,7 +180,7 @@ func TestHelp(t *testing.T) {
 
 `},
 		{
-			"OptionList required", OptionList([]*option.Option{
+			"OptionList required", OptionList(nil, []*option.Option{
 				boolOpt().SetRequired(""),
 				intOpt().SetRequired(""),
 				floatOpt().SetRequired(""),
@@ -187,7 +203,7 @@ func TestHelp(t *testing.T) {
 
 `,
 		},
-		{"OptionList multi line", OptionList([]*option.Option{
+		{"OptionList multi line", OptionList(nil, []*option.Option{
 			boolOpt().SetDefaultStr("false").SetDescription("bool"),
 			intOpt().SetDefaultStr("0").SetDescription("int\nmultiline description"),
 			floatOpt().SetDefaultStr("0.0").SetDescription("float"),
@@ -209,7 +225,7 @@ func TestHelp(t *testing.T) {
     --ss <string>        string repeat (default: [])
 
 `},
-		{"OptionList", OptionList([]*option.Option{
+		{"OptionList", OptionList(nil, []*option.Option{
 			boolOpt().SetDefaultStr("false").SetDescription("bool").SetRequired(""),
 			intOpt().SetDefaultStr("0").SetDescription("int\nmultiline description"),
 			floatOpt().SetDefaultStr("0.0").SetDescription("float").SetRequired(""),
@@ -235,17 +251,25 @@ OPTIONS:
     --string-repeat <my_value>    string repeat (default: [])
 
 `},
-		{"OptionList", OptionList([]*option.Option{
-			boolOpt().SetDefaultStr("false").SetDescription("bool").SetRequired("").SetEnvVar("BOOL"),
-			intOpt().SetDefaultStr("0").SetDescription("int\nmultiline description").SetEnvVar("INT"),
-			floatOpt().SetDefaultStr("0.0").SetDescription("float").SetRequired("").SetEnvVar("FLOAT"),
-			func() *option.Option {
-				ss := []string{}
-				return option.New("string-repeat", option.StringRepeatType, &ss)
-			}().SetDefaultStr("[]").SetDescription("string repeat").SetHelpArgName("my_value").SetEnvVar("STRING_REPEAT"),
-			iiOpt().SetDefaultStr("[]").SetDescription("int repeat").SetRequired("").SetEnvVar("II"),
-			mOpt().SetDefaultStr("{}").SetDescription("map").SetEnvVar("M"),
-		}), `REQUIRED PARAMETERS:
+		{"OptionList", OptionList([]SynopsisArg{
+			{Arg: "<filename>", Description: "File with inputs"},
+			{Arg: "<dir>", Description: "output dir"}},
+			[]*option.Option{
+				boolOpt().SetDefaultStr("false").SetDescription("bool").SetRequired("").SetEnvVar("BOOL"),
+				intOpt().SetDefaultStr("0").SetDescription("int\nmultiline description").SetEnvVar("INT"),
+				floatOpt().SetDefaultStr("0.0").SetDescription("float").SetRequired("").SetEnvVar("FLOAT"),
+				func() *option.Option {
+					ss := []string{}
+					return option.New("string-repeat", option.StringRepeatType, &ss)
+				}().SetDefaultStr("[]").SetDescription("string repeat").SetHelpArgName("my_value").SetEnvVar("STRING_REPEAT"),
+				iiOpt().SetDefaultStr("[]").SetDescription("int repeat").SetRequired("").SetEnvVar("II"),
+				mOpt().SetDefaultStr("{}").SetDescription("map").SetEnvVar("M"),
+			}), `ARGUMENTS:
+    <filename>                    File with inputs
+
+    <dir>                         output dir
+
+REQUIRED PARAMETERS:
     --bool|-b                     bool (env: BOOL)
 
     --float <float64>             float (env: FLOAT)

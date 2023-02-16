@@ -21,6 +21,11 @@ import (
 	"github.com/DavidGamba/go-getoptions/text"
 )
 
+type SynopsisArg struct {
+	Arg         string
+	Description string
+}
+
 // Indentation - Number of spaces used for indentation.
 var Indentation = 4
 
@@ -54,7 +59,7 @@ func Name(scriptName, name, description string) string {
 }
 
 // Synopsis - Return a default synopsis.
-func Synopsis(scriptName, name, args string, options []*option.Option, commands []string) string {
+func Synopsis(scriptName, name string, args []SynopsisArg, options []*option.Option, commands []string) string {
 	synopsisName := scriptName
 	if scriptName != "" {
 		synopsisName += fmt.Sprintf(" %s", name)
@@ -103,10 +108,14 @@ func Synopsis(scriptName, name, args string, options []*option.Option, commands 
 	if len(commands) > 0 {
 		syn += "<command> "
 	}
-	if args == "" {
+	if len(args) == 0 {
 		syn += "[<args>]"
 	} else {
-		syn += args
+		aa := []string{}
+		for _, a := range args {
+			aa = append(aa, a.Arg)
+		}
+		syn += strings.Join(aa, " ")
 	}
 	if len(line)+len(syn) > 80 {
 		out += line + "\n"
@@ -161,7 +170,7 @@ func pad(do bool, s string, factor int) string {
 }
 
 // OptionList - Return a formatted list of options and their descriptions.
-func OptionList(options []*option.Option) string {
+func OptionList(args []SynopsisArg, options []*option.Option) string {
 	synopsisLength := 0
 	normalOptions := []*option.Option{}
 	requiredOptions := []*option.Option{}
@@ -207,7 +216,37 @@ func OptionList(options []*option.Option) string {
 		}
 		return txt
 	}
+	argString := func(arg *SynopsisArg) string {
+		txt := ""
+		factor := synopsisLength + 4
+		padding := strings.Repeat(" ", factor)
+		txt += indent(pad(arg.Description != "", arg.Arg, factor))
+		if arg.Description != "" {
+			description := strings.ReplaceAll(arg.Description, "\n", "\n    "+padding)
+			txt += description
+		}
+		txt += "\n\n"
+		return txt
+	}
 	out := ""
+
+	if len(args) != 0 &&
+		!((len(args) == 1 && args[0].Arg == "") ||
+			(len(args) == 1 && args[0].Description == "")) {
+
+		for _, arg := range args {
+			l := len(arg.Arg)
+			if l > synopsisLength {
+				synopsisLength = l
+			}
+		}
+
+		out += fmt.Sprintf("%s:\n", text.HelpArgumentsHeader)
+		for _, arg := range args {
+			out += argString(&arg)
+		}
+	}
+
 	if len(requiredOptions) > 0 {
 		out += fmt.Sprintf("%s:\n", text.HelpRequiredOptionsHeader)
 		for _, option := range requiredOptions {

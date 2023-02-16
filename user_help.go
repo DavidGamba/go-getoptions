@@ -91,7 +91,7 @@ func helpOutput(node *programTree, sections ...HelpSection) string {
 				helpTxt += "\n"
 			}
 		case HelpOptionList:
-			helpTxt += help.OptionList(options)
+			helpTxt += help.OptionList(node.SynopsisArgs, options)
 		case HelpCommandInfo:
 			// Index of 1 because when there is a child command, help is always injected
 			if node.HelpCommandName != "" && len(node.ChildCommands) > 1 {
@@ -137,7 +137,7 @@ func (gopt *GetOpt) HelpCommand(name string, fns ...ModifyFn) {
 		cmd.programTree = command
 		parent.AddChildCommand(name, command)
 		cmd.SetCommandFn(runHelp)
-		cmd.HelpSynopsisArgs("<topic>")
+		cmd.HelpSynopsisArg("<topic>", "")
 	}
 
 	// set HelpCommandName

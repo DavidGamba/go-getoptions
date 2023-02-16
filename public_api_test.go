@@ -2320,7 +2320,7 @@ OPTIONS:
 
 	t.Run("", func(t *testing.T) {
 		opt := getoptions.New()
-		opt.HelpSynopsisArgs("[<filename>]")
+		opt.HelpSynopsisArg("[<filename>]", "")
 		_, err := opt.Parse([]string{})
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)

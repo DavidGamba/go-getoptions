@@ -60,5 +60,8 @@ var HelpCommandsHeader = "COMMANDS"
 // HelpRequiredOptionsHeader holds the header text for the required parameters
 var HelpRequiredOptionsHeader = "REQUIRED PARAMETERS"
 
+// HelpArgumentsHeader holds the header text for the argument list
+var HelpArgumentsHeader = "ARGUMENTS"
+
 // HelpOptionsHeader holds the header text for the option list
 var HelpOptionsHeader = "OPTIONS"

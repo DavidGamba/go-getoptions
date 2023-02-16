@@ -21,6 +21,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/DavidGamba/go-getoptions/internal/help"
 	"github.com/DavidGamba/go-getoptions/internal/option"
 	"github.com/DavidGamba/go-getoptions/text"
 )
@@ -197,10 +198,10 @@ func (gopt *GetOpt) UnsetOptions() *GetOpt {
 	return gopt
 }
 
-// HelpSynopsisArgs - Defines the help synopsis args description.
+// HelpSynopsisArg - Defines the help synopsis args description.
 // Defaults to: [<args>]
-func (gopt *GetOpt) HelpSynopsisArgs(args string) *GetOpt {
-	gopt.programTree.SynopsisArgs = args
+func (gopt *GetOpt) HelpSynopsisArg(arg, description string) *GetOpt {
+	gopt.programTree.SynopsisArgs = append(gopt.programTree.SynopsisArgs, help.SynopsisArg{Arg: arg, Description: description})
 	return gopt
 }
 
