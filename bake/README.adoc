@@ -1,0 +1,117 @@
+= Bake
+
+Go Build + Something like Make = Bake ¯\_(ツ)_/¯ 🤷
+
+== Installation
+
+Run:
+
+----
+go install github.com/DavidGamba/go-getoptions/bake@bake
+----
+
+Then add this to your bashrc:
+
+----
+complete -o default -C bake bake
+----
+
+== Example Task
+
+[source, go]
+----
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/DavidGamba/go-getoptions"
+	"github.com/DavidGamba/go-getoptions/dag"
+)
+
+var Logger = log.New(os.Stderr, "", log.LstdFlags)
+
+var TM *dag.TaskMap
+
+// say:hello - This is a greeting
+func Hello(opt *getoptions.GetOpt) getoptions.CommandFn {
+	var lang string
+	opt.StringVar(&lang, "lang", "en", opt.ValidValues("en", "es"))
+	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+		Logger.Println("Running Hello")
+
+		switch lang {
+		case "en":
+			fmt.Println("Hello")
+		case "es":
+			fmt.Println("Hola")
+		}
+
+		return nil
+	}
+}
+----
+
+Run it:
+
+----
+$ bake say hello
+2023/04/10 14:58:34 Running Hello
+Hello
+
+$ bake say hello --lang=es
+2023/04/10 14:58:38 Running Hello
+Hola
+----
+
+== How does it work?
+
+Bake is a Make like tool that allows you to define and run tasks defined in Go code under a `bake/` dir.
+
+First it searches to see if the current directory is named `bake/`, next it searches for `bake/` inside the current directory and finally it searches for `bake/` in the root of the Git repo.
+This allows to run bake from anywhere in the repo.
+
+Once a `bake/` dir is found, it will compile the code as a Go plugin and load it (`go build -buildmode=plugin -o=bake.so`).
+The plugin is only recompiled if the source code is changed (using https://github.com/DavidGamba/dgtools/tree/master/fsmodtime[fsmodtime]).
+
+Once the plugin is loaded, the source code is parsed to find function declarations matching the bake Task signature (`func(*getoptions.GetOpt) getoptions.CommandFn`).
+Additionally, it tries to load a `dag.TaskMap` global named `TM`.
+
+The functions are loaded as `go-getoptions` commands and subcommands, by parsing the comment description.
+
+For example:
+
+[source,go]
+----
+// say:hello - This is a greeting
+func Hello(opt *getoptions.GetOpt) getoptions.CommandFn {
+----
+
+If there is no comment found for the function, the function name will be automatically converted to kebab case.
+
+The above function will be generate two commands, one for `say` and one for `hello`.
+The description for the `hello` command will be `This is a greeting`.
+
+If the global task map was found, the task will automatically be added as `say:hello`.
+This allows to generate custom task graphs.
+
+Since the plugin tasks are added to the bake command's `go-getoptions` instance, completions are automatically generated.
+
+== ROADMAP
+
+* Automated cancellation on timeout when passing -t flag.
+
+* Allow to compile a static binary with the bundled plugin.
+
+=== Debugging
+
+TODO: This section needs work, waiting on https://github.com/go-delve/delve/issues/1628[delve#1628]
+
+Install with Debug flags:
+
+----
+go install -trimpath -gcflags "all=-N -l" github.com/DavidGamba/go-getoptions/bake@bake
+----
