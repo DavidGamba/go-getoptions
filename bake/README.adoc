@@ -73,7 +73,7 @@ Hola
 
 Bake is a Make like tool that allows you to define and run tasks defined in Go code under a `bake/` dir.
 
-First it searches to see if the current directory is named `bake/`, next it searches for `bake/` inside the current directory and finally it searches for `bake/` in the root of the Git repo.
+First it searches to see if the current directory is named `bake/`, next it searches for `bake/` inside the current directory, next it searches for `bake/` in the root of the Go project (the `go.mod` file dir) and finally it searches for `bake/` in the root of the Git repo.
 This allows to run bake from anywhere in the repo.
 
 Once a `bake/` dir is found, it will compile the code as a Go plugin and load it (`go build -buildmode=plugin -o=bake.so`).
