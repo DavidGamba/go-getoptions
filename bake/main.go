@@ -66,10 +66,12 @@ func program(args []string) int {
 		return 1
 	}
 
-	bls := opt.NewCommand("bake-list-symbols", "lists symbols")
+	b := opt.NewCommand("_bake", "")
+
+	bls := b.NewCommand("list-symbols", "lists symbols")
 	bls.SetCommandFn(ListSymbolsRun(bakefile))
 
-	bld := opt.NewCommand("bake-list-descriptions", "lists descriptions")
+	bld := b.NewCommand("list-descriptions", "lists descriptions")
 	bld.SetCommandFn(ListDescriptionsRun(bakefile))
 
 	opt.HelpCommand("help", opt.Alias("?"))
