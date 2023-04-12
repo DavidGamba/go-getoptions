@@ -1,0 +1,6 @@
+= Hola Mundo
+
+Esta es una pagina de prueba
+
+.Imagen
+image::diagram.png[]
