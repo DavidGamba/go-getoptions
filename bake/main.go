@@ -255,7 +255,21 @@ func findBakeFiles(ctx context.Context) (string, error) {
 		return filepath.Join(dir, "bake.so"), nil
 	}
 
-	// Third case, bake folder lives in root of repo
+	// Third case, bake folder lives in module root
+	modRoot, err := buildutils.GoModDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to get go project root: %w", err)
+	}
+	dir = filepath.Join(modRoot, "bake")
+	if fi, err := os.Stat(dir); err == nil && fi.Mode().IsDir() {
+		err := build(dir)
+		if err != nil {
+			return "", fmt.Errorf("failed to build: %w", err)
+		}
+		return filepath.Join(dir, "bake.so"), nil
+	}
+
+	// Fourth case, bake folder lives in root of repo
 	root, err := buildutils.GitRepoRoot()
 	if err != nil {
 		return "", fmt.Errorf("failed to get git repo root: %w", err)
