@@ -108,19 +108,6 @@ func program(args []string) int {
 type TaskDefinitionFn func(ctx context.Context, opt *getoptions.GetOpt) error
 type TaskFn func(*getoptions.GetOpt) getoptions.CommandFn
 
-func loadAndRunTaskDefinitionFn(ctx context.Context, plug *plugin.Plugin, opt *getoptions.GetOpt) error {
-	taskDefinitions, err := plug.Lookup("TaskDefinitions")
-	if err != nil {
-		return fmt.Errorf("failed to find TaskDefinitions function: %w", err)
-	}
-	var tdfn TaskDefinitionFn
-	tdfn, ok := taskDefinitions.(func(ctx context.Context, opt *getoptions.GetOpt) error)
-	if !ok {
-		return fmt.Errorf("unexpected TaskDefinitions signature")
-	}
-	return tdfn(ctx, opt)
-}
-
 // loadOptFns - loads all TaskFn functions from the plugin and adds them as commands to opt.
 // If TM task map is defined, add the tasks to the map.
 func loadOptFns(ctx context.Context, plug *plugin.Plugin, opt *getoptions.GetOpt, dir string) error {
