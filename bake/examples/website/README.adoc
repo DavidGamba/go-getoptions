@@ -1,0 +1,37 @@
+= Bake website example
+
+An Bake example showing most of bake's features.
+
+The application itself is:
+
+* A simple go web server that serves anything under `public/` under `:8080`.
+
+* A simple Asciidoc file that is rendered to the `index.html` file.
+There is one English and one Spanish version.
+
+* A simple Graphviz dot diagram that is rendered to the `diagram.png` file and included in the `index.html`.
+
+The bake tasks consist of:
+
+`build:go`:: A task to build the web server.
+`serve`:: A task to serve the website using the web server.
+`build:index`:: A task to build the asciidoc file.
+`build:diagram`:: A task to build the dot diagram.
+`build:all`:: A task to build all build tasks showcasing the dependency system.
+`clean`:: A task to clean build artifacts.
+
+The features shown by this example:
+
+* Bake autocompletes tasks and option flags.
+* Bake keeps track of all declared tasks and allows for custom task graphs (See the `build:all` task).
+* Leverage https://github.com/DavidGamba/dgtools/tree/master/fsmodtime[fsmodtime], a library with functions that allow to run tasks only when the sources have been updated or the targets do not yet exist.
+* Leverage https://github.com/DavidGamba/dgtools/tree/master/run[run], an easy to use `os/exec` wrapper.
+* Leverage https://github.com/DavidGamba/dgtools/tree/master/buildutils[buildutils], functions used when writing build automation.
+
+The above are all the pieces you need to build complex custom build systems.
+
+== Step by step guide
+
+Follow the installation steps from the https://github.com/DavidGamba/go-getoptions/blob/bake/bake/README.adoc[README].
+
+Run: `bake` from the `go-getoptions/bake/examples/website` directory.
