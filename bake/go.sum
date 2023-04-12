@@ -2,6 +2,8 @@ github.com/DavidGamba/dgtools/buildutils v0.1.0 h1:of4D0UDDCykZIvi3xtHz1aJjQBXd7
 github.com/DavidGamba/dgtools/buildutils v0.1.0/go.mod h1:gEikilH0xsJVMydPErNv4mlUPhJGFT5k6v5Ss+Fn+d4=
 github.com/DavidGamba/dgtools/fsmodtime v0.0.0-20230312052703-2038894c1c7d h1:8PRx/WFqbF2gSi2oG2y1Jthwfe3q305hajkOlZIskUY=
 github.com/DavidGamba/dgtools/fsmodtime v0.0.0-20230312052703-2038894c1c7d/go.mod h1:ruwqMvW2pWDbSQlAupP7F0QaojfbuXPyUOUKR4Ev3pQ=
+github.com/DavidGamba/dgtools/fsmodtime v0.0.0-20230410194305-572756eec1c9 h1:bvcSkp4h37r/IuGNVyKGdqUdhY+RZD2olu7uiW4hrZI=
+github.com/DavidGamba/dgtools/fsmodtime v0.0.0-20230410194305-572756eec1c9/go.mod h1:ruwqMvW2pWDbSQlAupP7F0QaojfbuXPyUOUKR4Ev3pQ=
 github.com/DavidGamba/dgtools/run v0.7.0 h1:ENTskNQvBM1/n/b42PxqJktU9EzQVqPZRGUBtVdEVdE=
 github.com/DavidGamba/dgtools/run v0.7.0/go.mod h1:3P1fMJupTWqsiE8IXsXrk2HtgkZBTCFRLbaTjRlmDe0=
 github.com/DavidGamba/go-getoptions v0.27.0 h1:hldKJSwO9SwvR+z9pe6ojhEcYECrRiO/bar9B7MnBKA=

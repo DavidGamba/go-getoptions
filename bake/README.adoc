@@ -18,6 +18,8 @@ complete -o default -C bake bake
 
 == Example Task
 
+NOTE: A more in depth example can be found https://github.com/DavidGamba/go-getoptions/blob/bake/bake/examples/website/README.adoc[here].
+
 [source, go]
 ----
 package main
@@ -100,7 +102,20 @@ This allows to generate custom task graphs.
 
 Since the plugin tasks are added to the bake command's `go-getoptions` instance, completions are automatically generated.
 
+== Known Issues
+
+Working with plugins has a few downsides.
+In particular:
+
+* The version of Go must match between the `bake` binary and the plugin.
+Because of that, the recommended install method is using `go install` rather than a package manager.
+
+* The versions of the dependencies must match between the `bake` binary and the plugin.
+A helper will be added to alleviate this task.
+
 == ROADMAP
+
+* Add helper to generate go.mod with the same dependencies as the bake binary.
 
 * Automated cancellation on timeout when passing -t flag.
 
