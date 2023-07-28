@@ -50,7 +50,8 @@ func program(args []string) int {
 
 	plug, err := plugin.Open(bakefile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: failed to open plugin: %s\n", err)
+		fmt.Fprintf(os.Stderr, "ERROR: failed to open plugin, try again: %s\n", err)
+		_ = os.Remove(bakefile)
 		return 1
 	}
 
