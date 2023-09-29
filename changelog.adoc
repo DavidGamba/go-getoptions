@@ -1,6 +1,28 @@
 = Changelog
 :toc:
 
+== wip v0.28.0: Extend ZSHELL support
+
+As the releases before, this release has 100% test coverage.
+Tested with 1.14, 1.15, 1.16, 1.17, 1.18, 1.19, 1.20 and 1.21.
+
+=== New Features
+
+* Extend support for ZSHELL when setting `ZSHELL=true` in your environment.
++
+ZSHELL completion works by using `bashcompinit` using:
++
+----
+autoload bashcompinit
+bashcompinit
+complete -o default -C <tool> <tool>
+----
++
+Before this release, completions would stop after the `=` symbol because the completion system is targeting bash by default and bash handles `=` as a divider for completions.
+By setting `ZSHELL=true` in your environment, the completion system will target zsh and not split completions on `=`.
++
+NOTE: I couldn't find a non-explicit reliable way to auto-detect zsh.
+
 == v0.27.0: Breaking changes
 
 As the releases before, this release has 100% test coverage.

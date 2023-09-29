@@ -287,6 +287,11 @@ func (gopt *GetOpt) SetCommandFn(fn CommandFn) *GetOpt {
 func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	compLine := os.Getenv("COMP_LINE")
 	if compLine != "" {
+		completionTarget := "bash"
+		zsh := os.Getenv("ZSHELL")
+		if zsh != "" {
+			completionTarget = "zsh"
+		}
 		// COMP_LINE has a single trailing space when the completion isn't complete and 2 when it is
 		re := regexp.MustCompile(`\s+`)
 		compLineParts := re.Split(compLine, -1)
@@ -310,8 +315,8 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 
 		// NOTE: Bash completions have = as a special char and results should be trimmed form the = on.
 		Logger.SetPrefix("\n")
-		Logger.Printf("COMP_LINE: '%s', parts: %#v, args: %#v\n", compLine, compLineParts, args)
-		_, completions, err := parseCLIArgs(true, gopt.programTree, compLineParts, Normal)
+		Logger.Printf("mode: %s, COMP_LINE: '%s', parts: %#v, args: %#v\n", completionTarget, compLine, compLineParts, args)
+		_, completions, err := parseCLIArgs(completionTarget, gopt.programTree, compLineParts, Normal)
 		if err != nil {
 			fmt.Fprintf(Writer, "\nERROR: %s\n", err)
 			exitFn(124) // programmable completion restarts from the beginning, with an attempt to find a new compspec for that command.
@@ -332,7 +337,7 @@ func (gopt *GetOpt) Parse(args []string) ([]string, error) {
 	// I came up with the conclusion that dispatch provides a bunch of flexibility and explicitness.
 
 	// TODO: parseCLIArgs needs to return the remaining array
-	node, _, err := parseCLIArgs(false, gopt.programTree, args, gopt.programTree.mode)
+	node, _, err := parseCLIArgs("", gopt.programTree, args, gopt.programTree.mode)
 	gopt.finalNode = node
 	if err != nil {
 		return nil, err

@@ -309,7 +309,7 @@ func TestParseCLIArgs(t *testing.T) {
 			defer logTestOutput()
 
 			tree := setupOpt().programTree
-			argTree, _, err := parseCLIArgs(false, tree, test.args, test.mode)
+			argTree, _, err := parseCLIArgs("", tree, test.args, test.mode)
 			checkError(t, err, test.err)
 			if !reflect.DeepEqual(test.expected, argTree) {
 				t.Errorf(spewToFileDiff(t, test.expected, argTree))
@@ -334,57 +334,84 @@ func TestParseCLIArgs(t *testing.T) {
 
 func TestParseCLIArgsCompletions(t *testing.T) {
 	tests := []struct {
-		name        string
-		args        []string
-		mode        Mode
-		completions completions
-		err         error
+		name             string
+		completionTarget string
+		args             []string
+		mode             Mode
+		completions      completions
+		err              error
 	}{
-		{"empty", nil, Normal, []string{"cmd1", "cmd2"}, nil},
+		{"empty", "bash", nil, Normal, []string{"cmd1", "cmd2"}, nil},
 
-		{"empty", []string{}, Normal, []string{"cmd1", "cmd2"}, nil},
+		{"empty", "bash", []string{}, Normal, []string{"cmd1", "cmd2"}, nil},
 
-		{"text", []string{"txt"}, Normal, []string{}, nil},
+		{"text", "bash", []string{"txt"}, Normal, []string{}, nil},
 
-		{"command", []string{"cmd"}, Normal, []string{"cmd1", "cmd2"}, nil},
+		{"command", "bash", []string{"cmd"}, Normal, []string{"cmd1", "cmd2"}, nil},
 
-		{"command", []string{"cmd1"}, Normal, []string{"cmd1 "}, nil},
+		{"command", "bash", []string{"cmd1"}, Normal, []string{"cmd1 "}, nil},
 
-		{"command", []string{"cmd1", ""}, Normal, []string{"sub1cmd1", "sub2cmd1"}, nil},
+		{"command", "bash", []string{"cmd1", ""}, Normal, []string{"sub1cmd1", "sub2cmd1"}, nil},
 
-		{"command", []string{"cmd1", "sub"}, Normal, []string{"sub1cmd1", "sub2cmd1"}, nil},
+		{"command", "bash", []string{"cmd1", "sub"}, Normal, []string{"sub1cmd1", "sub2cmd1"}, nil},
 
-		{"command", []string{"cmd1", "sub1"}, Normal, []string{"sub1cmd1 "}, nil},
+		{"command", "bash", []string{"cmd1", "sub1"}, Normal, []string{"sub1cmd1 "}, nil},
 
-		{"text to command", []string{"cmd1", "txt"}, Normal, []string{}, nil},
+		{"text to command", "bash", []string{"cmd1", "txt"}, Normal, []string{}, nil},
 
-		{"text to sub command", []string{"cmd1", "sub1cmd1", "txt"}, Normal, []string{}, nil},
+		{"text to sub command", "bash", []string{"cmd1", "sub1cmd1", "txt"}, Normal, []string{}, nil},
 
-		{"option", []string{"-"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
+		{"option", "bash", []string{"-"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
 
-		{"option", []string{"--"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
+		{"option", "zsh", []string{"-"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
 
-		{"option", []string{"--r"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
+		{"option", "bash", []string{"--"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
 
-		{"option", []string{"--rootopt1"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
+		{"option", "zsh", []string{"--"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
 
-		{"option with arg", []string{"--rootopt1=hello"}, Normal, []string{}, nil},
+		{"option", "bash", []string{"--r"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
 
-		{"option", []string{"--rootopt1", "hello"}, Normal, []string{}, nil},
+		{"option", "zsh", []string{"--r"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
 
-		{"terminator", []string{"--", "--opt1"}, Normal, []string{}, nil},
+		{"option", "bash", []string{"--rootopt1"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
 
-		{"lonesome dash", []string{"cmd1", "sub2cmd1", "-"}, Normal, []string{"-", "--cmd1opt1=", "--rootopt1="}, nil},
+		{"option", "zsh", []string{"--rootopt1"}, Normal, []string{"--rootopt1=", "--rootopt1=<string>"}, nil},
 
-		{"root option to command", []string{"cmd1", "--rootopt1", "hello"}, Normal, []string{}, nil},
+		{"option with arg", "bash", []string{"--rootopt1=hello"}, Normal, []string{}, nil},
 
-		{"root option to subcommand", []string{"cmd1", "sub2cmd1", "--rootopt1", "hello"}, Normal, []string{}, nil},
+		{"option with arg", "zsh", []string{"--rootopt1=hello"}, Normal, []string{}, nil},
 
-		{"option to subcommand", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1=hello"}, Normal, []string{}, nil},
+		{"option", "bash", []string{"--rootopt1", "hello"}, Normal, []string{}, nil},
 
-		{"option to subcommand", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1", "hello"}, Normal, []string{}, nil},
+		{"option", "zsh", []string{"--rootopt1", "hello"}, Normal, []string{}, nil},
 
-		{"option argument with dash", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1", "-hello"}, Normal, []string{}, ErrorParsing},
+		{"terminator", "bash", []string{"--", "--opt1"}, Normal, []string{}, nil},
+
+		{"terminator", "zsh", []string{"--", "--opt1"}, Normal, []string{}, nil},
+
+		{"lonesome dash", "bash", []string{"cmd1", "sub2cmd1", "-"}, Normal, []string{"-", "--cmd1opt1=", "--rootopt1="}, nil},
+
+		{"lonesome dash", "zsh", []string{"cmd1", "sub2cmd1", "-"}, Normal, []string{"-", "--cmd1opt1=", "--rootopt1="}, nil},
+
+		{"root option to command", "bash", []string{"cmd1", "--rootopt1", "hello"}, Normal, []string{}, nil},
+
+		{"root option to command", "zsh", []string{"cmd1", "--rootopt1", "hello"}, Normal, []string{}, nil},
+
+		{"root option to subcommand", "bash", []string{"cmd1", "sub2cmd1", "--rootopt1", "hello"}, Normal, []string{}, nil},
+
+		{"root option to subcommand", "zsh", []string{"cmd1", "sub2cmd1", "--rootopt1", "hello"}, Normal, []string{}, nil},
+
+		{"option to subcommand", "bash", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1=hello"}, Normal, []string{}, nil},
+
+		{"option to subcommand", "zsh", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1=hello"}, Normal, []string{}, nil},
+
+		{"option to subcommand", "bash", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1", "hello"}, Normal, []string{}, nil},
+
+		{"option to subcommand", "zsh", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1", "hello"}, Normal, []string{}, nil},
+
+		{"option argument with dash", "bash", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1", "-hello"}, Normal, []string{}, ErrorParsing},
+
+		{"option argument with dash", "zsh", []string{"cmd1", "sub1cmd1", "--sub1cmd1opt1", "-hello"}, Normal, []string{}, ErrorParsing},
 	}
 
 	for _, test := range tests {
@@ -393,7 +420,7 @@ func TestParseCLIArgsCompletions(t *testing.T) {
 			defer logTestOutput()
 
 			tree := setupOpt().programTree
-			_, comps, err := parseCLIArgs(true, tree, test.args, test.mode)
+			_, comps, err := parseCLIArgs("bash", tree, test.args, test.mode)
 			checkError(t, err, test.err)
 			if !reflect.DeepEqual(test.completions, comps) {
 				t.Fatalf("expected completions: \n%#v\n got: \n%#v\n", test.completions, comps)

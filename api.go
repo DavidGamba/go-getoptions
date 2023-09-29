@@ -153,7 +153,7 @@ type completions []string
 // parseCLIArgs - Given the root node tree and the cli args it returns a populated tree of the node that was called.
 // For example, if a command is called, then the returned node is that of the command with the options that were set updated with their values.
 // Additionally, when in completion mode, it returns the possible completions
-func parseCLIArgs(completionMode bool, tree *programTree, args []string, mode Mode) (*programTree, completions, error) {
+func parseCLIArgs(completionMode string, tree *programTree, args []string, mode Mode) (*programTree, completions, error) {
 	// Design: This function could return an array or CLIargs as a parse result
 	// or I could do one level up and have a root CLIarg type with the name of
 	// the program.  Having the root level might be helpful with help generation.
@@ -177,14 +177,14 @@ func parseCLIArgs(completionMode bool, tree *programTree, args []string, mode Mo
 
 ARGS_LOOP:
 	for iterator.Next() ||
-		(completionMode && len(args) == 0) { // enter at least once if running in completion mode.
+		(completionMode != "" && len(args) == 0) { // enter at least once if running in completion mode.
 
 		///////////////////////////////////
 		// Completions
 		///////////////////////////////////
 
 		// We only generate completions when we reached the end of the provided args
-		if completionMode && (iterator.IsLast() || len(args) == 0) {
+		if completionMode != "" && (iterator.IsLast() || len(args) == 0) {
 			completions := []string{}
 
 			// Options
@@ -220,8 +220,13 @@ ARGS_LOOP:
 								for _, e := range lastOpt.SuggestedValues {
 									c := fmt.Sprintf("--%s=%s", k, e)
 									if strings.HasPrefix(c, iterator.Value()) {
-										tc := strings.SplitN(c, "=", 2)[1]
-										completions = append(completions, tc)
+										// NOTE: Bash completions have = as a special char and results should be trimmed form the = on.
+										if completionMode == "bash" {
+											tc := strings.SplitN(c, "=", 2)[1]
+											completions = append(completions, tc)
+										} else {
+											completions = append(completions, c)
+										}
 									}
 								}
 							}
@@ -233,7 +238,7 @@ ARGS_LOOP:
 					// extra completion so there is no trailing space automatically
 					// inserted by bash.
 					// This extra completion has nice documentation on what the option expects.
-					if len(completions) == 1 && strings.Contains((completions)[0], "=") {
+					if len(completions) == 1 && strings.HasSuffix((completions)[0], "=") {
 						if lastOpt.SuggestedValues != nil && len(lastOpt.SuggestedValues) > 0 {
 							for _, e := range lastOpt.SuggestedValues {
 								completions = append(completions, completions[0]+e)

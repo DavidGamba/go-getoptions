@@ -196,6 +196,8 @@ For an overview of the Directed Acyclic Graph Build System see link:./dag/README
 
 • Built in auto completion.
 A single line of bash is all it takes.
++
+Zshell is also supported, by exporting `ZSHELL=true` in your environment and using `bashcompinit`.
 
 • Allow passing options and non-options in any order.
 
