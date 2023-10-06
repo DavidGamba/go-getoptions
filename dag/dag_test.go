@@ -513,7 +513,7 @@ func TestDagSerial(t *testing.T) {
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			for i := 0; i < 5; i++ {
-				t.Log(fmt.Sprintf("Task %d", n))
+				t.Logf("Task %d", n)
 			}
 			results = append(results, n)
 			return nil
@@ -704,6 +704,7 @@ func TestMaxParallel(t *testing.T) {
 					}
 					sm.Unlock()
 					workMutex.Lock()
+					time.Sleep(1 * time.Millisecond)
 					workMutex.Unlock()
 					sm.Lock()
 					currentConcurrency -= 1
