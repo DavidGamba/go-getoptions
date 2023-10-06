@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -86,7 +86,7 @@ func spewToFileDiff(t *testing.T, expected, got interface{}) string {
 }
 
 func spewToFile(t *testing.T, e interface{}, label string) string {
-	f, err := ioutil.TempFile("/tmp/", "spew-")
+	f, err := os.CreateTemp("/tmp/", "spew-")
 	if err != nil {
 		t.Fatal(err)
 	}
