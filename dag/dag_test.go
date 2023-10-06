@@ -80,6 +80,19 @@ func TestDag(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)
 	}
+
+	before := func(s []int, a, b int) bool {
+		ai, bi := -1, -1
+		for i, e := range s {
+			if e == a {
+				ai = i
+			}
+			if e == b {
+				bi = i
+			}
+		}
+		return ai < bi
+	}
 	for i, e := range results {
 		switch i {
 		case 0, 1:
@@ -90,15 +103,35 @@ func TestDag(t *testing.T) {
 			if e != 4 && e != 7 {
 				t.Errorf("Wrong list: %v\n", results)
 			}
-		case 4, 5:
-			if e != 2 && e != 3 {
-				t.Errorf("Wrong list: %v\n", results)
-			}
-		case 6, 7:
-			if e != 1 && e != 6 {
+		case 4, 5, 6, 7:
+			if e != 2 && e != 3 && e != 6 && e != 1 {
 				t.Errorf("Wrong list: %v\n", results)
 			}
 		}
+	}
+	if !before(results, 2, 1) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 3, 1) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 4, 2) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 4, 3) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 5, 4) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 2, 6) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 8, 6) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 5, 7) {
+		t.Errorf("Wrong list: %v\n", results)
 	}
 	expectedDiagram := `
 digraph G {
