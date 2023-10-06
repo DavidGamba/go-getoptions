@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== wip v0.28.0: Extend ZSHELL support
+== v0.28.0: Extend ZSHELL support
 
 As the releases before, this release has 100% test coverage.
 Tested with 1.16, 1.17, 1.18, 1.19, 1.20 and 1.21.
