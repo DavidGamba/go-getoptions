@@ -3,14 +3,14 @@ package slow
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"time"
 
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var Logger = log.New(ioutil.Discard, "show ", log.LstdFlags)
+var Logger = log.New(io.Discard, "show ", log.LstdFlags)
 
 var iterations int
 

@@ -12,7 +12,7 @@ package option
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"sort"
 	"strconv"
@@ -21,9 +21,9 @@ import (
 	"github.com/DavidGamba/go-getoptions/text"
 )
 
-// Logger instance set to `ioutil.Discard` by default.
+// Logger instance set to `io.Discard` by default.
 // Enable debug logging by setting: `Logger.SetOutput(os.Stderr)`.
-var Logger = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
+var Logger = log.New(io.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 var ErrorMissingRequiredOption = errors.New("")
 

@@ -3,14 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var Logger = log.New(ioutil.Discard, "", log.LstdFlags)
+var Logger = log.New(io.Discard, "", log.LstdFlags)
 
 func main() {
 	os.Exit(program(os.Args))

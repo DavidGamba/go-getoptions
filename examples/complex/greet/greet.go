@@ -3,13 +3,13 @@ package greet
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var Logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
+var Logger = log.New(io.Discard, "log ", log.LstdFlags)
 
 // NewCommand - Populate Options definition
 func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {

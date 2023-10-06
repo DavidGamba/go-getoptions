@@ -9,14 +9,14 @@
 package completion
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"regexp"
 	"strings"
 )
 
-// Debug - Debug logger set to ioutil.Discard by default
-var Debug = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
+// Debug - Debug logger set to io.Discard by default
+var Debug = log.New(io.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 /*
 Node -

@@ -2,7 +2,7 @@ package lswrapper
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -10,7 +10,7 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var Logger = log.New(ioutil.Discard, "log ", log.LstdFlags)
+var Logger = log.New(io.Discard, "log ", log.LstdFlags)
 
 // NewCommand - Populate Options definition
 func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {

@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
@@ -15,7 +15,7 @@ import (
 	complexslow "github.com/DavidGamba/go-getoptions/examples/complex/slow"
 )
 
-var Logger = log.New(ioutil.Discard, "", log.LstdFlags)
+var Logger = log.New(io.Discard, "", log.LstdFlags)
 
 func main() {
 	os.Exit(program(os.Args))

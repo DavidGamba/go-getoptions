@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -35,7 +35,7 @@ func program(args []string) int {
 		return 1
 	}
 	if opt.Called("quiet") {
-		Logger.SetOutput(ioutil.Discard)
+		Logger.SetOutput(io.Discard)
 	}
 
 	ctx, cancel, done := getoptions.InterruptContext()

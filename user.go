@@ -14,7 +14,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -26,9 +25,9 @@ import (
 	"github.com/DavidGamba/go-getoptions/text"
 )
 
-// Logger instance set to `ioutil.Discard` by default.
+// Logger instance set to `io.Discard` by default.
 // Enable debug logging by setting: `Logger.SetOutput(os.Stderr)`.
-var Logger = log.New(ioutil.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
+var Logger = log.New(io.Discard, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 var Writer io.Writer = os.Stderr // io.Writer to write warnings to. Defaults to os.Stderr.
 

@@ -2,14 +2,14 @@ package getoptions_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var logger = log.New(ioutil.Discard, "DEBUG: ", log.LstdFlags)
+var logger = log.New(io.Discard, "DEBUG: ", log.LstdFlags)
 
 func Example() {
 	// Declare the variables you want your options to update
