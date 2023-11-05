@@ -1,10 +1,38 @@
 = Changelog
 :toc:
 
+== wip v0.29.0: New Features
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.16, 1.17, 1.18, 1.19, 1.20 and 1.21.
+
+=== New Features
+
+* Add `opt.SetCalled` ModifyFn to allow setting an option as called.
++
+Useful when calling `CommandFn` directly and not through `opt.Dispatch` and without a call to `opt.Parse`.
+It allows building a `opt` object using defaults and marking the options as called.
++
+For example:
++
+[source,go]
+----
+
+func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	password := opt.Value("password").(string)
+
+	nopt := getoptions.New()
+	nopt.String("password", password, opt.SetCalled(opt.Called("password")))
+	nopt.Int("number", 123, opt.SetCalled(true))
+	nopt.Float64("float", 3.14) // opt.Called("float") is false but its value is set to 3.14
+
+	err := CommandFn(ctx, nopt, []string{})
+----
+
 == v0.28.0: Extend ZSHELL support
 
 As the releases before, this release has 100% test coverage.
-Tested with 1.16, 1.17, 1.18, 1.19, 1.20 and 1.21.
+Tested with Go 1.16, 1.17, 1.18, 1.19, 1.20 and 1.21.
 
 === Breaking
 

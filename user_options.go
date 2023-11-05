@@ -42,6 +42,14 @@ func (gopt *GetOpt) Description(msg string) ModifyFn {
 	}
 }
 
+// SetCalled - Mark the option as called using the option name.
+// Useful when adding options to a CommandFn call from a wrapper function.
+func (gopt *GetOpt) SetCalled(called bool) ModifyFn {
+	return func(parent *GetOpt, opt *option.Option) {
+		opt.Called = called
+	}
+}
+
 // Required - Automatically return an error if the option is not called.
 // Optionally provide a custom error message, a default error message will be used otherwise.
 func (gopt *GetOpt) Required(msg ...string) ModifyFn {

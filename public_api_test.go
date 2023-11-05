@@ -3751,3 +3751,38 @@ SYNOPSIS:
 		}
 	})
 }
+
+func TestSetCalled(t *testing.T) {
+	t.Run("unset", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("bool", false)
+		opt.String("string", "hello")
+		opt.Int("int", 123, opt.SetCalled(true))
+		opt.Int("int2", 456, opt.SetCalled(false))
+
+		if opt.Value("bool") != false {
+			t.Errorf("wrong bool value")
+		}
+		if opt.Called("bool") {
+			t.Errorf("wrong bool called value")
+		}
+		if opt.Value("string") != "hello" {
+			t.Errorf("wrong string value")
+		}
+		if opt.Called("string") {
+			t.Errorf("wrong string called value")
+		}
+		if opt.Value("int") != 123 {
+			t.Errorf("wrong int value")
+		}
+		if !opt.Called("int") {
+			t.Errorf("wrong int called value")
+		}
+		if opt.Value("int2") != 456 {
+			t.Errorf("wrong int2 value")
+		}
+		if opt.Called("int2") {
+			t.Errorf("wrong int2 called value")
+		}
+	})
+}
