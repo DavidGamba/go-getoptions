@@ -220,7 +220,7 @@ ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "prod
 		{"zshell option", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --f") }, []string{}, "--f\n--flag\n--fleg\n", ""},
 		{"zshell option", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --fl") }, []string{}, "--flag\n--fleg\n", ""},
 		{"zshell option", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --d") }, []string{}, "--debug\n", ""},
-		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program h") }, []string{}, "help \n", ""},
+		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program h") }, []string{}, "help\n", ""},
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program help ") }, []string{}, "log\nshow\n", ""},
 		// TODO: --profile= when there are suggestions is probably not wanted
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --profile") }, []string{}, "--profile=\n--profile=dev\n--profile=production\n--profile=staging\n", ""},
@@ -229,7 +229,7 @@ ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "prod
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --profile=a ") }, []string{}, "", `
 ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "production"]
 `},
-		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program lo ") }, []string{"./program", "lo", "./program"}, "log \n", ""},
+		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program lo ") }, []string{"./program", "lo", "./program"}, "log\n", ""},
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program show sub-show ") }, []string{}, "hello\nhelp\npassword\nprofile\n", ""},
 	}
 	for _, tt := range tests {
