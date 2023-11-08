@@ -1,6 +1,17 @@
 = Changelog
 :toc:
 
+== wip v0.30.0: New Features
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.16, 1.17, 1.18, 1.19, 1.20 and 1.21.
+
+=== New Features
+
+* add `opt.CustomCompletionFn` which allows to provide a custom completion function that gets lazily called.
++
+The completion function receives the target shell (bash or zsh) and the current partial completion.
+
 == v0.29.0: New Features
 
 As the releases before, this release has 100% test coverage.

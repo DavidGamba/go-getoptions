@@ -7,12 +7,14 @@ import (
 	"log"
 	"os"
 
-	"github.com/DavidGamba/go-getoptions"
+	complexcomplete "github.com/DavidGamba/go-getoptions/examples/complex/complete"
 	complexgreet "github.com/DavidGamba/go-getoptions/examples/complex/greet"
 	complexlog "github.com/DavidGamba/go-getoptions/examples/complex/log"
 	complexlswrapper "github.com/DavidGamba/go-getoptions/examples/complex/lswrapper"
 	complexshow "github.com/DavidGamba/go-getoptions/examples/complex/show"
 	complexslow "github.com/DavidGamba/go-getoptions/examples/complex/slow"
+
+	"github.com/DavidGamba/go-getoptions"
 )
 
 var Logger = log.New(io.Discard, "", log.LstdFlags)
@@ -34,6 +36,7 @@ func program(args []string) int {
 	complexlswrapper.NewCommand(opt)
 	complexshow.NewCommand(opt)
 	complexslow.NewCommand(opt)
+	complexcomplete.NewCommand(opt)
 	opt.HelpCommand("help", opt.Alias("?"))
 	remaining, err := opt.Parse(args[1:])
 	if err != nil {
@@ -47,6 +50,7 @@ func program(args []string) int {
 		complexlswrapper.Logger.SetOutput(os.Stderr)
 		complexshow.Logger.SetOutput(os.Stderr)
 		complexslow.Logger.SetOutput(os.Stderr)
+		complexcomplete.Logger.SetOutput(os.Stderr)
 	}
 	if opt.Called("profile") {
 		Logger.Printf("profile: %s\n", opt.Value("profile"))

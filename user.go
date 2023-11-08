@@ -187,6 +187,22 @@ func (gopt *GetOpt) CustomCompletion(list ...string) *GetOpt {
 	return gopt
 }
 
+// CompletionFn - Function receiver for custom completions.
+// The `target` argument indicates "bash" or "zsh" for the completion targets.
+//
+// NOTE: Bash completions have = as a special char and results should be trimmed from the = on.
+// This should not be done for Zsh.
+type CompletionFn func(target, partialCompletion string) []string
+
+// CustomCompletionFn - Allows to define custom completion functions that get lazily called.
+//
+// NOTE: Bash completions have = as a special char and results should be trimmed from the = on.
+// This should not be done for Zsh.
+func (gopt *GetOpt) CustomCompletionFn(fn ...CompletionFn) *GetOpt {
+	gopt.programTree.SuggestionFns = append(gopt.programTree.SuggestionFns, fn...)
+	return gopt
+}
+
 // UnsetOptions - Unsets inherited options from parent program and parent commands.
 // This is useful when writing wrappers around other commands.
 //
