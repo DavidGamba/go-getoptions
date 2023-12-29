@@ -13,7 +13,8 @@ type HelpSection int
 
 // Help Output Types
 const (
-	helpDefaultName HelpSection = iota
+	HelpNone HelpSection = iota
+	helpDefaultName
 	HelpName
 	HelpSynopsis
 	HelpCommandList

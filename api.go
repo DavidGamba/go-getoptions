@@ -17,6 +17,7 @@ type programTree struct {
 	Name            string
 	Description     string
 	SynopsisArgs    []help.SynopsisArg
+	SynopsisArgsIdx int // idx for the GetRequiredArg helper
 	ChildCommands   map[string]*programTree
 	ChildOptions    map[string]*option.Option
 	UnknownOptions  []*option.Option // Track unknown options in order in case they need to be passed to the remaining array.

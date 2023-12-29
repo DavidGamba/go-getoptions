@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -13,6 +14,10 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 	"github.com/DavidGamba/go-getoptions/text"
 )
+
+func executable(msg string) string {
+	return fmt.Sprintf(msg, filepath.Base(os.Args[0]))
+}
 
 // Test helper to compare two string outputs and find the first difference
 func firstDiff(got, expected string) string {
@@ -3783,6 +3788,194 @@ func TestSetCalled(t *testing.T) {
 		}
 		if opt.Called("int2") {
 			t.Errorf("wrong int2 called value")
+		}
+	})
+}
+
+func TestGetRequiredArg(t *testing.T) {
+	fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+		_, args, err := opt.GetRequiredArg(args)
+		if err != nil {
+			return err
+		}
+		_, args, err = opt.GetRequiredArg(args)
+		if err != nil {
+			return err
+		}
+		_, _, err = opt.GetRequiredArg(args)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	t.Run("no args", func(t *testing.T) {
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		expected := executable(`ERROR: Missing required argument
+SYNOPSIS:
+    %s [--help] [<args>]
+
+`)
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
+	t.Run("no args", func(t *testing.T) {
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{"arg1", "arg2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		expected := executable(`ERROR: Missing required argument
+SYNOPSIS:
+    %s [--help] [<args>]
+
+`)
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
+	t.Run("no named args", func(t *testing.T) {
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpSynopsisArg("<arg1>", "arg1 desc")
+		opt.HelpSynopsisArg("<arg2>", "arg2 desc")
+		opt.HelpSynopsisArg("<arg3>", "arg3 desc")
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		expected := executable(`ERROR: Missing <arg1>
+SYNOPSIS:
+    %s [--help] <arg1> <arg2> <arg3>
+
+`)
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
+	t.Run("no named args", func(t *testing.T) {
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpSynopsisArg("<arg1>", "arg1 desc")
+		opt.HelpSynopsisArg("<arg2>", "arg2 desc")
+		opt.HelpSynopsisArg("<arg3>", "arg3 desc")
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{"arg1", "arg2"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		expected := executable(`ERROR: Missing <arg3>
+SYNOPSIS:
+    %s [--help] <arg1> <arg2> <arg3>
+
+`)
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
+	t.Run("help section", func(t *testing.T) {
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			_, _, err := opt.GetRequiredArg(args, getoptions.HelpNone)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpSynopsisArg("<arg1>", "arg1 desc")
+		opt.HelpSynopsisArg("<arg2>", "arg2 desc")
+		opt.HelpSynopsisArg("<arg3>", "arg3 desc")
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		expected := `ERROR: Missing <arg1>
+`
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
+	t.Run("help section", func(t *testing.T) {
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			_, _, err := opt.GetRequiredArg(args, getoptions.HelpName, getoptions.HelpSynopsis)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpSynopsisArg("<arg1>", "arg1 desc")
+		opt.HelpSynopsisArg("<arg2>", "arg2 desc")
+		opt.HelpSynopsisArg("<arg3>", "arg3 desc")
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		expected := executable(`ERROR: Missing <arg1>
+NAME:
+    %s
+
+SYNOPSIS:
+    %[1]s [--help] <arg1> <arg2> <arg3>
+
+`)
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
 		}
 	})
 }

@@ -21,6 +21,10 @@ var ErrorAmbiguousArgument = "Ambiguous option '%s', matches %v!"
 // It has a string placeholder '%s' for the name of the missing option.
 var ErrorMissingRequiredOption = "Missing required parameter '%s'"
 
+var ErrorMissingRequiredArgument = "ERROR: Missing required argument"
+
+var ErrorMissingRequiredNamedArgument = "ERROR: Missing %s"
+
 // ErrorArgumentIsNotKeyValue holds the text for Map type options where the argument is not of key=value type.
 // It has a string placeholder '%s' for the name of the option missing the argument.
 var ErrorArgumentIsNotKeyValue = "Argument error for option '%s': Should be of type 'key=value'!"
