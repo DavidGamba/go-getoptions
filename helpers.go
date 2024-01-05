@@ -2,6 +2,7 @@ package getoptions
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/DavidGamba/go-getoptions/text"
 )
@@ -28,4 +29,30 @@ func (gopt *GetOpt) GetRequiredArg(args []string, sections ...HelpSection) (stri
 	}
 	gopt.programTree.SynopsisArgsIdx++
 	return args[0], args[1:], nil
+}
+
+// Same as GetRequiredArg but converts the argument to an int.
+func (gopt *GetOpt) GetRequiredArgInt(args []string, sections ...HelpSection) (int, []string, error) {
+	arg, args, err := gopt.GetRequiredArg(args, sections...)
+	if err != nil {
+		return 0, args, err
+	}
+	i, err := strconv.Atoi(arg)
+	if err != nil {
+		return 0, args, fmt.Errorf(text.ErrorConvertArgumentToInt, arg)
+	}
+	return i, args, nil
+}
+
+// Same as GetRequiredArg but converts the argument to a float64.
+func (gopt *GetOpt) GetRequiredArgFloat64(args []string, sections ...HelpSection) (float64, []string, error) {
+	arg, args, err := gopt.GetRequiredArg(args, sections...)
+	if err != nil {
+		return 0, args, err
+	}
+	f, err := strconv.ParseFloat(arg, 64)
+	if err != nil {
+		return 0, args, fmt.Errorf(text.ErrorConvertArgumentToFloat64, arg)
+	}
+	return f, args, nil
 }

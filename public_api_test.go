@@ -3978,4 +3978,165 @@ SYNOPSIS:
 			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
 		}
 	})
+	t.Run("int and float64", func(t *testing.T) {
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			i, args, err := opt.GetRequiredArgInt(args)
+			if err != nil {
+				return err
+			}
+			if i != 123 {
+				return fmt.Errorf("wrong value: %d", i)
+			}
+			f, _, err := opt.GetRequiredArgFloat64(args)
+			if err != nil {
+				return err
+			}
+			if f != 3.14 {
+				return fmt.Errorf("wrong value: %f", f)
+			}
+			return nil
+		}
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpSynopsisArg("<int>", "int desc")
+		opt.HelpSynopsisArg("<float64>", "float64 desc")
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{"123", "3.14"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		expected := ""
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
+	t.Run("int errors", func(t *testing.T) {
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			_, _, err := opt.GetRequiredArgInt(args)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpSynopsisArg("<int>", "int desc")
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		expected := executable(`ERROR: Missing <int>
+SYNOPSIS:
+    %[1]s [--help] <int>
+
+`)
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
+	t.Run("int errors", func(t *testing.T) {
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			_, _, err := opt.GetRequiredArgInt(args)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpSynopsisArg("<int>", "int desc")
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{"a"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err == nil {
+			t.Errorf("error expected")
+		}
+
+		expected := "Argument error: Can't convert string to int: 'a'"
+
+		if fmt.Sprintf("%s", err) != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(fmt.Sprintf("%s", err), expected))
+		}
+	})
+	t.Run("float64 errors", func(t *testing.T) {
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			_, _, err := opt.GetRequiredArgFloat64(args)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpSynopsisArg("<float64>", "float64 desc")
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if !errors.Is(err, getoptions.ErrorHelpCalled) {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		expected := executable(`ERROR: Missing <float64>
+SYNOPSIS:
+    %[1]s [--help] <float64>
+
+`)
+		if helpBuf.String() != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(helpBuf.String(), expected))
+		}
+	})
+	t.Run("float64 errors", func(t *testing.T) {
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			_, _, err := opt.GetRequiredArgFloat64(args)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		helpBuf := new(bytes.Buffer)
+		getoptions.Writer = helpBuf
+		opt := getoptions.New()
+		opt.SetCommandFn(fn)
+		opt.HelpSynopsisArg("<float64>", "float64 desc")
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{"a"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err == nil {
+			t.Errorf("error expected")
+		}
+
+		expected := "Argument error: Can't convert string to float64: 'a'"
+
+		if fmt.Sprintf("%s", err) != expected {
+			t.Errorf("Wrong output:\n%s\n", firstDiff(fmt.Sprintf("%s", err), expected))
+		}
+	})
 }

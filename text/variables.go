@@ -38,9 +38,13 @@ var ErrorArgumentWithDash = "Missing argument for option '%s'!\n" +
 // It has two string placeholders ('%s'). The first one for the name of the option with the wrong argument and the second one for the argument that could not be converted.
 var ErrorConvertToInt = "Argument error for option '%s': Can't convert string to int: '%s'"
 
+var ErrorConvertArgumentToInt = "Argument error: Can't convert string to int: '%s'"
+
 // ErrorConvertToFloat64 holds the text for Float64 Coversion argument error.
 // It has two string placeholders ('%s'). The first one for the name of the option with the wrong argument and the second one for the argument that could not be converted.
 var ErrorConvertToFloat64 = "Argument error for option '%s': Can't convert string to float64: '%s'"
+
+var ErrorConvertArgumentToFloat64 = "Argument error: Can't convert string to float64: '%s'"
 
 // WarningOnUnknown holds the text for the unknown option message.
 // It has a string placeholder '%s' for the name of the option missing the argument.
