@@ -1,6 +1,52 @@
 = Changelog
 :toc:
 
+== wip v0.30.0: New Features
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.16, 1.17, 1.18, 1.19, 1.20 and 1.21.
+
+=== New Features
+
+* Add `opt.SuggestedValues` ModifyFn to allow setting autocompletion suggestions for an option.
++
+Works just like the existing `opt.ValidValues` but it doesn't error out if the value is not in the list of suggestions.
+
+* Add `opt.GetRequiredArg`, `opt.GetRequiredArgInt` and `opt.GetRequiredArgFloat64` to simplify handling required arguments and providing error messages.
++
+For example:
++
+[source,go]
+----
+	opt := getoptions.New()
+	opt.SetCommandFn(Run)
+	opt.HelpSynopsisArg("<arg1>", "arg1 desc")
+	opt.HelpSynopsisArg("<arg2>", "arg2 desc")
+
+...
+
+func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	i, args, err := opt.GetRequiredArgInt(args)
+	if err != nil {
+		return err
+	}
+	...
+	return nil
+}
+----
++
+If the argument is not provided, the error message will be:
++
+----
+ERROR: Missing required argument: <arg1>
+----
++
+If the argument is provided but it is not an integer, the error message will be:
++
+----
+ERROR: Argument error: Can't convert string to int: 'x'
+----
+
 == v0.29.0: New Features
 
 As the releases before, this release has 100% test coverage.

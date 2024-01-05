@@ -27,6 +27,8 @@ toc::[]
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -35,40 +37,62 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var logger = log.New(io.Discard, "DEBUG: ", log.LstdFlags)
+var Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 func main() {
-	var debug bool
-	var greetCount int
-	var list map[string]string
+	os.Exit(program(os.Args))
+}
+
+func program(args []string) int {
+	ctx, cancel, done := getoptions.InterruptContext()
+	defer func() { cancel(); <-done }()
+
 	opt := getoptions.New()
-	opt.Bool("help", false, opt.Alias("h", "?"))
-	opt.BoolVar(&debug, "debug", false)
-	opt.IntVar(&greetCount, "greet", 0,
-		opt.Required(),
-		opt.Description("Number of times to greet."))
-	opt.StringMapVar(&list, "list", 1, 99,
-		opt.Description("Greeting list by language."))
-	remaining, err := opt.Parse(os.Args[1:])
-	if opt.Called("help") {
-		fmt.Fprintf(os.Stderr, opt.Help())
-		os.Exit(1)
-	}
+	opt.Self("myscript", "Simple demo script")
+	opt.Bool("debug", false, opt.GetEnv("DEBUG"))
+	opt.Int("greet", 0, opt.Required(), opt.Description("Number of times to greet."))
+	opt.StringMap("list", 1, 99, opt.Description("Greeting list by language."))
+	opt.Bool("quiet", false, opt.GetEnv("QUIET"))
+	opt.HelpSynopsisArg("<name>", "Name to greet.")
+	opt.SetCommandFn(Run)
+	opt.HelpCommand("help", opt.Alias("?"))
+	remaining, err := opt.Parse(args[1:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
-		fmt.Fprintf(os.Stderr, opt.Help(getoptions.HelpSynopsis))
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		return 1
+	}
+	if opt.Called("quiet") {
+		Logger.SetOutput(io.Discard)
 	}
 
-	// Use the passed command line options... Enjoy!
-	if debug {
-		logger.SetOutput(os.Stderr)
+	err = opt.Dispatch(ctx, remaining)
+	if err != nil {
+		if errors.Is(err, getoptions.ErrorHelpCalled) {
+			return 1
+		}
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		if errors.Is(err, getoptions.ErrorParsing) {
+			fmt.Fprintf(os.Stderr, "\n"+opt.Help())
+		}
+		return 1
 	}
-	logger.Printf("Unhandled CLI args: %v\n", remaining)
+	return 0
+}
+
+func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	// Get arguments and options
+	name, _, err := opt.GetRequiredArg(args)
+	if err != nil {
+		return err
+	}
+	greetCount := opt.Value("greet").(int)
+	list := opt.Value("list").(map[string]string)
+
+	Logger.Printf("Running: %v", args)
 
 	// Use the int variable
 	for i := 0; i < greetCount; i++ {
-		fmt.Println("Hello World, from go-getoptions!")
+		fmt.Printf("Hello %s, from go-getoptions!\n", name)
 	}
 
 	// Use the map[string]string variable
@@ -78,6 +102,8 @@ func main() {
 			fmt.Printf("\t%s=%s\n", k, v)
 		}
 	}
+
+	return nil
 }
 ----
 
@@ -85,61 +111,73 @@ func main() {
 +
 .Show help
 ----
-$ ./myscript --help
+$ ./myscript help
+NAME:
+    myscript - Simple demo script
+
 SYNOPSIS:
-    myscript --greet <int> [--debug] [--help|-h|-?] [--list <key=value>...]...
+    myscript --greet <int> [--debug] [--help|-?] [--list <key=value>...]...
+             [--quiet] <name>
+
+ARGUMENTS:
+    <name>                   Name to greet.
 
 REQUIRED PARAMETERS:
-    --greet <int>                Number of times to greet.
+    --greet <int>            Number of times to greet.
 
 OPTIONS:
-    --debug                      (default: false)
+    --debug                  (default: false, env: DEBUG)
 
-    --help|-h|-?                 (default: false)
+    --help|-?                (default: false)
 
-    --list <key=value>...        Greeting list by language. (default: {})
+    --list <key=value>...    Greeting list by language. (default: {})
 
+    --quiet                  (default: false, env: QUIET)
 ----
 +
 .Show errors
 ----
 $ ./myscript
-ERROR: Missing required option 'greet'!
-
-SYNOPSIS:
-    myscript --greet <int> [--debug] [--help|-h|-?] [--list <key=value>...]...
+ERROR: Missing required parameter 'greet'
 ----
 +
 .Show errors
 ----
 $ ./myscript -g
 ERROR: Missing argument for option 'greet'!
-
+----
++
+.Show errors
+----
+$ ./myscript -g 3
+ERROR: Missing <name>
 SYNOPSIS:
-    myscript --greet <int> [--debug] [--help|-h|-?] [--list <key=value>...]...
+    myscript --greet <int> [--debug] [--help|-?] [--list <key=value>...]...
+             [--quiet] <name>
 ----
 +
 .Use of int option
 ----
-$ ./myscript -g 3
-Hello World, from go-getoptions!
-Hello World, from go-getoptions!
-Hello World, from go-getoptions!
+$ ./myscript -g 3 David
+2024/01/04 23:25:14 Running: [David]
+Hello David, from go-getoptions!
+Hello David, from go-getoptions!
+Hello David, from go-getoptions!
 ----
 +
 .Use of bool option
 ----
-$ ./myscript --debug -g 1 other stuff
-DEBUG: 2019/07/14 23:20:22 Unhandled CLI args: [other stuff]
-Hello World, from go-getoptions!
+$ ./myscript -g 1 David --quiet
+Hello David, from go-getoptions!
 ----
 +
 .Use of map option
 ----
-./myscript -g 0 -l en='Hello World' es='Hola Mundo'
+$ ./myscript -g 0 David -l en='Hello World' es='Hola Mundo'
+2024/01/04 23:27:00 Running: [David]
 Greeting List:
-        en=Hello World
-        es=Hola Mundo
+	en=Hello World
+	es=Hola Mundo
 ----
 
 NOTE: If you are starting a new project, instead of copying the example code from above, use the code from the link:./docs/new-project-templates.adoc[New Project Templates].
@@ -330,9 +368,9 @@ Only the last two versions of Go will be supported.
 
 NOTE: For a <<quick_overview>>, jump to that section in the TOC or review the http://godoc.org/github.com/DavidGamba/go-getoptions[GoDoc Documentation].
 
-Option parsing is the act of taking command line arguments and converting them into meaningful structures within the program.
+Option parsing is the act of taking command line (CLI) arguments and converting them into meaningful structures within the program.
 
-First declare a getoptions instance:
+First declare a `getoptions` instance:
 
 [source, go]
 ----
@@ -363,6 +401,14 @@ opt.String("string", "default_value",
 )
 ----
 
+You can also define arguments:
+
+[source, go]
+----
+opt.HelpSynopsisArg("<arg1>", "arg1 description")
+opt.HelpSynopsisArg("<arg2>", "arg2 description")
+----
+
 Define the function for the program:
 
 ----
@@ -371,16 +417,17 @@ opt.SetCommandFn(Run)
 
 If no function is defined and `opt.Dispatch` is called, the program will show a help message with any commands or subcommands.
 
-Define any commands and their options and functions:
+Define any commands and their options, arguments and functions:
 
 [source, go]
 ----
 cmd := opt.NewCommand("command", "command description")
 cmd.String("int", 123)
+cmd.HelpSynopsisArg("<arg1>", "arg1 description")
 cmd.SetCommandFn(CommandRun)
 ----
 
-NOTE: Options defined at a parent level will be interited by the command unless `cmd.UnsetOptions()` is called.
+NOTE: Options defined at a parent level will be inherited by the command unless `cmd.UnsetOptions()` is called.
 
 After defining options and commands declare the help command, it must be the last one defined.
 
@@ -405,7 +452,7 @@ err = opt.Dispatch(ctx, remaining)
 
 Dispatch requires a `context.Context` to be passed which can be used to propagate cancellation signals or configuration values.
 
-A built in helper to create a context with cancellation support is provided:
+A built in helper to create a context with cancellation support (`os.Interrupt`, `syscall.SIGHUP`, `syscall.SIGTERM`) is provided:
 
 [source, go]
 ----
@@ -445,6 +492,204 @@ func Name(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 
 NOTE: The `opt.Value` function returns an `interface{}` so it needs to be type casted to the proper type.
 The type cast will panic if trying to read an option that is not defined.
+
+Read the received arguments from the `args` slice.
+Additionally, use the `opt.GetRequiredArg` (with int and float64 variants) to simplify handling required arguments and providing error messages.
+
+[source, go]
+----
+func Name(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	arg1, args, err := opt.GetRequiredArgInt(args)
+	if err != nil {
+		return err
+	}
+
+	// logic
+
+	return nil
+}
+----
+
+== Automatically generate help
+
+For a proper extended man page for your program consider link:http://asciidoctor.org/[asciidoctor] that can generate manpages written in the Asciidoc markup.
+
+For the built-in help, you can add a description to your program:
+
+- `opt.Self("", "This is a program description")`
+
+NOTE: When the first argument is empty, it will use the program name from `os.Args[0]`.
+
+For options help ensure you add option descriptions and argument names.
+
+- `opt.Description("This is a string option")`
+- `opt.ArgName("mystring")`
+
+The help command needs to be defined after all options, commands and subcommands.
+
+`opt.HelpCommand("help", opt.Alias("?"))`
+
+When calling the help command, you get the full help.
+Optionally you can print only given sections of the Help.
+
+For example:
+
+[source, go]
+----
+fmt.Fprintf(os.Stderr, "%s", opt.Help(getoptions.HelpSynopsis))
+----
+
+Or through a helper:
+
+[source, go]
+----
+func ForceUnlock(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	lockID, args, err := opt.GetRequiredArg(args)
+	if err != nil {
+		return err
+	}
+----
+
+In the code above, if there is no argument passed, the `GetRequiredArg` will print an error plus the synopsis:
+
+----
+ERROR: Missing <lock-id>
+SYNOPSIS:
+    program [--help] <lock-id>
+----
+
+The error return is `getoptions.ErrorHelpCalled` which signals the help is already printed.
+The dispatch error handling can handle this error and not print and additional error message.
+
+
+[source, go]
+----
+	err = opt.Dispatch(ctx, remaining)
+	if err != nil {
+		if errors.Is(err, getoptions.ErrorHelpCalled) {
+			return 1
+		}
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		if errors.Is(err, getoptions.ErrorParsing) {
+			fmt.Fprintf(os.Stderr, "\n"+opt.Help())
+		}
+		return 1
+	}
+	return 0
+----
+
+Another helpful error to check for is `getoptions.ErrorParsing`, as shown above, which indicates there was a problem parsing the CLI arguments.
+This can be used, to print the help only in cases where the user didn't enter valid CLI options or arguments.
+
+The built in help shows default values and environment variables when available.
+
+It separates _COMMANDS_, _ARGUMENTS_, _REQUIRED PARAMETERS_ and _OPTIONS_ into separate sections.
+
+For example, the following is a script using the built in help:
+
+----
+$ bt terraform force-unlock help
+NAME:
+    bt terraform force-unlock
+
+SYNOPSIS:
+    bt terraform force-unlock [--help|-?] [--profile <string>] [--quiet]
+                              [--ws <string>] <lock-id>
+
+ARGUMENTS:
+    <lock-id>             Lock ID
+
+OPTIONS:
+    --help|-?             (default: false)
+
+    --profile <string>    BT Terraform Profile to use (default: "default", env: AWS_PROFILE)
+
+    --quiet               (default: false, env: QUIET)
+
+    --ws <string>         Workspace to use (default: "")
+----
+
+And below is the output of the automated help of a program with multiple commands:
+
+----
+$ tz help
+SYNOPSIS:
+    tz [--config|-c <string>] [--format-standard|--format-12-hour|--format-12h]
+       [--group <string>] [--help|-?] [--short|-s] [--verbose] <command> [<args>]
+
+COMMANDS:
+    cities     filter cities list
+    list       list all timezones
+    version    show version
+
+OPTIONS:
+    --config|-c <string>                               Config file (default: "")
+
+    --format-standard|--format-12-hour|--format-12h    Use standard 12 hour AM/PM time format (default: false)
+
+    --group <string>                                   Group to show (default: "")
+
+    --help|-?                                          (default: false)
+
+    --short|-s                                         Don't show timezone bars (default: false)
+
+    --verbose                                          Enable logging (default: false, env: TZ_VERBOSE)
+
+Use 'tz help <command>' for extra details.
+----
+
+Any built-in string in `go-getoptions`, like titles, is exposed as a public variable so it can be overridden for internationalization.
+
+== Autocompletion
+
+To enable bash autocompletion, add the following line to your bash profile:
+
+[source,bash]
+----
+complete -o default -C my-go-program my-go-program
+----
+
+For the above to work, the program must be in the PATH.
+Otherwise:
+
+[source,bash]
+----
+complete -o default -C "$HOME/go/bin/my-go-program" my-go-program
+----
+
+To enable zsh autocompletion, add the following line to your zsh profile:
+
+[source,zsh]
+----
+export ZSHELL="true"
+autoload -U +X compinit && compinit
+autoload -U +X bashcompinit && bashcompinit
+complete -o default -C my-go-program my-go-program
+----
+
+The `ZSHELL="true"` export is required because bash and zsh have different ways of handling autocompletion and there is no reliable way to detect which shell is being used.
+
+If testing completion in the CLI, you might require to first clean the completion entry that `complete` auto generates when hitting `Tab` twice:
+
+`complete -r ./my-go-program 2>/dev/null`
+
+When providing these as scripts that users source but not add into their profile you can use the following `sourceme.bash` script:
+
+.sourceme.bash
+[source,bash]
+----
+#!/bin/bash
+
+# Remove existing entries to ensure the right one is loaded
+# This is not required when the completion one liner is loaded in your bashrc.
+complete -r ./my-go-program 2>/dev/null
+
+complete -o default -C "$PWD/my-go-program" my-go-program
+----
+
+Then when the users go into the directory and run `source sourceme.bash` the autocompletion will be enabled.
+
+== Options
 
 === Boolean options
 
@@ -718,7 +963,7 @@ When calling `CommandFn` directly, it is sometimes useful to set the option as c
 Use cases are for testing and wrappers.
 
 [[operation_modes]]
-== Operation Modes
+== Operation Modes: How to handle single dash '-' options
 
 Notice how so far only long options (options starting with double dash `--`) have been mentioned.
 There are 3 main ways to handle short options (options starting with only one dash `-`).
@@ -791,184 +1036,6 @@ a|option: `"o"`, argument: `"pt"` footnote:[Argument gets type casted depending 
 a|option: `"o"`, argument: `"pt=arg"` footnote:[Argument gets type casted depending on option definition.]
 
 |===
-
-== Automatically generate help
-
-For a proper man page for your program consider link:http://asciidoctor.org/[asciidoctor] that can generate manpages written in the Asciidoc markup.
-
-For the built-in help, you can add a description to your program:
-
-- `opt.Self("", "This is a program description")`
-
-NOTE: When the first argument is empty, it will use the program name from `os.Args[0]`.
-
-For options help ensure you add option descriptions and argument names.
-
-- `opt.Description("This is a string option")`
-- `opt.ArgName("mystring")`
-
-The help command needs to be defined after all options, commands and subcommands.
-
-`opt.HelpCommand("help", opt.Alias("?"))`
-
-When calling the help command, you get the full help.
-Optionally you can print only given sections of the Help.
-
-For example:
-
-[source, go]
-----
-func ForceUnlock(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-	if len(args) < 1 {
-		fmt.Fprintf(os.Stderr, "ERROR: missing <lock-id>\n")
-		fmt.Fprintf(os.Stderr, "%s", opt.Help(getoptions.HelpSynopsis))
-		return getoptions.ErrorHelpCalled
-	}
-	lockID := args[0]
-	args = slices.Delete(args, 0, 1)
-----
-
-In the code above, the return is `getoptions.ErrorHelpCalled` which signals the help is already printed.
-The dispatch error handling can handle this error and not print and additional error message.
-
-[source, go]
-----
-	err = opt.Dispatch(ctx, remaining)
-	if err != nil {
-		if errors.Is(err, getoptions.ErrorHelpCalled) {
-			return 1
-		}
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
-		if errors.Is(err, getoptions.ErrorParsing) {
-			fmt.Fprintf(os.Stderr, "\n"+opt.Help())
-		}
-		return 1
-	}
-	return 0
-----
-
-The built in help shows default values and environment variables when available.
-
-It separates required parameters from options.
-
-For example, the following is a script using the built in help:
-
-----
-$ ./aws-configure -h
-NAME:
-    aws-configure - Generate default ~/.aws/config and ~/.aws/credentials configuration.
-
-        When a role is passed, it allows the use of the role in the default profile.
-
-        NOTE: Remember to unset AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY after use.
-
-SYNOPSIS:
-    aws-configure --access-key-id <string> --region <string>
-                  --secret-access-key <string> [--debug] [--help|-?]
-                  [--output-dir <string>] [--role-arn <string>] [--version|-V]
-                  [<args>]
-
-REQUIRED PARAMETERS:
-    --access-key-id <string>        AWS Access Key ID. (env: AWS_ACCESS_KEY_ID)
-
-    --region <string>               Default Region. (env: AWS_DEFAULT_REGION)
-
-    --secret-access-key <string>    AWS Secret Access Key. (env: AWS_SECRET_ACCESS_KEY)
-
-OPTIONS:
-    --debug                         (default: false)
-
-    --help|-?                       (default: false)
-
-    --output-dir <string>           Where to place the config and credentials file. (default: "/home/david/.aws")
-
-    --role-arn <string>             Role ARN. (default: "", env: AWS_ROLE_ARN)
-
-    --version|-V                    (default: false)
-----
-
-And below is the output of the automated help of a program with multiple commands:
-
-----
-$ menu
-SYNOPSIS:
-    menu [--config <string>] [--debug] [--help|-?] [--profile <string>]
-         [--region <string>] [--role <string>] [--version|-V] <command> [<args>]
-
-COMMANDS:
-    docker       docker tasks
-    help         Use 'menu help <command>' for extra details.
-    instance     Actions on your deployed instances
-    terraform    Run terraform commands from inside the container
-
-OPTIONS:
-    --config <string>     (default: "config.yml")
-
-    --debug               (default: false)
-
-    --help|-?             (default: false)
-
-    --profile <string>    (default: "default")
-
-    --region <string>     (default: "us-west-2")
-
-    --role <string>       (default: "")
-
-    --version|-V          (default: false)
-
-Use 'menu help <command>' for extra details.
-----
-
-Any built-in string in `go-getoptions`, like titles, is exposed as a public variable so it can be overridden for internationalization.
-
-== Autocompletion
-
-To enable bash autocompletion, add the following line to your bash profile:
-
-[source,bash]
-----
-complete -o default -C my-go-program my-go-program
-----
-
-For the above to work, the program must be in the PATH.
-Otherwise:
-
-[source,bash]
-----
-complete -o default -C "$HOME/go/bin/my-go-program" my-go-program
-----
-
-To enable zsh autocompletion, add the following line to your zsh profile:
-
-[source,zsh]
-----
-export ZSHELL="true"
-autoload -U +X compinit && compinit
-autoload -U +X bashcompinit && bashcompinit
-complete -o default -C my-go-program my-go-program
-----
-
-The `ZSHELL="true"` export is required because bash and zsh have different ways of handling autocompletion and there is no reliable way to detect which shell is being used.
-
-If testing completion in the CLI, you might require to first clean the completion entry that `complete` auto generates when hitting `Tab` twice:
-
-`complete -r ./my-go-program 2>/dev/null`
-
-When providing these as scripts that users source but not add into their profile you can use the following `sourceme.bash` script:
-
-.sourceme.bash
-[source,bash]
-----
-#!/bin/bash
-
-# Remove existing entries to ensure the right one is loaded
-# This is not required when the completion one liner is loaded in your bashrc.
-complete -r ./my-go-program 2>/dev/null
-
-complete -o default -C "$PWD/my-go-program" my-go-program
-----
-
-Then when the users go into the directory and run `source sourceme.bash` the autocompletion will be enabled.
 
 == Command behaviour
 
@@ -1066,8 +1133,6 @@ Update test suite to accommodate for Windows.
 * Figure out how to have custom completions for option values.
 
 * Add OptionGroup to allow grouping options in the help output.
-
-* Helper function to parse required arguments and return ErrorHelpCalled.
 
 * Document CustomCompletion and ValidValues in autocompletion section.
 

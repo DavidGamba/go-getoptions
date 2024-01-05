@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -9,45 +11,62 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var Logger = log.New(io.Discard, "DEBUG: ", log.LstdFlags)
+var Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 func main() {
 	os.Exit(program(os.Args))
 }
 
 func program(args []string) int {
-	var debug bool
-	var greetCount int
-	var list map[string]string
+	ctx, cancel, done := getoptions.InterruptContext()
+	defer func() { cancel(); <-done }()
+
 	opt := getoptions.New()
 	opt.Self("myscript", "Simple demo script")
-	opt.Bool("help", false, opt.Alias("h", "?"))
-	opt.BoolVar(&debug, "debug", false, opt.GetEnv("DEBUG"))
-	opt.IntVar(&greetCount, "greet", 0,
-		opt.Required(),
-		opt.Description("Number of times to greet."))
-	opt.StringMapVar(&list, "list", 1, 99,
-		opt.Description("Greeting list by language."))
+	opt.Bool("debug", false, opt.GetEnv("DEBUG"))
+	opt.Int("greet", 0, opt.Required(), opt.Description("Number of times to greet."))
+	opt.StringMap("list", 1, 99, opt.Description("Greeting list by language."))
+	opt.Bool("quiet", false, opt.GetEnv("QUIET"))
+	opt.HelpSynopsisArg("<name>", "Name to greet.")
+	opt.SetCommandFn(Run)
+	opt.HelpCommand("help", opt.Alias("?"))
 	remaining, err := opt.Parse(args[1:])
-	if opt.Called("help") {
-		fmt.Fprint(os.Stderr, opt.Help())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
 	}
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n\n", err)
-		fmt.Fprint(os.Stderr, opt.Help(getoptions.HelpSynopsis))
-		return 1
+	if opt.Called("quiet") {
+		Logger.SetOutput(io.Discard)
 	}
 
-	// Use the passed command line options... Enjoy!
-	if debug {
-		Logger.SetOutput(os.Stderr)
+	err = opt.Dispatch(ctx, remaining)
+	if err != nil {
+		if errors.Is(err, getoptions.ErrorHelpCalled) {
+			return 1
+		}
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		if errors.Is(err, getoptions.ErrorParsing) {
+			fmt.Fprintf(os.Stderr, "\n"+opt.Help())
+		}
+		return 1
 	}
-	Logger.Printf("Unhandled CLI args: %v\n", remaining)
+	return 0
+}
+
+func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	// Get arguments and options
+	name, _, err := opt.GetRequiredArg(args)
+	if err != nil {
+		return err
+	}
+	greetCount := opt.Value("greet").(int)
+	list := opt.Value("list").(map[string]string)
+
+	Logger.Printf("Running: %v", args)
 
 	// Use the int variable
 	for i := 0; i < greetCount; i++ {
-		fmt.Println("Hello World, from go-getoptions!")
+		fmt.Printf("Hello %s, from go-getoptions!\n", name)
 	}
 
 	// Use the map[string]string variable
@@ -57,5 +76,6 @@ func program(args []string) int {
 			fmt.Printf("\t%s=%s\n", k, v)
 		}
 	}
-	return 0
+
+	return nil
 }
