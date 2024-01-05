@@ -118,10 +118,19 @@ func (gopt *GetOpt) ArgName(name string) ModifyFn {
 	}
 }
 
+// ValidValues - adds a list of enforced valid values for the option.
+// These are also added to the autocompletion engine.
 func (gopt *GetOpt) ValidValues(values ...string) ModifyFn {
 	return func(parent *GetOpt, opt *option.Option) {
 		opt.ValidValues = append(opt.ValidValues, values...)
 		opt.SuggestedValues = opt.ValidValues
+	}
+}
+
+// SuggestedValues - adds a list of suggestions to the autocompletion for the option.
+func (gopt *GetOpt) SuggestedValues(values ...string) ModifyFn {
+	return func(parent *GetOpt, opt *option.Option) {
+		opt.SuggestedValues = append(opt.SuggestedValues, values...)
 	}
 }
 

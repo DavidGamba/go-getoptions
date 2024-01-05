@@ -697,6 +697,12 @@ The default help string for an option is:
 Override it with `opt.ArgName("my_arg_name")`.
 It additionally shows in the autocompletion hints.
 
+==== Suggested values
+
+`opt.StringVar(&str, "str", false, opt.SuggestedValues("value1", "value2"))`
+
+This list will be added to the autocompletion engine.
+
 ==== Valid values
 
 `opt.StringVar(&str, "str", false, opt.ValidValues("value1", "value2"))`
@@ -1059,11 +1065,11 @@ Update test suite to accommodate for Windows.
 
 * Figure out how to have custom completions for option values.
 
-* Add SuggestedValues as an alternative to ValidValues.
-
 * Add OptionGroup to allow grouping options in the help output.
 
 * Helper function to parse required arguments and return ErrorHelpCalled.
+
+* Document CustomCompletion and ValidValues in autocompletion section.
 
 === Possible Env Variable Roadmap
 

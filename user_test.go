@@ -210,9 +210,6 @@ func TestCompletion(t *testing.T) {
 		{"command", func() { os.Setenv("COMP_LINE", "./program --profile") }, []string{}, "--profile=\n--profile=dev\n--profile=production\n--profile=staging\n", ""},
 		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=") }, []string{}, "dev\nproduction\nstaging\n", ""},
 		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=p") }, []string{}, "production\n", ""},
-		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=a ") }, []string{}, "", `
-ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "production"]
-`},
 		{"command", func() { os.Setenv("COMP_LINE", "./program lo ") }, []string{"./program", "lo", "./program"}, "log \n", ""},
 		{"command", func() { os.Setenv("COMP_LINE", "./program show sub-show ") }, []string{}, "hello\nhelp\npassword\nprofile\n", ""},
 
@@ -226,13 +223,65 @@ ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "prod
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --profile") }, []string{}, "--profile=\n--profile=dev\n--profile=production\n--profile=staging\n", ""},
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --profile=") }, []string{}, "--profile=dev\n--profile=production\n--profile=staging\n", ""},
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --profile=p") }, []string{}, "--profile=production\n", ""},
-		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --profile=a ") }, []string{}, "", `
-ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "production"]
-`},
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program lo ") }, []string{"./program", "lo", "./program"}, "log \n", ""},
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program show sub-show ") }, []string{}, "hello\nhelp\npassword\nprofile\n", ""},
 	}
+	validValuesTests := []struct {
+		name     string
+		setup    func()
+		args     []string
+		expected string
+		err      string
+	}{
+		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=a ") }, []string{}, "", `
+ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "production"]
+`},
+		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --profile=a ") }, []string{}, "", `
+ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "production"]
+`},
+	}
 	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+			completionBuf := new(bytes.Buffer)
+			completionWriter = completionBuf
+			buf := new(bytes.Buffer)
+			logger := new(bytes.Buffer)
+			Writer = buf
+
+			Logger.SetOutput(logger)
+
+			opt := New()
+			opt.Bool("flag", false, opt.Alias("f"))
+			opt.Bool("fleg", false)
+			opt.Bool("debug", false)
+			opt.String("profile", "", opt.SuggestedValues("dev", "staging", "production"))
+			logCmd := opt.NewCommand("log", "").SetCommandFn(fn)
+			logCmd.NewCommand("sub-log", "").SetCommandFn(fn)
+			showCmd := opt.NewCommand("show", "").SetCommandFn(fn)
+			showCmd.NewCommand("sub-show", "").SetCommandFn(fn).CustomCompletion("profile", "password", "hello")
+			opt.HelpCommand("help")
+			_, err := opt.Parse(tt.args)
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+			if !called {
+				t.Errorf("COMP_LINE set and exit wasn't called")
+			}
+			if completionBuf.String() != tt.expected {
+				t.Errorf("Error\ngot: '%s', expected: '%s'\n", completionBuf.String(), tt.expected)
+				t.Errorf("diff:\n%s", firstDiff(completionBuf.String(), tt.expected))
+				t.Errorf("log: %s\n", logger.String())
+			}
+			if buf.String() != tt.err {
+				t.Errorf("buf: %s\n", buf.String())
+				t.Errorf("diff:\n%s", firstDiff(buf.String(), tt.err))
+				t.Errorf("log: %s\n", logger.String())
+			}
+			cleanup()
+		})
+	}
+	for _, tt := range append(tests, validValuesTests...) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setup()
 			completionBuf := new(bytes.Buffer)
