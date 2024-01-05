@@ -704,7 +704,7 @@ func TestMaxParallel(t *testing.T) {
 					}
 					sm.Unlock()
 					workMutex.Lock()
-					time.Sleep(1 * time.Millisecond)
+					time.Sleep(3 * time.Millisecond)
 					workMutex.Unlock()
 					sm.Lock()
 					currentConcurrency -= 1
