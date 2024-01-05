@@ -754,7 +754,7 @@ func TestMaxParallel(t *testing.T) {
 			// routines to reach it then release the lock.
 			workMutex.Lock()
 			go func() {
-				time.Sleep(30 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 				workMutex.Unlock()
 			}()
 
