@@ -121,6 +121,12 @@ A helper will be added to alleviate this task.
 
 * Allow to compile a static binary with the bundled plugin.
 
+* Allow two operation modes:
++
+1. Using golang plugins as currently done.
+2. Adding a main function and compiling a full static executable, then executing that binary using exec.
+Ensure bake is handling the completions but once execution is set to run the exec the binary.
+
 === Debugging
 
 TODO: This section needs work, waiting on https://github.com/go-delve/delve/issues/1628[delve#1628]
