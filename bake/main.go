@@ -12,7 +12,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"plugin"
 	"reflect"
 	"strings"
 	"unicode"
@@ -36,24 +35,11 @@ func program(args []string) int {
 	opt.SetUnknownMode(getoptions.Pass)
 	opt.Bool("quiet", false, opt.GetEnv("QUIET"))
 
-	bakefile, err := findBakeFiles(ctx)
+	bakefile, plug, err := loadPlugin(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
 	}
-
-	plug, err := plugin.Open(bakefile)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: failed to open plugin, try again: %s\n", err)
-		_ = os.Remove(bakefile)
-		return 1
-	}
-
-	// err = loadAndRunTaskDefinitionFn(ctx, plug, opt)
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
-	// 	return 1
-	// }
 
 	err = loadOptFns(ctx, plug, opt, filepath.Dir(bakefile))
 	if err != nil {

@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"plugin"
 	"reflect"
 	"regexp"
@@ -12,6 +14,26 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 	"github.com/DavidGamba/go-getoptions/dag"
 )
+
+func loadPlugin(ctx context.Context) (string, *plugin.Plugin, error) {
+	dir, err := findBakeDir(ctx)
+	if err != nil {
+		return "", nil, err
+	}
+
+	err = buildPlugin(dir)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to build: %w", err)
+	}
+	bakefile := filepath.Join(dir, "bake.so")
+
+	plug, err := plugin.Open(bakefile)
+	if err != nil {
+		_ = os.Remove(bakefile)
+		return bakefile, nil, fmt.Errorf("failed to open plugin, try again: %w", err)
+	}
+	return bakefile, plug, nil
+}
 
 // loadOptFns - loads all TaskFn functions from the plugin and adds them as commands to opt.
 // If TM task map is defined, add the tasks to the map.
