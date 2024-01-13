@@ -206,3 +206,8 @@ func Clean(opt *getoptions.GetOpt) getoptions.CommandFn {
 		return nil
 	}
 }
+
+// notused - Not used because it doesn't return a getoptions.CommandFn
+func NotUsed() error {
+	return nil
+}
