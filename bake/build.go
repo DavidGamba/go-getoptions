@@ -67,16 +67,3 @@ func findBakeDir(ctx context.Context) (string, error) {
 
 	return "", fmt.Errorf("bake directory not found")
 }
-
-func findBakeFiles(ctx context.Context) (string, error) {
-	dir, err := findBakeDir(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	err = buildPlugin(dir)
-	if err != nil {
-		return "", fmt.Errorf("failed to build: %w", err)
-	}
-	return filepath.Join(dir, "bake.so"), nil
-}
