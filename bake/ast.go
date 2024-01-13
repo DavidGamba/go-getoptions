@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/parser"
+	"go/printer"
 	"go/token"
 
 	"golang.org/x/tools/go/packages"
@@ -11,6 +13,7 @@ import (
 
 type FuncDecl struct {
 	Description string
+	Type        string
 }
 
 // m: map of function name to function information
@@ -41,7 +44,13 @@ func GetFuncDeclForPackage(dir string, m *map[string]FuncDecl) error {
 					if x.Name.IsExported() {
 						name := x.Name.Name
 						description := x.Doc.Text()
-						(*m)[name] = FuncDecl{Description: description}
+						var buf bytes.Buffer
+						printer.Fprint(&buf, fset, x.Type)
+						Logger.Printf("file: %s, name: %s, type: %s\n", file, name, buf.String())
+						(*m)[name] = FuncDecl{
+							Description: description,
+							Type:        buf.String(),
+						}
 					}
 				}
 				return true
