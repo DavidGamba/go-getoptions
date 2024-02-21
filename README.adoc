@@ -1136,6 +1136,8 @@ Update test suite to accommodate for Windows.
 
 * Document CustomCompletion and ValidValues in autocompletion section.
 
+* Mark optional as required in subcommand.
+
 === Possible Env Variable Roadmap
 
 The Roadmap isn't clear given that there might not be enough value in implementing all of them.
