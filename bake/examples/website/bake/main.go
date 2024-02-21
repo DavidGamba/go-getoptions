@@ -28,73 +28,77 @@ func Build(opt *getoptions.GetOpt) getoptions.CommandFn {
 	}
 }
 
-// build:go - Builds go project
-func Go(opt *getoptions.GetOpt) getoptions.CommandFn {
-	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-		Logger.Println("Running build:go")
-		root, err := buildutils.GitRepoRoot()
-		if err != nil {
-			return fmt.Errorf("failed to get repo root: %w", err)
-		}
-		err = os.Chdir(filepath.Join(root, "bake/examples/website"))
-		if err != nil {
-			return fmt.Errorf("failed to chdir: %w", err)
-		}
+// // build:go - Builds go project
+// func Go(opt *getoptions.GetOpt) getoptions.CommandFn {
+// 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+// 		Logger.Println("Running build:go")
+// 		root, err := buildutils.GitRepoRoot()
+// 		if err != nil {
+// 			return fmt.Errorf("failed to get repo root: %w", err)
+// 		}
+// 		err = os.Chdir(filepath.Join(root, "bake/examples/website"))
+// 		if err != nil {
+// 			return fmt.Errorf("failed to chdir: %w", err)
+// 		}
+//
+// 		files, modified, err := fsmodtime.Target(os.DirFS("."), []string{"website"}, []string{"go.mod", "go.sum", "*.go"})
+// 		if err != nil {
+// 			return fmt.Errorf("failed to detect changes: %w", err)
+// 		}
+// 		if !modified {
+// 			return nil
+// 		}
+// 		Logger.Printf("Modified files: %v\n", files)
+//
+// 		err = run.CMD("go", "build").Log().Run()
+// 		if err != nil {
+// 			return fmt.Errorf("failed to build go project: %w", err)
+// 		}
+//
+// 		return nil
+// 	}
+// }
 
-		files, modified, err := fsmodtime.Target(os.DirFS("."), []string{"website"}, []string{"go.mod", "go.sum", "*.go"})
-		if err != nil {
-			return fmt.Errorf("failed to detect changes: %w", err)
-		}
-		if !modified {
-			return nil
-		}
-		Logger.Printf("Modified files: %v\n", files)
-
-		err = run.CMD("go", "build").Log().Run()
-		if err != nil {
-			return fmt.Errorf("failed to build go project: %w", err)
-		}
-
-		return nil
-	}
-}
-
-// build:diagram - Builds diagram
-func Dot(opt *getoptions.GetOpt) getoptions.CommandFn {
-	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-		Logger.Println("Running build:diagram")
-		root, err := buildutils.GitRepoRoot()
-		if err != nil {
-			return fmt.Errorf("failed to get repo root: %w", err)
-		}
-		err = os.Chdir(filepath.Join(root, "bake/examples/website"))
-		if err != nil {
-			return fmt.Errorf("failed to chdir: %w", err)
-		}
-
-		files, modified, err := fsmodtime.Target(os.DirFS("."), []string{"public/diagram.png"}, []string{"diagram.dot"})
-		if err != nil {
-			return fmt.Errorf("failed to detect changes: %w", err)
-		}
-		if !modified {
-			return nil
-		}
-		Logger.Printf("Modified files: %v\n", files)
-
-		_ = os.MkdirAll("public", 0755)
-		err = run.CMD("dot", "-Tpng", "-opublic/diagram.png", "diagram.dot").Log().Run()
-		if err != nil {
-			return fmt.Errorf("failed to build diagram: %w", err)
-		}
-
-		return nil
-	}
-}
+// // build:diagram - Builds diagram
+//
+//	func Dot(opt *getoptions.GetOpt) getoptions.CommandFn {
+//		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+//			Logger.Println("Running build:diagram")
+//			root, err := buildutils.GitRepoRoot()
+//			if err != nil {
+//				return fmt.Errorf("failed to get repo root: %w", err)
+//			}
+//			err = os.Chdir(filepath.Join(root, "bake/examples/website"))
+//			if err != nil {
+//				return fmt.Errorf("failed to chdir: %w", err)
+//			}
+//
+//			files, modified, err := fsmodtime.Target(os.DirFS("."), []string{"public/diagram.png"}, []string{"diagram.dot"})
+//			if err != nil {
+//				return fmt.Errorf("failed to detect changes: %w", err)
+//			}
+//			if !modified {
+//				return nil
+//			}
+//			Logger.Printf("Modified files: %v\n", files)
+//
+//			_ = os.MkdirAll("public", 0755)
+//			err = run.CMD("dot", "-Tpng", "-opublic/diagram.png", "diagram.dot").Log().Run()
+//			if err != nil {
+//				return fmt.Errorf("failed to build diagram: %w", err)
+//			}
+//
+//			return nil
+//		}
+//	}
+//
 
 // build:index - Builds index page
 // NOTE: Run clean before changing the language since no changes will be detected.
 func Asciidoc(opt *getoptions.GetOpt) getoptions.CommandFn {
 	opt.String("lang", "en", opt.ValidValues("en", "es"))
+	opt.String("hello", "world")
+	opt.String("hola", "mundo")
 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 		Logger.Println("Running build:diagram")
 		lang := opt.Value("lang").(string)
@@ -133,81 +137,82 @@ func Asciidoc(opt *getoptions.GetOpt) getoptions.CommandFn {
 	}
 }
 
-// build:all - Builds website
-func All(opt *getoptions.GetOpt) getoptions.CommandFn {
-	opt.String("lang", "en", opt.ValidValues("en", "es"))
-	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-		Logger.Println("Running build:diagram")
-
-		root, err := buildutils.GitRepoRoot()
-		if err != nil {
-			return fmt.Errorf("failed to get repo root: %w", err)
-		}
-		err = os.Chdir(filepath.Join(root, "bake/examples/website"))
-		if err != nil {
-			return fmt.Errorf("failed to chdir: %w", err)
-		}
-
-		g := dag.NewGraph("website")
-		g.TaskDependensOn(TM.Get("build:index"), TM.Get("build:diagram"))
-		g.AddTask(TM.Get("build:go"))
-
-		err = g.Validate(TM)
-		if err != nil {
-			return fmt.Errorf("validation: %w", err)
-		}
-		err = g.Run(ctx, opt, args)
-		if err != nil {
-			return fmt.Errorf("dag err: %w", err)
-		}
-
-		return nil
-	}
-}
-
-// serve - Serves website on :8080
-func Serve(opt *getoptions.GetOpt) getoptions.CommandFn {
-	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-		Logger.Println("Running serve")
-		root, err := buildutils.GitRepoRoot()
-		if err != nil {
-			return fmt.Errorf("failed to get repo root: %w", err)
-		}
-		err = os.Chdir(filepath.Join(root, "bake/examples/website"))
-		if err != nil {
-			return fmt.Errorf("failed to chdir: %w", err)
-		}
-
-		err = run.CMD("./website").Ctx(ctx).Log().Run()
-		if err != nil {
-			return fmt.Errorf("failed to serve: %w", err)
-		}
-
-		return nil
-	}
-}
-
-// clean - Clean build artifacts
-func Clean(opt *getoptions.GetOpt) getoptions.CommandFn {
-	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-		Logger.Println("Running clean")
-		root, err := buildutils.GitRepoRoot()
-		if err != nil {
-			return fmt.Errorf("failed to get repo root: %w", err)
-		}
-		err = os.Chdir(filepath.Join(root, "bake/examples/website"))
-		if err != nil {
-			return fmt.Errorf("failed to chdir: %w", err)
-		}
-
-		_ = os.RemoveAll("public")
-		_ = os.Remove("website")
-
-		return nil
-	}
-}
-
-// notused - Not used because it doesn't return a getoptions.CommandFn
-func NotUsed() error {
-	return nil
-}
+//
+// // build:all - Builds website
+// func All(opt *getoptions.GetOpt) getoptions.CommandFn {
+// 	opt.String("lang", "en", opt.ValidValues("en", "es"))
+// 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+// 		Logger.Println("Running build:diagram")
+//
+// 		root, err := buildutils.GitRepoRoot()
+// 		if err != nil {
+// 			return fmt.Errorf("failed to get repo root: %w", err)
+// 		}
+// 		err = os.Chdir(filepath.Join(root, "bake/examples/website"))
+// 		if err != nil {
+// 			return fmt.Errorf("failed to chdir: %w", err)
+// 		}
+//
+// 		g := dag.NewGraph("website")
+// 		g.TaskDependensOn(TM.Get("build:index"), TM.Get("build:diagram"))
+// 		g.AddTask(TM.Get("build:go"))
+//
+// 		err = g.Validate(TM)
+// 		if err != nil {
+// 			return fmt.Errorf("validation: %w", err)
+// 		}
+// 		err = g.Run(ctx, opt, args)
+// 		if err != nil {
+// 			return fmt.Errorf("dag err: %w", err)
+// 		}
+//
+// 		return nil
+// 	}
+// }
+//
+// // serve - Serves website on :8080
+// func Serve(opt *getoptions.GetOpt) getoptions.CommandFn {
+// 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+// 		Logger.Println("Running serve")
+// 		root, err := buildutils.GitRepoRoot()
+// 		if err != nil {
+// 			return fmt.Errorf("failed to get repo root: %w", err)
+// 		}
+// 		err = os.Chdir(filepath.Join(root, "bake/examples/website"))
+// 		if err != nil {
+// 			return fmt.Errorf("failed to chdir: %w", err)
+// 		}
+//
+// 		err = run.CMD("./website").Ctx(ctx).Log().Run()
+// 		if err != nil {
+// 			return fmt.Errorf("failed to serve: %w", err)
+// 		}
+//
+// 		return nil
+// 	}
+// }
+//
+// // clean - Clean build artifacts
+// func Clean(opt *getoptions.GetOpt) getoptions.CommandFn {
+// 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+// 		Logger.Println("Running clean")
+// 		root, err := buildutils.GitRepoRoot()
+// 		if err != nil {
+// 			return fmt.Errorf("failed to get repo root: %w", err)
+// 		}
+// 		err = os.Chdir(filepath.Join(root, "bake/examples/website"))
+// 		if err != nil {
+// 			return fmt.Errorf("failed to chdir: %w", err)
+// 		}
+//
+// 		_ = os.RemoveAll("public")
+// 		_ = os.Remove("website")
+//
+// 		return nil
+// 	}
+// }
+//
+// // notused - Not used because it doesn't return a getoptions.CommandFn
+// func NotUsed() error {
+// 	return nil
+// }
