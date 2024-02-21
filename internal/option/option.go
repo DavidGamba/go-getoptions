@@ -472,12 +472,14 @@ func (opt *Option) Save(a ...string) error {
 		opt.SetFloat64Slice(append(*opt.pFloat64S, ff...))
 		return nil
 	case StringMapType:
-		keyValue := strings.Split(a[0], "=")
-		if len(keyValue) < 2 {
-			// TODO: Create error type for use in tests with errors.Is
-			return fmt.Errorf(text.ErrorArgumentIsNotKeyValue, opt.UsedAlias)
+		for _, e := range a {
+			keyValue := strings.Split(e, "=")
+			if len(keyValue) < 2 {
+				// TODO: Create error type for use in tests with errors.Is
+				return fmt.Errorf(text.ErrorArgumentIsNotKeyValue, opt.UsedAlias)
+			}
+			opt.SetKeyValueToStringMap(keyValue[0], keyValue[1])
 		}
-		opt.SetKeyValueToStringMap(keyValue[0], keyValue[1])
 		return nil
 	case IncrementType:
 		opt.SetInt(opt.Int() + 1)

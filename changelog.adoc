@@ -8,6 +8,8 @@ Tested with Go 1.16, 1.17, 1.18, 1.19, 1.20 and 1.21.
 
 === New Features
 
+* Add `opt.SetValue` to allow setting the value of an option.
+
 * Add `opt.SuggestedValues` ModifyFn to allow setting autocompletion suggestions for an option.
 +
 Works just like the existing `opt.ValidValues` but it doesn't error out if the value is not in the list of suggestions.

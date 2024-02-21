@@ -185,6 +185,23 @@ func (gopt *GetOpt) Value(name string) interface{} {
 	return nil
 }
 
+// SetValue - Set the value of the given option using strings as an argument.
+//
+// Examples:
+//
+//	opt.SetValue("bool") // boolean - sets to opposite of default
+//	opt.SetValue("int", "123") // int
+//	err := opt.SetValue("float64", "x") // error because "x" is not a valid float64
+//	opt.SetValue("slice", "a", "b", "c") // []string
+//	opt.SetValue("slice", "d", "e", "f") // Can be called multiple times for options that allow it
+//	opt.SetValue("map", "hello=world", "hola=mundo") // map[string]string
+func (gopt *GetOpt) SetValue(name string, value ...string) error {
+	if v, ok := gopt.programTree.ChildOptions[name]; ok {
+		return v.Save(value...)
+	}
+	return ErrorNotFound
+}
+
 // Bool - define a `bool` option and its aliases.
 // It returns a `*bool` pointing to the variable holding the result.
 // If the option is found, the result will be the opposite of the provided default.

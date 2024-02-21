@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -4145,6 +4146,81 @@ SYNOPSIS:
 
 		if fmt.Sprintf("%s", err) != expected {
 			t.Errorf("Wrong output:\n%s\n", firstDiff(fmt.Sprintf("%s", err), expected))
+		}
+	})
+}
+
+func TestSetValue(t *testing.T) {
+	t.Run("not found error", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.String("str", "")
+		err := opt.SetValue("x", "y")
+		if err == nil {
+			t.Errorf("no error")
+		}
+		if !strings.Contains(err.Error(), "not found") {
+			t.Errorf("wrong error: %s", err)
+		}
+	})
+	t.Run("string", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.String("str", "")
+		opt.SetValue("str", "hello")
+		if opt.Value("str") != "hello" {
+			t.Errorf("wrong value %v", opt.Value("str"))
+		}
+	})
+	t.Run("bool", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Bool("bool", false)
+		opt.SetValue("bool")
+		if opt.Value("bool") != true {
+			t.Errorf("wrong value %v", opt.Value("bool"))
+		}
+	})
+	t.Run("int", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Int("int", 0)
+		opt.SetValue("int", "123")
+		if opt.Value("int") != 123 {
+			t.Errorf("wrong value %v", opt.Value("int"))
+		}
+	})
+	t.Run("float64", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64("float64", 0)
+		opt.SetValue("float64", "3.14")
+		if opt.Value("float64") != 3.14 {
+			t.Errorf("wrong value %v", opt.Value("float64"))
+		}
+	})
+	t.Run("float64 error", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.Float64("float64", 0)
+		err := opt.SetValue("float64", "x")
+		if err == nil {
+			t.Errorf("no error")
+		}
+		if !strings.Contains(err.Error(), "Can't convert string to float64: 'x'") {
+			t.Errorf("wrong error: %s", err)
+		}
+	})
+	t.Run("stringSlice", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringSlice("str", 1, 99)
+		opt.SetValue("str", "hello", "world")
+		opt.SetValue("str", "hello", "world")
+		if !reflect.DeepEqual(opt.Value("str"), []string{"hello", "world", "hello", "world"}) {
+			t.Errorf("wrong value %v", opt.Value("str"))
+		}
+	})
+	t.Run("stringMap", func(t *testing.T) {
+		opt := getoptions.New()
+		opt.StringMap("str", 1, 99)
+		opt.SetValue("str", "hello=world", "goodbye=world")
+		opt.SetValue("str", "hola=mundo")
+		if !reflect.DeepEqual(opt.Value("str"), map[string]string{"hello": "world", "goodbye": "world", "hola": "mundo"}) {
+			t.Errorf("wrong value %v", opt.Value("str"))
 		}
 	})
 }

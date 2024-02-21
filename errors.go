@@ -18,3 +18,6 @@ var ErrorHelpCalled = fmt.Errorf("help called")
 
 // ErrorParsing - Indicates that there was an error with cli args parsing
 var ErrorParsing = errors.New("")
+
+// ErrorNotFound - Generic not found error
+var ErrorNotFound = fmt.Errorf("not found")
