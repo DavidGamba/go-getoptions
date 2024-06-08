@@ -102,6 +102,7 @@ func Build(opt *getoptions.GetOpt) getoptions.CommandFn {
 func Asciidoc(opt *getoptions.GetOpt) getoptions.CommandFn {
 	opt.String("lang", "en", opt.ValidValues("en", "es"), opt.Description("Language"))
 	opt.String("hello", "world")
+	Logger.Println("Running Asciidoc")
 	opt.String("hola", "mundo")
 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 		Logger.Println("Running build:diagram")

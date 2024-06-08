@@ -199,6 +199,7 @@ func ListAst(dir string) error {
 						if len(x.Type.Params.List) != 1 {
 							return false
 						}
+						var optFieldName string
 						for _, param := range x.Type.Params.List {
 							name := param.Names[0].Name
 							var buf bytes.Buffer
@@ -207,6 +208,7 @@ func ListAst(dir string) error {
 							if buf.String() != "*getoptions.GetOpt" {
 								return false
 							}
+							optFieldName = name
 						}
 
 						// Check Results
@@ -228,14 +230,15 @@ func ListAst(dir string) error {
 							switch x := n.(type) {
 							case *ast.BlockStmt:
 								for i, stmt := range x.List {
-									Logger.Printf("i: %d\n", i)
-									Logger.Printf("stmt: %T\n", stmt)
+									var buf bytes.Buffer
+									printer.Fprint(&buf, fset, stmt)
 									// We are expecting the expression before the return function
 									_, ok := stmt.(*ast.ReturnStmt)
 									if ok {
 										return false
 									}
-									Logger.Printf("inspect stmt: %T\n", stmt)
+									Logger.Printf("i: %d\n", i)
+									Logger.Printf("stmt: %s\n", buf.String())
 									exprStmt, ok := stmt.(*ast.ExprStmt)
 									if !ok {
 										continue
@@ -254,14 +257,16 @@ func ListAst(dir string) error {
 											if !ok {
 												return false
 											}
-											xSel := fun.Sel.Name
-											Logger.Printf("X: %s, Selector: %s\n", xIdent.Name, xSel)
-
-											// Check for args
-											for _, arg := range x.Args {
-												Logger.Printf("arg: %T\n", arg)
-												spew.Dump(arg)
+											if xIdent.Name != optFieldName {
+												return false
 											}
+											Logger.Printf("handling %s.%s\n", xIdent.Name, fun.Sel.Name)
+
+											switch fun.Sel.Name {
+											case "String":
+												handleString(optFieldName, n)
+											}
+
 											return false
 										}
 										return true
@@ -274,6 +279,52 @@ func ListAst(dir string) error {
 				}
 				return true
 			})
+		}
+	}
+	return nil
+}
+
+func handleString(optFieldName string, n ast.Node) error {
+	x := n.(*ast.CallExpr)
+	// Check for args
+	for i, arg := range x.Args {
+		Logger.Printf("i: %d, arg: %T\n", i, arg)
+		if i == 0 {
+			// First argument is the Name
+			Logger.Printf("Name: %s\n", arg.(*ast.BasicLit).Value)
+		} else if i == 1 {
+			// Second argument is the Default
+			Logger.Printf("Default: %s\n", arg.(*ast.BasicLit).Value)
+		} else {
+			// Remaining arguments are option modifiers
+			// Start with support for:
+			// Description
+			// ValidValues
+			// Alias
+
+			callE, ok := arg.(*ast.CallExpr)
+			if !ok {
+				continue
+			}
+			fun, ok := callE.Fun.(*ast.SelectorExpr)
+			if !ok {
+				continue
+			}
+			xIdent, ok := fun.X.(*ast.Ident)
+			if !ok {
+				continue
+			}
+			if xIdent.Name != optFieldName {
+				continue
+			}
+			Logger.Printf("\t%s.%s\n", xIdent.Name, fun.Sel.Name)
+			if fun.Sel.Name == "SetCalled" {
+				// TODO: SetCalled function receives a bool
+				continue
+			}
+			for _, arg := range callE.Args {
+				Logger.Printf("Value: %s\n", arg.(*ast.BasicLit).Value)
+			}
 		}
 	}
 	return nil
