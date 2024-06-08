@@ -51,8 +51,11 @@ func program(args []string) int {
 	bld := b.NewCommand("list-descriptions", "lists descriptions")
 	bld.SetCommandFn(ListDescriptionsRun(bakefile))
 
-	bast := b.NewCommand("show-ast", "show ast")
+	bast := b.NewCommand("show-ast", "show raw-ish ast")
 	bast.SetCommandFn(ShowASTRun(bakefile))
+
+	bastList := b.NewCommand("list-ast", "list parsed ast")
+	bastList.SetCommandFn(ListASTRun(bakefile))
 
 	opt.HelpCommand("help", opt.Alias("?"))
 	remaining, err := opt.Parse(args[1:])
@@ -175,6 +178,18 @@ func ShowASTRun(bakefile string) getoptions.CommandFn {
 		Logger.Printf("bakefile: %s\n", bakefile)
 		dir := filepath.Dir(bakefile)
 		err := PrintAst(dir)
+		if err != nil {
+			return fmt.Errorf("failed to inspect package: %w", err)
+		}
+		return nil
+	}
+}
+
+func ListASTRun(bakefile string) getoptions.CommandFn {
+	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+		Logger.Printf("bakefile: %s\n", bakefile)
+		dir := filepath.Dir(bakefile)
+		err := ListAst(dir)
 		if err != nil {
 			return fmt.Errorf("failed to inspect package: %w", err)
 		}

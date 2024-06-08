@@ -18,6 +18,10 @@ var Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 var TM *dag.TaskMap
 
+func Nothing(s string) error {
+	return nil
+}
+
 // build - Build tasks
 func Build(opt *getoptions.GetOpt) getoptions.CommandFn {
 	// Empty task used to group tasks.
@@ -96,7 +100,7 @@ func Build(opt *getoptions.GetOpt) getoptions.CommandFn {
 // build:index - Builds index page
 // NOTE: Run clean before changing the language since no changes will be detected.
 func Asciidoc(opt *getoptions.GetOpt) getoptions.CommandFn {
-	opt.String("lang", "en", opt.ValidValues("en", "es"))
+	opt.String("lang", "en", opt.ValidValues("en", "es"), opt.Description("Language"))
 	opt.String("hello", "world")
 	opt.String("hola", "mundo")
 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
