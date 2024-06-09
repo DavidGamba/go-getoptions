@@ -2,13 +2,17 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"regexp"
+	"strconv"
 	"strings"
 
+	"github.com/DavidGamba/go-getoptions"
 	"github.com/davecgh/go-spew/spew"
 	"golang.org/x/tools/go/packages"
 )
@@ -165,7 +169,11 @@ func PrintAst(dir string) error {
 //		opt.String("hello", "world")
 //		opt.String("hola", "mundo")
 //		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-func ListAst(dir string) error {
+func LoadAst(ctx context.Context, opt *getoptions.GetOpt, dir string) error {
+	// Regex for description: fn-name - description
+	re := regexp.MustCompile(`^\w\S+ -`)
+	ot := NewOptTree(opt)
+
 	for p, err := range parsedFiles(dir) {
 		if err != nil {
 			return err
@@ -178,11 +186,14 @@ func ListAst(dir string) error {
 			case *ast.FuncDecl:
 				if x.Name.IsExported() {
 					name := x.Name.Name
-					description := x.Doc.Text()
-					var buf bytes.Buffer
-					printer.Fprint(&buf, p.fset, x.Type)
-					Logger.Printf("file: %s\n", p.file)
-					Logger.Printf("type: %s, name: %s, desc: %s\n", buf.String(), name, strings.TrimSpace(description))
+					description := strings.TrimSpace(x.Doc.Text())
+					// var buf bytes.Buffer
+					// printer.Fprint(&buf, p.fset, x.Type)
+					// Logger.Printf("file: %s\n", p.file)
+					// Logger.Printf("type: %s, name: %s, desc: %s\n", buf.String(), name, description)
+
+					// Expect function of type:
+					// func Name(opt *getoptions.GetOpt) getoptions.CommandFn
 
 					// Check Params
 					// Expect opt *getoptions.GetOpt
@@ -194,7 +205,7 @@ func ListAst(dir string) error {
 						name := param.Names[0].Name
 						var buf bytes.Buffer
 						printer.Fprint(&buf, p.fset, param.Type)
-						Logger.Printf("name: %s, %s\n", name, buf.String())
+						// Logger.Printf("name: %s, %s\n", name, buf.String())
 						if buf.String() != "*getoptions.GetOpt" {
 							return false
 						}
@@ -209,17 +220,32 @@ func ListAst(dir string) error {
 					for _, result := range x.Type.Results.List {
 						var buf bytes.Buffer
 						printer.Fprint(&buf, p.fset, result.Type)
-						Logger.Printf("result: %s\n", buf.String())
+						// Logger.Printf("result: %s\n", buf.String())
 						if buf.String() != "getoptions.CommandFn" {
 							return false
 						}
 					}
 
+					// TODO: The yield probably goes here
+					// Add function to OptTree
+					if description != "" {
+						// Logger.Printf("description '%s'\n", description)
+						if re.MatchString(description) {
+							// Get first word from string
+							name = strings.Split(description, " ")[0]
+							description = strings.TrimPrefix(description, name+" -")
+							description = strings.TrimSpace(description)
+						}
+					} else {
+						name = camelToKebab(name)
+					}
+					cmd := ot.AddCommand(name, description)
+
 					// Check for Expressions of opt type
 					ast.Inspect(n, func(n ast.Node) bool {
 						switch x := n.(type) {
 						case *ast.BlockStmt:
-							for i, stmt := range x.List {
+							for _, stmt := range x.List {
 								var buf bytes.Buffer
 								printer.Fprint(&buf, p.fset, stmt)
 								// We are expecting the expression before the return function
@@ -227,7 +253,6 @@ func ListAst(dir string) error {
 								if ok {
 									return false
 								}
-								Logger.Printf("i: %d\n", i)
 								Logger.Printf("stmt: %s\n", buf.String())
 								exprStmt, ok := stmt.(*ast.ExprStmt)
 								if !ok {
@@ -254,7 +279,7 @@ func ListAst(dir string) error {
 
 										switch fun.Sel.Name {
 										case "String":
-											handleString(optFieldName, n)
+											handleString(cmd, optFieldName, n)
 										}
 
 										return false
@@ -273,23 +298,32 @@ func ListAst(dir string) error {
 	return nil
 }
 
-func handleString(optFieldName string, n ast.Node) error {
+func handleString(cmd *getoptions.GetOpt, optFieldName string, n ast.Node) error {
 	x := n.(*ast.CallExpr)
+	name := ""
+	defaultValue := ""
+	mfns := []getoptions.ModifyFn{}
 	// Check for args
 	for i, arg := range x.Args {
 		Logger.Printf("i: %d, arg: %T\n", i, arg)
 		if i == 0 {
 			// First argument is the Name
-			Logger.Printf("Name: %s\n", arg.(*ast.BasicLit).Value)
+			// Logger.Printf("Name: '%s'\n", arg.(*ast.BasicLit).Value)
+			var err error
+			name, err = strconv.Unquote(arg.(*ast.BasicLit).Value)
+			if err != nil {
+				name = arg.(*ast.BasicLit).Value
+			}
 		} else if i == 1 {
 			// Second argument is the Default
-			Logger.Printf("Default: %s\n", arg.(*ast.BasicLit).Value)
+			// Logger.Printf("Default: '%s'\n", arg.(*ast.BasicLit).Value)
+			var err error
+			defaultValue, err = strconv.Unquote(arg.(*ast.BasicLit).Value)
+			if err != nil {
+				defaultValue = arg.(*ast.BasicLit).Value
+			}
 		} else {
 			// Remaining arguments are option modifiers
-			// Start with support for:
-			// Description
-			// ValidValues
-			// Alias
 
 			callE, ok := arg.(*ast.CallExpr)
 			if !ok {
@@ -311,10 +345,39 @@ func handleString(optFieldName string, n ast.Node) error {
 				// TODO: SetCalled function receives a bool
 				continue
 			}
+			values := []string{}
 			for _, arg := range callE.Args {
 				Logger.Printf("Value: %s\n", arg.(*ast.BasicLit).Value)
+				value, err := strconv.Unquote(arg.(*ast.BasicLit).Value)
+				if err != nil {
+					value = arg.(*ast.BasicLit).Value
+				}
+				values = append(values, value)
+			}
+			switch fun.Sel.Name {
+			case "Alias":
+				mfns = append(mfns, cmd.Alias(values...))
+			case "ArgName":
+				if len(values) > 0 {
+					mfns = append(mfns, cmd.ArgName(values[0]))
+				}
+			case "Description":
+				if len(values) > 0 {
+					mfns = append(mfns, cmd.Description(values[0]))
+				}
+			case "GetEnv":
+				if len(values) > 0 {
+					mfns = append(mfns, cmd.GetEnv(values[0]))
+				}
+			case "Required":
+				mfns = append(mfns, cmd.Required(values...))
+			case "SuggestedValues":
+				mfns = append(mfns, cmd.SuggestedValues(values...))
+			case "ValidValues":
+				mfns = append(mfns, cmd.ValidValues(values...))
 			}
 		}
 	}
+	cmd.String(name, defaultValue, mfns...)
 	return nil
 }

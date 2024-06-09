@@ -6,10 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"plugin"
-	"reflect"
 	"regexp"
 	"strings"
-	"unsafe"
 
 	"github.com/DavidGamba/go-getoptions"
 	"github.com/DavidGamba/go-getoptions/dag"
@@ -91,25 +89,4 @@ func loadOptFns(ctx context.Context, plug *plugin.Plugin, opt *getoptions.GetOpt
 		}
 	}
 	return nil
-}
-
-// https://github.com/golang/go/issues/17823
-type Plug struct {
-	pluginpath string
-	err        string        // set if plugin failed to load
-	loaded     chan struct{} // closed when loaded
-	syms       map[string]any
-}
-
-func inspectPlugin(p *plugin.Plugin) {
-	pl := (*Plug)(unsafe.Pointer(p))
-
-	Logger.Printf("Plugin %s exported symbols (%d): \n", pl.pluginpath, len(pl.syms))
-
-	for name, pointers := range pl.syms {
-		Logger.Printf("symbol: %s, pointer: %v, type: %v\n", name, pointers, reflect.TypeOf(pointers))
-		if _, ok := pointers.(func(*getoptions.GetOpt) getoptions.CommandFn); ok {
-			fmt.Printf("name: %s\n", name)
-		}
-	}
 }

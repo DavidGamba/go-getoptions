@@ -14,6 +14,8 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
+var inputArgs []string
+
 var Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 func main() {
@@ -47,6 +49,13 @@ func program(args []string) int {
 	// 	return 1
 	// }
 
+	inputArgs = args[1:]
+	err = LoadAst(ctx, opt, dir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		return 1
+	}
+
 	b := opt.NewCommand("_bake", "")
 
 	bld := b.NewCommand("list-descriptions", "lists descriptions")
@@ -56,7 +65,7 @@ func program(args []string) int {
 	bast.SetCommandFn(ShowASTRun(dir))
 
 	bastList := b.NewCommand("list-ast", "list parsed ast")
-	bastList.SetCommandFn(ListASTRun(dir))
+	bastList.SetCommandFn(LoadASTRun(dir))
 
 	opt.HelpCommand("help", opt.Alias("?"))
 	remaining, err := opt.Parse(args[1:])
@@ -130,6 +139,13 @@ func (ot *OptTree) AddCommand(name, description string) *getoptions.GetOpt {
 			Children: make(map[string]*OptNode),
 		}
 		node = node.Children[key]
+		if len(keys) == i+1 {
+			cmd.SetCommandFn(func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+				// TODO: Run os.exec call to the built binary with keys as the arguments
+				fmt.Printf("Running %v\n", inputArgs)
+				return nil
+			})
+		}
 	}
 	return cmd
 }
@@ -170,9 +186,9 @@ func ShowASTRun(dir string) getoptions.CommandFn {
 	}
 }
 
-func ListASTRun(dir string) getoptions.CommandFn {
+func LoadASTRun(dir string) getoptions.CommandFn {
 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-		err := ListAst(dir)
+		err := LoadAst(ctx, opt, dir)
 		if err != nil {
 			return fmt.Errorf("failed to inspect package: %w", err)
 		}
