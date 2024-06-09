@@ -11,10 +11,12 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/DavidGamba/dgtools/run"
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var inputArgs []string
+var InputArgs []string
+var Dir string
 
 var Logger = log.New(os.Stderr, "", log.LstdFlags)
 
@@ -36,6 +38,7 @@ func program(args []string) int {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
 	}
+	Dir = dir
 
 	// bakefile, plug, err := loadPlugin(ctx)
 	// if err != nil {
@@ -49,7 +52,7 @@ func program(args []string) int {
 	// 	return 1
 	// }
 
-	inputArgs = args[1:]
+	InputArgs = args[1:]
 	err = LoadAst(ctx, opt, dir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
@@ -142,7 +145,9 @@ func (ot *OptTree) AddCommand(name, description string) *getoptions.GetOpt {
 		if len(keys) == i+1 {
 			cmd.SetCommandFn(func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 				// TODO: Run os.exec call to the built binary with keys as the arguments
-				fmt.Printf("Running %v\n", inputArgs)
+				fmt.Printf("Running %v\n", InputArgs)
+				c := []string{"./bake"}
+				run.CMD(append(c, InputArgs...)...).Dir(Dir).Run()
 				return nil
 			})
 		}

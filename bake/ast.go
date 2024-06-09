@@ -253,7 +253,7 @@ func LoadAst(ctx context.Context, opt *getoptions.GetOpt, dir string) error {
 								if ok {
 									return false
 								}
-								Logger.Printf("stmt: %s\n", buf.String())
+								// Logger.Printf("stmt: %s\n", buf.String())
 								exprStmt, ok := stmt.(*ast.ExprStmt)
 								if !ok {
 									continue
@@ -275,7 +275,7 @@ func LoadAst(ctx context.Context, opt *getoptions.GetOpt, dir string) error {
 										if xIdent.Name != optFieldName {
 											return false
 										}
-										Logger.Printf("handling %s.%s\n", xIdent.Name, fun.Sel.Name)
+										// Logger.Printf("handling %s.%s\n", xIdent.Name, fun.Sel.Name)
 
 										switch fun.Sel.Name {
 										case "String":
@@ -305,7 +305,7 @@ func handleString(cmd *getoptions.GetOpt, optFieldName string, n ast.Node) error
 	mfns := []getoptions.ModifyFn{}
 	// Check for args
 	for i, arg := range x.Args {
-		Logger.Printf("i: %d, arg: %T\n", i, arg)
+		// Logger.Printf("i: %d, arg: %T\n", i, arg)
 		if i == 0 {
 			// First argument is the Name
 			// Logger.Printf("Name: '%s'\n", arg.(*ast.BasicLit).Value)
@@ -340,14 +340,14 @@ func handleString(cmd *getoptions.GetOpt, optFieldName string, n ast.Node) error
 			if xIdent.Name != optFieldName {
 				continue
 			}
-			Logger.Printf("\t%s.%s\n", xIdent.Name, fun.Sel.Name)
+			// Logger.Printf("\t%s.%s\n", xIdent.Name, fun.Sel.Name)
 			if fun.Sel.Name == "SetCalled" {
 				// TODO: SetCalled function receives a bool
 				continue
 			}
 			values := []string{}
 			for _, arg := range callE.Args {
-				Logger.Printf("Value: %s\n", arg.(*ast.BasicLit).Value)
+				// Logger.Printf("Value: %s\n", arg.(*ast.BasicLit).Value)
 				value, err := strconv.Unquote(arg.(*ast.BasicLit).Value)
 				if err != nil {
 					value = arg.(*ast.BasicLit).Value
