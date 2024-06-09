@@ -8,8 +8,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"path/filepath"
-	"reflect"
 	"strings"
 	"unicode"
 
@@ -31,31 +29,34 @@ func program(args []string) int {
 	opt.SetUnknownMode(getoptions.Pass)
 	opt.Bool("quiet", false, opt.GetEnv("QUIET"))
 
-	bakefile, plug, err := loadPlugin(ctx)
+	dir, err := findBakeDir(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
 	}
 
-	err = loadOptFns(ctx, plug, opt, filepath.Dir(bakefile))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
-		return 1
-	}
+	// bakefile, plug, err := loadPlugin(ctx)
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+	// 	return 1
+	// }
+
+	// err = loadOptFns(ctx, plug, opt, filepath.Dir(bakefile))
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+	// 	return 1
+	// }
 
 	b := opt.NewCommand("_bake", "")
 
-	bls := b.NewCommand("list-symbols", "lists symbols")
-	bls.SetCommandFn(ListSymbolsRun(bakefile))
-
 	bld := b.NewCommand("list-descriptions", "lists descriptions")
-	bld.SetCommandFn(ListDescriptionsRun(bakefile))
+	bld.SetCommandFn(ListDescriptionsRun(dir))
 
 	bast := b.NewCommand("show-ast", "show raw-ish ast")
-	bast.SetCommandFn(ShowASTRun(bakefile))
+	bast.SetCommandFn(ShowASTRun(dir))
 
 	bastList := b.NewCommand("list-ast", "list parsed ast")
-	bastList.SetCommandFn(ListASTRun(bakefile))
+	bastList.SetCommandFn(ListASTRun(dir))
 
 	opt.HelpCommand("help", opt.Alias("?"))
 	remaining, err := opt.Parse(args[1:])
@@ -64,18 +65,6 @@ func program(args []string) int {
 		return 1
 	}
 	if opt.Called("quiet") {
-		logger, err := plug.Lookup("Logger")
-		if err == nil {
-			var l **log.Logger
-			l, ok := logger.(*(*log.Logger))
-			if ok {
-				(*l).SetOutput(io.Discard)
-			} else {
-				Logger.Printf("failed to convert Logger: %s\n", reflect.TypeOf(logger))
-			}
-		} else {
-			Logger.Printf("failed to find Logger\n")
-		}
 		Logger.SetOutput(io.Discard)
 	}
 
@@ -156,10 +145,8 @@ func camelToKebab(camel string) string {
 	return buffer.String()
 }
 
-func ListDescriptionsRun(bakefile string) getoptions.CommandFn {
+func ListDescriptionsRun(dir string) getoptions.CommandFn {
 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-		Logger.Printf("bakefile: %s\n", bakefile)
-		dir := filepath.Dir(bakefile)
 		m := make(map[string]FuncDecl)
 		err := GetFuncDeclForPackage(dir, &m)
 		if err != nil {
@@ -173,10 +160,8 @@ func ListDescriptionsRun(bakefile string) getoptions.CommandFn {
 	}
 }
 
-func ShowASTRun(bakefile string) getoptions.CommandFn {
+func ShowASTRun(dir string) getoptions.CommandFn {
 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-		Logger.Printf("bakefile: %s\n", bakefile)
-		dir := filepath.Dir(bakefile)
 		err := PrintAst(dir)
 		if err != nil {
 			return fmt.Errorf("failed to inspect package: %w", err)
@@ -185,10 +170,8 @@ func ShowASTRun(bakefile string) getoptions.CommandFn {
 	}
 }
 
-func ListASTRun(bakefile string) getoptions.CommandFn {
+func ListASTRun(dir string) getoptions.CommandFn {
 	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-		Logger.Printf("bakefile: %s\n", bakefile)
-		dir := filepath.Dir(bakefile)
 		err := ListAst(dir)
 		if err != nil {
 			return fmt.Errorf("failed to inspect package: %w", err)

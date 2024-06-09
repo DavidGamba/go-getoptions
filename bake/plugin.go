@@ -93,17 +93,6 @@ func loadOptFns(ctx context.Context, plug *plugin.Plugin, opt *getoptions.GetOpt
 	return nil
 }
 
-func ListSymbolsRun(bakefile string) getoptions.CommandFn {
-	return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-		plug, err := plugin.Open(bakefile)
-		if err != nil {
-			return fmt.Errorf("failed to open plugin: %w", err)
-		}
-		inspectPlugin(plug)
-		return nil
-	}
-}
-
 // https://github.com/golang/go/issues/17823
 type Plug struct {
 	pluginpath string
