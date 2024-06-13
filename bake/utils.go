@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"iter"
+	"unicode"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -44,4 +46,15 @@ func parsedFiles(dir string) iter.Seq2[parsedFile, error] {
 			}
 		}
 	}
+}
+
+func camelToKebab(camel string) string {
+	var buffer bytes.Buffer
+	for i, ch := range camel {
+		if unicode.IsUpper(ch) && i > 0 && !unicode.IsUpper([]rune(camel)[i-1]) {
+			buffer.WriteRune('-')
+		}
+		buffer.WriteRune(unicode.ToLower(ch))
+	}
+	return buffer.String()
 }

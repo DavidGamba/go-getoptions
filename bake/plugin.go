@@ -80,7 +80,7 @@ func loadOptFns(ctx context.Context, plug *plugin.Plugin, opt *getoptions.GetOpt
 		} else {
 			name = camelToKebab(name)
 		}
-		cmd := ot.AddCommand(name, description)
+		cmd := ot.AddCommand(name, name, description)
 		fnr := tfn(cmd)
 		cmd.SetCommandFn(fnr)
 		if tmOk {

@@ -1,17 +1,13 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"strings"
-	"unicode"
 
-	"github.com/DavidGamba/dgtools/run"
 	"github.com/DavidGamba/go-getoptions"
 )
 
@@ -89,81 +85,6 @@ func program(args []string) int {
 		return 1
 	}
 	return 0
-}
-
-type TaskDefinitionFn func(ctx context.Context, opt *getoptions.GetOpt) error
-type TaskFn func(*getoptions.GetOpt) getoptions.CommandFn
-
-type OptTree struct {
-	Root *OptNode
-}
-
-type OptNode struct {
-	Name     string
-	Opt      *getoptions.GetOpt
-	Children map[string]*OptNode
-}
-
-func NewOptTree(opt *getoptions.GetOpt) *OptTree {
-	return &OptTree{
-		Root: &OptNode{
-			Name:     "root",
-			Opt:      opt,
-			Children: make(map[string]*OptNode),
-		},
-	}
-}
-
-func (ot *OptTree) AddCommand(name, description string) *getoptions.GetOpt {
-	keys := strings.Split(name, ":")
-	// Logger.Printf("keys: %v\n", keys)
-	node := ot.Root
-	var cmd *getoptions.GetOpt
-	for i, key := range keys {
-		n, ok := node.Children[key]
-		if ok {
-			// Logger.Printf("key: %v already defined, parent: %s\n", key, node.Name)
-			node = n
-			cmd = n.Opt
-			if len(keys) == i+1 {
-				cmd.Self(key, description)
-			}
-			continue
-		}
-		// Logger.Printf("key: %v not defined, parent: %s\n", key, node.Name)
-		desc := ""
-		if len(keys) == i+1 {
-			desc = description
-		}
-		cmd = node.Opt.NewCommand(key, desc)
-		node.Children[key] = &OptNode{
-			Name:     key,
-			Opt:      cmd,
-			Children: make(map[string]*OptNode),
-		}
-		node = node.Children[key]
-		if len(keys) == i+1 {
-			cmd.SetCommandFn(func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-				// TODO: Run os.exec call to the built binary with keys as the arguments
-				fmt.Printf("Running %v\n", InputArgs)
-				c := []string{"./bake"}
-				run.CMD(append(c, InputArgs...)...).Dir(Dir).Run()
-				return nil
-			})
-		}
-	}
-	return cmd
-}
-
-func camelToKebab(camel string) string {
-	var buffer bytes.Buffer
-	for i, ch := range camel {
-		if unicode.IsUpper(ch) && i > 0 && !unicode.IsUpper([]rune(camel)[i-1]) {
-			buffer.WriteRune('-')
-		}
-		buffer.WriteRune(unicode.ToLower(ch))
-	}
-	return buffer.String()
 }
 
 func ListDescriptionsRun(dir string) getoptions.CommandFn {

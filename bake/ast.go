@@ -185,7 +185,8 @@ func LoadAst(ctx context.Context, opt *getoptions.GetOpt, dir string) error {
 			// Check function declarations for exported functions
 			case *ast.FuncDecl:
 				if x.Name.IsExported() {
-					name := x.Name.Name
+					fnName := x.Name.Name
+					name := ""
 					description := strings.TrimSpace(x.Doc.Text())
 					// var buf bytes.Buffer
 					// printer.Fprint(&buf, p.fset, x.Type)
@@ -233,13 +234,13 @@ func LoadAst(ctx context.Context, opt *getoptions.GetOpt, dir string) error {
 						if re.MatchString(description) {
 							// Get first word from string
 							name = strings.Split(description, " ")[0]
-							description = strings.TrimPrefix(description, name+" -")
+							description = strings.TrimPrefix(description, fnName+" -")
 							description = strings.TrimSpace(description)
 						}
 					} else {
-						name = camelToKebab(name)
+						name = camelToKebab(fnName)
 					}
-					cmd := ot.AddCommand(name, description)
+					cmd := ot.AddCommand(fnName, name, description)
 
 					// Check for Expressions of opt type
 					ast.Inspect(n, func(n ast.Node) bool {
@@ -295,6 +296,9 @@ func LoadAst(ctx context.Context, opt *getoptions.GetOpt, dir string) error {
 			return true
 		})
 	}
+
+	fmt.Printf("OptTree: %s\n", ot)
+
 	return nil
 }
 
