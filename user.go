@@ -247,6 +247,11 @@ func (gopt *GetOpt) NewCommand(name string, description string) *GetOpt {
 	return cmd
 }
 
+// GetCommandName - Returns the current command name.
+func (gopt *GetOpt) GetCommandName() string {
+	return gopt.programTree.Name
+}
+
 func copyOptionsFromParent(parent *programTree) {
 	for k, v := range parent.ChildOptions {
 		for _, command := range parent.ChildCommands {

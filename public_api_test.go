@@ -2266,6 +2266,9 @@ OPTIONS:
 		if opt.Help() != expectedSynopsis+expectedCommandList+expectedOptionList {
 			t.Errorf("Unexpected help:\n---\n%s\n---\n", opt.Help())
 		}
+		if opt.GetCommandName() != "go-getoptions.test" {
+			t.Errorf("Unexpected command name: %s", opt.GetCommandName())
+		}
 	})
 
 	t.Run("", func(t *testing.T) {
@@ -2913,8 +2916,10 @@ Use 'go-getoptions.test help <command>' for extra details.
 
 	t.Run("command", func(t *testing.T) {
 		called := false
+		commandName := ""
 		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 			called = true
+			commandName = opt.GetCommandName()
 			return nil
 		}
 		opt := getoptions.New()
@@ -2930,6 +2935,37 @@ Use 'go-getoptions.test help <command>' for extra details.
 		}
 		if !called {
 			t.Errorf("Fn not called")
+		}
+		if commandName != "command" {
+			t.Errorf("Unexpected command name: %s", commandName)
+		}
+	})
+
+	t.Run("sub-command", func(t *testing.T) {
+		called := false
+		commandName := ""
+		fn := func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			called = true
+			commandName = opt.GetCommandName()
+			return nil
+		}
+		opt := getoptions.New()
+		cmd := opt.NewCommand("command", "")
+		cmd.NewCommand("sub-command", "").SetCommandFn(fn)
+		opt.HelpCommand("help")
+		remaining, err := opt.Parse([]string{"command", "sub-command"})
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		err = opt.Dispatch(context.Background(), remaining)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+		if !called {
+			t.Errorf("Fn not called")
+		}
+		if commandName != "sub-command" {
+			t.Errorf("Unexpected command name: %s", commandName)
 		}
 	})
 
