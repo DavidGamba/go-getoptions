@@ -1,6 +1,19 @@
 = Changelog
 :toc:
 
+== v0.31.0: Breaking Changes
+
+As the releases before, this release has 100% test coverage.
+Tested with Go 1.16, 1.17, 1.18, 1.19, 1.20, 1.21, 1.22 and 1.23.
+
+=== Breaking Changes
+
+Fix typo in dag library: TaskDependensOn -> TaskDependsOn
+
+=== New Features
+
+Add task retries in dag library.
+
 == v0.30.0: New Features
 
 As the releases before, this release has 100% test coverage.
