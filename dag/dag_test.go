@@ -198,12 +198,14 @@ func TestRunErrorCollection(t *testing.T) {
 	g.TaskDependensOn(g.Task("t2"), g.Task("t1")) // ErrorTaskDependencyDuplicate
 	g.TaskDependensOn(g.Task("t2"), nil)          // ErrorTaskNil
 
+	g.TaskRetries(g.Task("t99"), 3) // ErrorTaskNotFound, ErrorTaskFn
+
 	err = g.Validate(nil)
 	var errs *Errors
 	if err == nil || !errors.As(err, &errs) {
 		t.Fatalf("Unexpected error: %s\n", err)
 	}
-	if len(errs.Errors) != 11 {
+	if len(errs.Errors) != 13 {
 		t.Fatalf("Unexpected error count: %d\n", len(errs.Errors))
 	}
 	if !errors.Is(errs.Errors[0], ErrorTaskID) {
@@ -239,6 +241,12 @@ func TestRunErrorCollection(t *testing.T) {
 	if !errors.Is(errs.Errors[10], ErrorTaskNil) {
 		t.Fatalf("Unexpected error at %d, %s\n", 10, errs.Error())
 	}
+	if !errors.Is(errs.Errors[11], ErrorTaskNotFound) {
+		t.Fatalf("Unexpected error at %d, %s\n", 11, errs.Error())
+	}
+	if !errors.Is(errs.Errors[12], ErrorTaskFn) {
+		t.Fatalf("Unexpected error at %d, %s\n", 12, errs.Error())
+	}
 	expected := `test graph errors found:
 > missing task ID
 > missing task function for t5
@@ -250,7 +258,9 @@ func TestRunErrorCollection(t *testing.T) {
 > task not found: t0
 > missing task function for t0
 > task dependency already defined: t2 -> t1
-> nil task given`
+> nil task given
+> task not found: t99
+> missing task function for t99`
 	if expected != errs.Error() {
 		t.Fatalf("Unexpected error: '%s'\nexpected: '%s'\n", err, expected)
 	}
@@ -313,6 +323,7 @@ func TestDagTaskError(t *testing.T) {
 	g.AddTask(NewTask("t2", generateFn(2)))
 	g.AddTask(NewTask("t3", generateFn(3)))
 	g.AddTask(NewTask("t4", generateFn(4)))
+	g.TaskRetries(g.Task("t4"), 3)
 	g.AddTask(NewTask("t5", generateFn(5)))
 	g.AddTask(NewTask("t6", generateFn(6)))
 	g.AddTask(NewTask("t7", generateFn(7)))
@@ -363,6 +374,109 @@ func TestDagTaskError(t *testing.T) {
 				t.Errorf("Wrong list: %v\n", results)
 			}
 		}
+	}
+}
+
+func TestDagTaskErrorRetry(t *testing.T) {
+	buf := setupLogging()
+	t.Cleanup(func() { t.Log(buf.String()) })
+
+	// var err error
+
+	sm := sync.Mutex{}
+	results := []int{}
+	g := NewGraph("test graph")
+	retry := 0
+
+	generateFn := func(n int) getoptions.CommandFn {
+		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			time.Sleep(30 * time.Millisecond)
+			if n == 4 && retry < 2 {
+				retry++
+				return fmt.Errorf("failure reason")
+			}
+			sm.Lock()
+			results = append(results, n)
+			sm.Unlock()
+			return nil
+		}
+	}
+	g.AddTask(NewTask("t1", generateFn(1)))
+	g.AddTask(NewTask("t2", generateFn(2)))
+	g.AddTask(NewTask("t3", generateFn(3)))
+	g.AddTask(NewTask("t4", generateFn(4)))
+	g.TaskRetries(g.Task("t4"), 4)
+	g.AddTask(NewTask("t5", generateFn(5)))
+	g.AddTask(NewTask("t6", generateFn(6)))
+	g.AddTask(NewTask("t7", generateFn(7)))
+	g.AddTask(NewTask("t8", generateFn(8)))
+
+	g.TaskDependensOn(g.Task("t1"), g.Task("t2"), g.Task("t3"))
+	g.TaskDependensOn(g.Task("t2"), g.Task("t4"))
+	g.TaskDependensOn(g.Task("t3"), g.Task("t4"))
+	g.TaskDependensOn(g.Task("t4"), g.Task("t5"))
+	g.TaskDependensOn(g.Task("t6"), g.Task("t2"))
+	g.TaskDependensOn(g.Task("t6"), g.Task("t8"))
+	g.TaskDependensOn(g.Task("t7"), g.Task("t5"))
+
+	err := g.Run(context.Background(), nil, nil)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+
+	// var errs *Errors
+
+	before := func(s []int, a, b int) bool {
+		ai, bi := -1, -1
+		for i, e := range s {
+			if e == a {
+				ai = i
+			}
+			if e == b {
+				bi = i
+			}
+		}
+		return ai < bi
+	}
+	for i, e := range results {
+		switch i {
+		case 0, 1:
+			if e != 5 && e != 8 {
+				t.Errorf("Wrong list: %v\n", results)
+			}
+		case 2, 3:
+			if e != 4 && e != 7 {
+				t.Errorf("Wrong list: %v\n", results)
+			}
+		case 4, 5, 6, 7:
+			if e != 2 && e != 3 && e != 6 && e != 1 {
+				t.Errorf("Wrong list: %v\n", results)
+			}
+		}
+	}
+	if !before(results, 2, 1) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 3, 1) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 4, 2) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 4, 3) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 5, 4) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 2, 6) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 8, 6) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 5, 7) {
+		t.Errorf("Wrong list: %v\n", results)
 	}
 }
 

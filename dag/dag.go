@@ -62,6 +62,7 @@ type (
 	Vertex struct {
 		ID       ID
 		Task     *Task
+		Retries  int
 		Children []*Vertex
 		Parents  []*Vertex
 		status   runStatus
@@ -364,6 +365,16 @@ func (g *Graph) TaskDependensOn(t *Task, tDependencies ...*Task) {
 	}
 }
 
+// TaskRetries - Set a number of retries for a task.
+func (g *Graph) TaskRetries(t *Task, retries int) {
+	vertex, err := g.retrieveOrAddVertex(t)
+	if err != nil {
+		g.errs.Errors = append(g.errs.Errors, err)
+		return
+	}
+	vertex.Retries = retries
+}
+
 // Validate - Verifies that there are no errors in the Graph.
 // It also runs Validate() on the given TaskMap (pass nil if a TaskMap wasn't used).
 func (g *Graph) Validate(tm *TaskMap) error {
@@ -473,13 +484,24 @@ LOOP:
 					ctx = context.WithValue(ctx, ContextKey("StdoutBuffer"), stdoutBuffer)
 					ctx = context.WithValue(ctx, ContextKey("StderrBuffer"), stderrBuffer)
 				}
-				err := v.Task.Fn(ctx, opt, args)
-				if g.bufferOutput {
-					g.bufferMutex.Lock()
-					_, _ = combinedBuffer.WriteTo(g.bufferWriter)
-					g.bufferMutex.Unlock()
+				var err error
+				for i := 0; i <= v.Retries; i++ {
+					err = v.Task.Fn(ctx, opt, args)
+					if g.bufferOutput {
+						g.bufferMutex.Lock()
+						_, _ = combinedBuffer.WriteTo(g.bufferWriter)
+						g.bufferMutex.Unlock()
+					}
+					Logger.Printf("Completed Task %s:%s in %s\n", g.Name, v.ID, durationStr(time.Since(start)))
+					if err == nil {
+						break
+					}
+					if err != nil && i < v.Retries {
+						err = fmt.Errorf("Task %s:%s error: %w", g.Name, v.ID, err)
+						Logger.Printf("%s", err)
+						Logger.Printf("Retrying (%d/%d) Task %s:%s\n", i+1, v.Retries, g.Name, v.ID)
+					}
 				}
-				Logger.Printf("Completed Task %s:%s in %s\n", g.Name, v.ID, durationStr(time.Since(start)))
 				done <- IDErr{v.ID, err}
 			}(ctx, done, v)
 		}
