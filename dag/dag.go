@@ -339,8 +339,8 @@ func (g *Graph) retrieveOrAddVertex(t *Task) (*Vertex, error) {
 	return vertex, nil
 }
 
-// TaskDependensOn - Allows adding tasks to the graph and defining their edges.
-func (g *Graph) TaskDependensOn(t *Task, tDependencies ...*Task) {
+// TaskDependsOn - Allows adding tasks to the graph and defining their edges.
+func (g *Graph) TaskDependsOn(t *Task, tDependencies ...*Task) {
 	vertex, err := g.retrieveOrAddVertex(t)
 	if err != nil {
 		g.errs.Errors = append(g.errs.Errors, err)

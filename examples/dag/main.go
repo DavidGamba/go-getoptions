@@ -66,7 +66,7 @@ func program(args []string) int {
 func Build(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 	Logger.Printf("Running build command")
 	g := dag.NewGraph("build graph")
-	g.TaskDependensOn(TM.Get("bt3"), TM.Get("bt1"), TM.Get("bt2"))
+	g.TaskDependsOn(TM.Get("bt3"), TM.Get("bt1"), TM.Get("bt2"))
 	err := g.Validate(TM)
 	if err != nil {
 		return err
@@ -81,8 +81,8 @@ func Build(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 func Clean(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 	Logger.Printf("Running clean command")
 	g := dag.NewGraph("clean graph")
-	g.TaskDependensOn(TM.Get("ct1"), TM.Get("ct3"))
-	g.TaskDependensOn(TM.Get("ct2"), TM.Get("ct3"))
+	g.TaskDependsOn(TM.Get("ct1"), TM.Get("ct3"))
+	g.TaskDependsOn(TM.Get("ct2"), TM.Get("ct3"))
 	err := g.Validate(TM)
 	if err != nil {
 		return err
