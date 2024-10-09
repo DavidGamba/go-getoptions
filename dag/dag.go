@@ -30,12 +30,15 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/DavidGamba/go-getoptions"
 )
+
+var Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 type (
 	ID string
