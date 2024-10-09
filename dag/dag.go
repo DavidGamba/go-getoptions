@@ -79,6 +79,11 @@ type (
 		bufferOutput   bool
 		bufferWriter   io.Writer
 		bufferMutex    sync.Mutex
+		UseColor       bool
+		InfoColor      string
+		InfoBoldColor  string
+		ErrorColor     string
+		ErrorBoldColor string
 	}
 
 	runStatus int
@@ -196,6 +201,10 @@ func NewGraph(name string) *Graph {
 		Vertices:       make(map[ID]*Vertex),
 		errs:           &Errors{name, make([]error, 0)},
 		maxParallel:    1_000_000,
+		InfoColor:      "34",
+		InfoBoldColor:  "36;1",
+		ErrorColor:     "31",
+		ErrorBoldColor: "35;1",
 	}
 }
 
@@ -424,7 +433,7 @@ LOOP:
 			g.Vertices[iderr.ID].status = runDone
 			if iderr.Error != nil {
 				err := fmt.Errorf("Task %s:%s error: %w", g.Name, iderr.ID, iderr.Error)
-				Logger.Printf("%s\n", err)
+				Logger.Printf(g.colorError("Task ")+g.colorErrorBold("%s:%s")+g.colorError(" error: %s\n"), g.Name, iderr.ID, iderr.Error)
 				if !errors.Is(iderr.Error, ErrorSkipParents) {
 					g.errs.Errors = append(g.errs.Errors, err)
 					continue
@@ -443,8 +452,8 @@ LOOP:
 				if handledContext {
 					break
 				}
-				Logger.Printf("Cancelation received or time out reached, allowing in-progress tasks to finish, skipping the rest.\n")
-				g.errs.Errors = append(g.errs.Errors, fmt.Errorf("cancelation received or time out reached"))
+				Logger.Print(g.colorError("Cancellation received or time out reached, allowing in-progress tasks to finish, skipping the rest.\n"))
+				g.errs.Errors = append(g.errs.Errors, fmt.Errorf("cancellation received or time out reached"))
 				handledContext = true
 			default:
 				break
@@ -456,7 +465,7 @@ LOOP:
 			}
 			if v.status == runSkip {
 				v.status = runInProgress
-				Logger.Printf("Skipped Task %s:%s\n", g.Name, v.ID)
+				Logger.Printf(g.colorError("Skipped Task ")+g.colorErrorBold("%s:%s\n"), g.Name, v.ID)
 				go func(done chan IDErr, v *Vertex) {
 					done <- IDErr{v.ID, nil}
 				}(done, v)
@@ -472,7 +481,7 @@ LOOP:
 			go func(ctx context.Context, done chan IDErr, v *Vertex) {
 				semaphore <- struct{}{}
 				defer func() { <-semaphore }()
-				Logger.Printf("Running Task %s:%s\n", g.Name, v.ID)
+				Logger.Printf(g.colorInfo("Running Task ")+g.colorInfoBold("%s:%s\n"), g.Name, v.ID)
 				start := time.Now()
 				v.Task.Lock()
 				defer v.Task.Unlock()
@@ -492,21 +501,20 @@ LOOP:
 						_, _ = combinedBuffer.WriteTo(g.bufferWriter)
 						g.bufferMutex.Unlock()
 					}
-					Logger.Printf("Completed Task %s:%s in %s\n", g.Name, v.ID, durationStr(time.Since(start)))
+					Logger.Printf(g.colorInfo("Completed Task ")+g.colorInfoBold("%s:%s")+g.colorInfo(" in %s\n"), g.Name, v.ID, durationStr(time.Since(start)))
 					if err == nil {
 						break
 					}
 					if err != nil && i < v.Retries {
-						err = fmt.Errorf("Task %s:%s error: %w", g.Name, v.ID, err)
-						Logger.Printf("%s", err)
-						Logger.Printf("Retrying (%d/%d) Task %s:%s\n", i+1, v.Retries, g.Name, v.ID)
+						Logger.Printf(g.colorError("Task ")+g.colorErrorBold("%s:%s")+g.colorError(" error: %s"), g.Name, v.ID, err)
+						Logger.Printf(g.colorInfo("Retrying (%d/%d) Task %s:%s\n"), i+1, v.Retries, g.Name, v.ID)
 					}
 				}
 				done <- IDErr{v.ID, err}
 			}(ctx, done, v)
 		}
 	}
-	Logger.Printf("Completed %s Run in %s\n", g.Name, durationStr(time.Since(runStart)))
+	Logger.Printf(g.colorInfo("Completed ")+g.colorInfoBold("%s")+g.colorInfo(" Run in %s\n"), g.Name, durationStr(time.Since(runStart)))
 
 	if len(g.errs.Errors) != 0 {
 		return g.errs
@@ -569,7 +577,7 @@ func (g *Graph) getNextVertex() (*Vertex, bool, bool) {
 
 // skipParents - Marks all Vertex parents as runDone
 func skipParents(v *Vertex) {
-	Logger.Printf("skip parents for %s\n", v.ID)
+	// Logger.Printf("skip parents for %s\n", v.ID)
 	for _, c := range v.Parents {
 		c.status = runSkip
 		skipParents(c)
