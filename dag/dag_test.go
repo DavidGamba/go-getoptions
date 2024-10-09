@@ -480,7 +480,7 @@ func TestDagTaskErrorRetry(t *testing.T) {
 	}
 }
 
-func TestDagContexDone(t *testing.T) {
+func TestDagContextDone(t *testing.T) {
 	buf := setupLogging()
 	t.Cleanup(func() { t.Log(buf.String()) })
 
@@ -526,20 +526,20 @@ func TestDagContexDone(t *testing.T) {
 	if len(errs.Errors) != 5 {
 		t.Fatalf("Unexpected error size, %d: %s\n", len(errs.Errors), err)
 	}
-	if errs.Errors[0].Error() != "cancelation received or time out reached" {
-		t.Fatalf("Unexpected error: %s\n", errs.Errors[0])
+	if errs.Errors[0].Error() != "cancellation received or time out reached" {
+		t.Fatalf("Unexpected error 0: %s\n", errs.Errors[0])
 	}
 	if !errors.Is(errs.Errors[1], ErrorTaskSkipped) {
-		t.Fatalf("Unexpected error: %s\n", errs.Errors[1])
+		t.Fatalf("Unexpected error 1: %s\n", errs.Errors[1])
 	}
 	if !errors.Is(errs.Errors[2], ErrorTaskSkipped) {
-		t.Fatalf("Unexpected error: %s\n", errs.Errors[1])
+		t.Fatalf("Unexpected error 2: %s\n", errs.Errors[2])
 	}
 	if !errors.Is(errs.Errors[3], ErrorTaskSkipped) {
-		t.Fatalf("Unexpected error: %s\n", errs.Errors[1])
+		t.Fatalf("Unexpected error 3: %s\n", errs.Errors[3])
 	}
 	if !errors.Is(errs.Errors[4], ErrorTaskSkipped) {
-		t.Fatalf("Unexpected error: %s\n", errs.Errors[1])
+		t.Fatalf("Unexpected error 4: %s\n", errs.Errors[4])
 	}
 	if len(results) > 4 {
 		t.Errorf("Wrong list: %v\n", results)
