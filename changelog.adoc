@@ -12,7 +12,9 @@ Fix typo in dag library: TaskDependensOn -> TaskDependsOn
 
 === New Features
 
-Add task retries in dag library.
+* Add task retries in dag library.
+
+* Add logging color support in dag library.
 
 == v0.30.0: New Features
 
