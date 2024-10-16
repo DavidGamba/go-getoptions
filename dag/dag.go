@@ -64,7 +64,7 @@ type (
 		ID       ID
 		Task     *Task
 		Retries  int
-		Children []*Vertex
+		Children map[ID]*Vertex
 		Parents  []*Vertex
 		status   runStatus
 	}
@@ -330,7 +330,7 @@ func (g *Graph) addTask(t *Task) error {
 	g.Vertices[t.ID] = &Vertex{
 		ID:       t.ID,
 		Task:     t,
-		Children: make([]*Vertex, 0),
+		Children: make(map[ID]*Vertex),
 		Parents:  make([]*Vertex, 0),
 		status:   runPending,
 	}
@@ -373,7 +373,7 @@ func (g *Graph) TaskDependsOn(t *Task, tDependencies ...*Task) {
 			}
 		}
 		g.dotDiagram += fmt.Sprintf("\t\"%s\" -> \"%s\";\n", vertex.ID, vDependency.ID)
-		vertex.Children = append(vertex.Children, vDependency)
+		vertex.Children[vDependency.ID] = vDependency
 		vDependency.Parents = append(vDependency.Parents, vertex)
 	}
 }

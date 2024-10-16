@@ -200,7 +200,6 @@ func TestDagSorted(t *testing.T) {
 
 	g := NewGraph("test graph")
 	g.Ordered = true
-	// g.SetSerial()
 	g.TaskDependsOn(tm.Get("t1"), tm.Get("t2"), tm.Get("t3"))
 	g.TaskDependsOn(tm.Get("t2"), tm.Get("t4"))
 	g.TaskDependsOn(tm.Get("t3"), tm.Get("t4"))
