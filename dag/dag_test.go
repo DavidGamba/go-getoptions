@@ -180,7 +180,6 @@ func TestDagSorted(t *testing.T) {
 	results := []int{}
 	generateFn := func(n int) getoptions.CommandFn {
 		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-			time.Sleep(30 * time.Millisecond)
 			sm.Lock()
 			results = append(results, n)
 			sm.Unlock()
@@ -255,19 +254,19 @@ func TestDagSorted(t *testing.T) {
 				t.Errorf("Wrong list %d: %v\n", 3, results)
 			}
 		case 4:
-			if e != 1 {
+			if e != 2 {
 				t.Errorf("Wrong list %d: %v\n", 4, results)
 			}
 		case 5:
-			if e != 2 {
+			if e != 3 {
 				t.Errorf("Wrong list %d: %v\n", 5, results)
 			}
 		case 6:
-			if e != 3 {
+			if e != 6 {
 				t.Errorf("Wrong list %d: %v\n", 6, results)
 			}
 		case 7:
-			if e != 6 {
+			if e != 1 {
 				t.Errorf("Wrong list %d: %v\n", 7, results)
 			}
 		}

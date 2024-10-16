@@ -547,7 +547,6 @@ func (g *Graph) getNextVertex() (*Vertex, bool, bool) {
 			return keys[i] < keys[j]
 		})
 	}
-	// Logger.Printf("Keys: %v\n", keys)
 
 	if g.serial {
 		for k := range keys {
@@ -556,15 +555,26 @@ func (g *Graph) getNextVertex() (*Vertex, bool, bool) {
 			if vertex.status == runInProgress {
 				return vertex, false, false
 			}
-			for _, child := range vertex.Children {
+			childKeys := []ID{}
+			for k := range vertex.Children {
+				childKeys = append(childKeys, k)
+			}
+			if g.Ordered {
+				sort.Slice(childKeys, func(i, j int) bool {
+					return childKeys[i] < childKeys[j]
+				})
+			}
+
+			for _, k := range childKeys {
+				child := vertex.Children[k]
 				if child.status == runInProgress {
 					return child, false, false
 				}
 			}
 		}
 	}
-	for k := range keys {
-		vertex := g.Vertices[keys[k]]
+	for _, k := range keys {
+		vertex := g.Vertices[k]
 		if vertex.status != runPending && vertex.status != runSkip {
 			if vertex.status == runDone {
 				doneCount++
@@ -576,13 +586,17 @@ func (g *Graph) getNextVertex() (*Vertex, bool, bool) {
 		}
 		childPending := false
 
-		// TODO:
-		// childKeys := []ID{}
-		// for k := range vertex.Children {
-		// 	keys = append(keys, k)
-		// }
-
-		for _, child := range vertex.Children {
+		childKeys := []ID{}
+		for k := range vertex.Children {
+			childKeys = append(childKeys, k)
+		}
+		if g.Ordered {
+			sort.Slice(childKeys, func(i, j int) bool {
+				return childKeys[i] < childKeys[j]
+			})
+		}
+		for _, k := range childKeys {
+			child := vertex.Children[k]
 			if child.status == runPending {
 				childPending = true
 			}
