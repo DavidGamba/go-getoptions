@@ -32,6 +32,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 	"sync"
 	"time"
 
@@ -75,10 +76,13 @@ type (
 		dotDiagram     string
 		errs           *Errors
 		serial         bool
+		Ordered        bool // Ensures the graph runs in the same order every time
 		maxParallel    int
 		bufferOutput   bool
 		bufferWriter   io.Writer
 		bufferMutex    sync.Mutex
+
+		// Color options
 		UseColor       bool
 		InfoColor      string
 		InfoBoldColor  string
@@ -534,8 +538,21 @@ func durationStr(d time.Duration) string {
 // Return: vertex, allDone, ok
 func (g *Graph) getNextVertex() (*Vertex, bool, bool) {
 	doneCount := 0
+	keys := []ID{}
+	for k := range g.Vertices {
+		keys = append(keys, k)
+	}
+	if g.Ordered {
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i] < keys[j]
+		})
+	}
+	// Logger.Printf("Keys: %v\n", keys)
+
 	if g.serial {
-		for _, vertex := range g.Vertices {
+		for k := range keys {
+			vertex := g.Vertices[keys[k]]
+
 			if vertex.status == runInProgress {
 				return vertex, false, false
 			}
@@ -546,7 +563,8 @@ func (g *Graph) getNextVertex() (*Vertex, bool, bool) {
 			}
 		}
 	}
-	for _, vertex := range g.Vertices {
+	for k := range keys {
+		vertex := g.Vertices[keys[k]]
 		if vertex.status != runPending && vertex.status != runSkip {
 			if vertex.status == runDone {
 				doneCount++
@@ -557,6 +575,13 @@ func (g *Graph) getNextVertex() (*Vertex, bool, bool) {
 			return vertex, false, true
 		}
 		childPending := false
+
+		// TODO:
+		// childKeys := []ID{}
+		// for k := range vertex.Children {
+		// 	keys = append(keys, k)
+		// }
+
 		for _, child := range vertex.Children {
 			if child.status == runPending {
 				childPending = true

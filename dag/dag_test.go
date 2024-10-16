@@ -170,6 +170,333 @@ digraph G {
 	}
 }
 
+func TestDagSorted(t *testing.T) {
+	buf := setupLogging()
+	t.Cleanup(func() { t.Log(buf.String()) })
+
+	var err error
+
+	sm := sync.Mutex{}
+	results := []int{}
+	generateFn := func(n int) getoptions.CommandFn {
+		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			time.Sleep(30 * time.Millisecond)
+			sm.Lock()
+			results = append(results, n)
+			sm.Unlock()
+			return nil
+		}
+	}
+
+	tm := NewTaskMap()
+	tm.Add("t1", generateFn(1))
+	tm.Add("t2", generateFn(2))
+	tm.Add("t3", generateFn(3))
+	tm.Add("t4", generateFn(4))
+	tm.Add("t5", generateFn(5))
+	tm.Add("t6", generateFn(6))
+	tm.Add("t7", generateFn(7))
+	tm.Add("t8", generateFn(8))
+
+	g := NewGraph("test graph")
+	g.Ordered = true
+	// g.SetSerial()
+	g.TaskDependsOn(tm.Get("t1"), tm.Get("t2"), tm.Get("t3"))
+	g.TaskDependsOn(tm.Get("t2"), tm.Get("t4"))
+	g.TaskDependsOn(tm.Get("t3"), tm.Get("t4"))
+	g.TaskDependsOn(tm.Get("t4"), tm.Get("t5"))
+	g.TaskDependsOn(tm.Get("t6"), tm.Get("t2"))
+	g.TaskDependsOn(tm.Get("t6"), tm.Get("t8"))
+	g.TaskDependsOn(tm.Get("t7"), tm.Get("t5"))
+
+	// Validate before running
+	err = g.Validate(tm)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+
+	_, err = g.DepthFirstSort()
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+
+	err = g.Run(context.Background(), nil, nil)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+
+	before := func(s []int, a, b int) bool {
+		ai, bi := -1, -1
+		for i, e := range s {
+			if e == a {
+				ai = i
+			}
+			if e == b {
+				bi = i
+			}
+		}
+		return ai < bi
+	}
+	for i, e := range results {
+		switch i {
+		case 0:
+			if e != 5 {
+				t.Errorf("Wrong list %d: %v\n", 0, results)
+			}
+		case 1:
+			if e != 8 {
+				t.Errorf("Wrong list %d: %v\n", 1, results)
+			}
+		case 2:
+			if e != 4 {
+				t.Errorf("Wrong list %d: %v\n", 2, results)
+			}
+		case 3:
+			if e != 7 {
+				t.Errorf("Wrong list %d: %v\n", 3, results)
+			}
+		case 4:
+			if e != 1 {
+				t.Errorf("Wrong list %d: %v\n", 4, results)
+			}
+		case 5:
+			if e != 2 {
+				t.Errorf("Wrong list %d: %v\n", 5, results)
+			}
+		case 6:
+			if e != 3 {
+				t.Errorf("Wrong list %d: %v\n", 6, results)
+			}
+		case 7:
+			if e != 6 {
+				t.Errorf("Wrong list %d: %v\n", 7, results)
+			}
+		}
+	}
+	if !before(results, 2, 1) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 3, 1) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 4, 2) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 4, 3) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 5, 4) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 2, 6) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 8, 6) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 5, 7) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	expectedDiagram := `
+digraph G {
+	label = "test graph";
+	rankdir = TB;
+	"t1";
+	"t2";
+	"t1" -> "t2";
+	"t3";
+	"t1" -> "t3";
+	"t4";
+	"t2" -> "t4";
+	"t3" -> "t4";
+	"t5";
+	"t4" -> "t5";
+	"t6";
+	"t6" -> "t2";
+	"t8";
+	"t6" -> "t8";
+	"t7";
+	"t7" -> "t5";
+}`
+	if g.String() != expectedDiagram {
+		t.Errorf("Wrong output: '%s'\nexpected: '%s'\n", g.String(), expectedDiagram)
+	}
+
+	// Empty graph
+	g2 := NewGraph("test graph 2")
+	err = g2.Validate(nil)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+	err = g2.Run(context.Background(), nil, nil)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+}
+
+func TestDagSortedSerial(t *testing.T) {
+	buf := setupLogging()
+	t.Cleanup(func() { t.Log(buf.String()) })
+
+	var err error
+
+	sm := sync.Mutex{}
+	results := []int{}
+	generateFn := func(n int) getoptions.CommandFn {
+		return func(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+			sm.Lock()
+			results = append(results, n)
+			sm.Unlock()
+			return nil
+		}
+	}
+
+	tm := NewTaskMap()
+	tm.Add("t1", generateFn(1))
+	tm.Add("t2", generateFn(2))
+	tm.Add("t3", generateFn(3))
+	tm.Add("t4", generateFn(4))
+	tm.Add("t5", generateFn(5))
+	tm.Add("t6", generateFn(6))
+	tm.Add("t7", generateFn(7))
+	tm.Add("t8", generateFn(8))
+
+	g := NewGraph("test graph")
+	g.Ordered = true
+	g.SetSerial()
+	g.TaskDependsOn(tm.Get("t1"), tm.Get("t2"), tm.Get("t3"))
+	g.TaskDependsOn(tm.Get("t2"), tm.Get("t4"))
+	g.TaskDependsOn(tm.Get("t3"), tm.Get("t4"))
+	g.TaskDependsOn(tm.Get("t4"), tm.Get("t5"))
+	g.TaskDependsOn(tm.Get("t6"), tm.Get("t2"))
+	g.TaskDependsOn(tm.Get("t6"), tm.Get("t8"))
+	g.TaskDependsOn(tm.Get("t7"), tm.Get("t5"))
+
+	// Validate before running
+	err = g.Validate(tm)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+
+	_, err = g.DepthFirstSort()
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+
+	err = g.Run(context.Background(), nil, nil)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+
+	before := func(s []int, a, b int) bool {
+		ai, bi := -1, -1
+		for i, e := range s {
+			if e == a {
+				ai = i
+			}
+			if e == b {
+				bi = i
+			}
+		}
+		return ai < bi
+	}
+	for i, e := range results {
+		switch i {
+		case 0:
+			if e != 5 {
+				t.Errorf("Wrong list %d: %v\n", 0, results)
+			}
+		case 1:
+			if e != 4 {
+				t.Errorf("Wrong list %d: %v\n", 1, results)
+			}
+		case 2:
+			if e != 2 {
+				t.Errorf("Wrong list %d: %v\n", 2, results)
+			}
+		case 3:
+			if e != 3 {
+				t.Errorf("Wrong list %d: %v\n", 3, results)
+			}
+		case 4:
+			if e != 1 {
+				t.Errorf("Wrong list %d: %v\n", 4, results)
+			}
+		case 5:
+			if e != 7 {
+				t.Errorf("Wrong list %d: %v\n", 5, results)
+			}
+		case 6:
+			if e != 8 {
+				t.Errorf("Wrong list %d: %v\n", 6, results)
+			}
+		case 7:
+			if e != 6 {
+				t.Errorf("Wrong list %d: %v\n", 7, results)
+			}
+		}
+	}
+	if !before(results, 2, 1) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 3, 1) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 4, 2) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 4, 3) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 5, 4) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 2, 6) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 8, 6) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	if !before(results, 5, 7) {
+		t.Errorf("Wrong list: %v\n", results)
+	}
+	expectedDiagram := `
+digraph G {
+	label = "test graph";
+	rankdir = TB;
+	"t1";
+	"t2";
+	"t1" -> "t2";
+	"t3";
+	"t1" -> "t3";
+	"t4";
+	"t2" -> "t4";
+	"t3" -> "t4";
+	"t5";
+	"t4" -> "t5";
+	"t6";
+	"t6" -> "t2";
+	"t8";
+	"t6" -> "t8";
+	"t7";
+	"t7" -> "t5";
+}`
+	if g.String() != expectedDiagram {
+		t.Errorf("Wrong output: '%s'\nexpected: '%s'\n", g.String(), expectedDiagram)
+	}
+
+	// Empty graph
+	g2 := NewGraph("test graph 2")
+	err = g2.Validate(nil)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+	err = g2.Run(context.Background(), nil, nil)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
+	}
+}
+
 func TestRunErrorCollection(t *testing.T) {
 	buf := setupLogging()
 	t.Cleanup(func() { t.Log(buf.String()) })
