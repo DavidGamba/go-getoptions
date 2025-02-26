@@ -11,7 +11,7 @@ import (
 	"github.com/DavidGamba/go-getoptions"
 )
 
-var Logger = log.New(io.Discard, "", log.LstdFlags)
+var Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 func main() {
 	os.Exit(program(os.Args))
@@ -19,7 +19,7 @@ func main() {
 
 func program(args []string) int {
 	opt := getoptions.New()
-	opt.Bool("debug", false, opt.GetEnv("DEBUG"))
+	opt.Bool("quiet", false, opt.GetEnv("QUIET"))
 	opt.SetUnknownMode(getoptions.Pass)
 	opt.NewCommand("cmd", "description").SetCommandFn(Run)
 	opt.HelpCommand("help", opt.Alias("?"))
@@ -28,8 +28,8 @@ func program(args []string) int {
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		return 1
 	}
-	if opt.Called("debug") {
-		Logger.SetOutput(os.Stderr)
+	if opt.Called("quiet") {
+		Logger.SetOutput(io.Discard)
 	}
 	Logger.Println(remaining)
 
@@ -43,7 +43,7 @@ func program(args []string) int {
 		}
 		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
 		if errors.Is(err, getoptions.ErrorParsing) {
-			fmt.Fprintf(os.Stderr, "\n"+opt.Help())
+			fmt.Fprintf(os.Stderr, "\n%s", opt.Help())
 		}
 		return 1
 	}
