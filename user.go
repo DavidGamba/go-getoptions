@@ -181,8 +181,8 @@ func (gopt *GetOpt) SetRequireOrder() *GetOpt {
 	return gopt
 }
 
-// CustomCompletion - Add a custom completion list.
-func (gopt *GetOpt) CustomCompletion(list ...string) *GetOpt {
+// ArgCompletions - Add a custom completion list for any non-option argument.
+func (gopt *GetOpt) ArgCompletions(list ...string) *GetOpt {
 	gopt.programTree.Suggestions = list
 	return gopt
 }

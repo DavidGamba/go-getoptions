@@ -15,7 +15,7 @@ var Logger = log.New(io.Discard, "log ", log.LstdFlags)
 func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
 	opt := parent.NewCommand("complete", "Example completions")
 	opt.SetCommandFn(Run)
-	opt.CustomCompletion("dev-east", "dev-west", "staging-east", "prod-east", "prod-west", "prod-south")
+	opt.ArgCompletions("dev-east", "dev-west", "staging-east", "prod-east", "prod-west", "prod-south")
 	opt.CustomCompletionFn(func(target, s string) []string {
 		if strings.HasPrefix("dev-", s) {
 			return []string{"dev-hola/", "dev-hello"}

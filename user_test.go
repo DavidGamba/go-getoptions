@@ -267,7 +267,7 @@ ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "prod
 			logCmd := opt.NewCommand("log", "").SetCommandFn(fn)
 			logCmd.NewCommand("sub-log", "").SetCommandFn(fn)
 			showCmd := opt.NewCommand("show", "").SetCommandFn(fn)
-			showCmd.NewCommand("sub-show", "").SetCommandFn(fn).CustomCompletion("profile", "password", "hello")
+			showCmd.NewCommand("sub-show", "").SetCommandFn(fn).ArgCompletions("profile", "password", "hello")
 			opt.HelpCommand("help")
 			_, err := opt.Parse(tt.args)
 			if err != nil {
@@ -308,7 +308,7 @@ ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "prod
 			logCmd := opt.NewCommand("log", "").SetCommandFn(fn)
 			logCmd.NewCommand("sub-log", "").SetCommandFn(fn)
 			showCmd := opt.NewCommand("show", "").SetCommandFn(fn)
-			showCmd.NewCommand("sub-show", "").SetCommandFn(fn).CustomCompletion("profile", "password", "hello")
+			showCmd.NewCommand("sub-show", "").SetCommandFn(fn).ArgCompletions("profile", "password", "hello")
 			opt.HelpCommand("help")
 			_, err := opt.Parse(tt.args)
 			if err != nil {

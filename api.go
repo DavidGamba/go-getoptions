@@ -29,7 +29,7 @@ type programTree struct {
 	ChildCommands   map[string]*programTree
 	ChildOptions    map[string]*option.Option
 	UnknownOptions  []*option.Option // Track unknown options in order in case they need to be passed to the remaining array.
-	ChildText       []string
+	ChildText       []string         // eventually becomes the remaining array
 	Parent          *programTree
 	Level           int
 	CommandFn       CommandFn
