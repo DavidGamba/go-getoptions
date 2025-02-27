@@ -411,6 +411,7 @@ opt.HelpSynopsisArg("<arg2>", "arg2 description")
 
 Define the function for the program:
 
+[source, go]
 ----
 opt.SetCommandFn(Run)
 ----
@@ -473,7 +474,7 @@ func Name(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
 }
 ----
 
-This function will receive the context, the parsed options and the remaining arguments.
+This function will receive the context, the parsed options with their values and the remaining arguments.
 
 Read the received options from the `opt` variable.
 
@@ -688,6 +689,14 @@ complete -o default -C "$PWD/my-go-program" my-go-program
 ----
 
 Then when the users go into the directory and run `source sourceme.bash` the autocompletion will be enabled.
+
+=== Elements autocompleted
+
+The autocompletion will automatically autocomplete options and commands.
+
+You can add option values to the completion engine with `opt.SuggestedValues` and `opt.ValidValues`.
+
+For arguments, you can use `opt.ArgCompletions` for a static list of argument completions or use `opt.ArgCompletionsFns` for a dynamic list of argument completions.
 
 == Options
 
@@ -1108,6 +1117,31 @@ But the following one is incorrect:
 
 	./program -pr <profile> -p <password> command
 
+== Arguments
+
+Arguments are the non-option arguments passed to the program.
+They differ from option values in that they don't belong to an option but to the command or subcommand itself.
+
+The arguments help is controlled with `opt.HelpSynopsisArg` and can be called multiple times if there are multiple arguments expected:
+
+[source, go]
+----
+opt.HelpSynopsisArg("<arg1>", "arg1 description")
+opt.HelpSynopsisArg("<arg2>", "arg2 description")
+----
+
+Arguments can also be autocompleted.
+You can use `opt.ArgCompletions` for a static list of argument completions or use `opt.ArgCompletionsFns` for a dynamic list of argument completions.
+
+Dynamic completions receive the shell target (bash or zsh), the previous arguments and the current partial string to complete:
+
+[source, go]
+----
+opt.ArgCompletionsFns(func(target string, prev []string, partial string) []string {
+	return []string{}
+}
+----
+
 [[roadmap]]
 == ROADMAP
 
@@ -1128,15 +1162,14 @@ Update test suite to accommodate for Windows.
 
 * Introduce a `opt.NoArgs` so there are no `[<args>]` listed in the help output.
 
-* Add `CustomCompletionFn` before release figure out how to have ways to have custom completions with different engines for arg1 and arg2.
-
 * Figure out how to have custom completions for option values.
 
 * Add OptionGroup to allow grouping options in the help output.
 
-* Document CustomCompletion and ValidValues in autocompletion section.
-
 * Mark optional as required in subcommand.
+
+* Rename instances of option arguments to option values to disambiguate between option arguments and arguments.
+Will require a breaking change to rename some option modifiers.
 
 === Possible Env Variable Roadmap
 
