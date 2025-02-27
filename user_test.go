@@ -223,6 +223,9 @@ func TestCompletion(t *testing.T) {
 		{"command", func() { os.Setenv("COMP_LINE", "./program show sub-show ") }, []string{}, "hello\nhelp\npassword\nprofile\n", ""},
 		{"command", func() { os.Setenv("COMP_LINE", "./program log sub-log ") }, []string{}, "debug\nerror\nhelp\ninfo\n", ""},
 		{"command", func() { os.Setenv("COMP_LINE", "./program log sub-log i") }, []string{}, "infinity\ninfo\ninformational\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program show --level") }, []string{}, "--level=\n--level=<string>\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program show --level=") }, []string{}, "debug\nerror\ninfo\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program show --level=i") }, []string{}, "infinity\ninfo\ninformational\n", ""},
 
 		// zshell
 		{"zshell option", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --f") }, []string{}, "--f\n--flag\n--fleg\n", ""},
@@ -238,6 +241,9 @@ func TestCompletion(t *testing.T) {
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program show sub-show ") }, []string{}, "hello\nhelp\npassword\nprofile\n", ""},
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program log sub-log ") }, []string{}, "debug\nerror\nhelp\ninfo\n", ""},
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program log sub-log i") }, []string{}, "infinity\ninfo\ninformational\n", ""},
+		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program show --level") }, []string{}, "--level=\n--level=<string>\n", ""},
+		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program show --level=") }, []string{}, "--level=debug\n--level=error\n--level=info\n", ""},
+		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program show --level=i") }, []string{}, "--level=infinity\n--level=info\n--level=informational\n", ""},
 	}
 	validValuesTests := []struct {
 		name     string
@@ -277,6 +283,12 @@ ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "prod
 				return []string{"info", "debug", "error"}
 			})
 			showCmd := opt.NewCommand("show", "").SetCommandFn(fn)
+			showCmd.String("level", "", opt.SuggestedValuesFn(func(target string, s string) []string {
+				if strings.HasPrefix(s, "i") {
+					return []string{"info", "informational", "infinity"}
+				}
+				return []string{"info", "debug", "error"}
+			}))
 			showCmd.NewCommand("sub-show", "").SetCommandFn(fn).ArgCompletions("profile", "password", "hello")
 			opt.HelpCommand("help")
 			_, err := opt.Parse(tt.args)
@@ -324,6 +336,12 @@ ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "prod
 				return []string{"info", "debug", "error"}
 			})
 			showCmd := opt.NewCommand("show", "").SetCommandFn(fn)
+			showCmd.String("level", "", opt.SuggestedValuesFn(func(target string, s string) []string {
+				if strings.HasPrefix(s, "i") {
+					return []string{"info", "informational", "infinity"}
+				}
+				return []string{"info", "debug", "error"}
+			}))
 			showCmd.NewCommand("sub-show", "").SetCommandFn(fn).ArgCompletions("profile", "password", "hello")
 			opt.HelpCommand("help")
 			_, err := opt.Parse(tt.args)

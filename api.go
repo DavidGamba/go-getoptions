@@ -38,8 +38,8 @@ type programTree struct {
 	unknownMode     UnknownMode        // Unknown option mode
 	requireOrder    bool               // stop parsing args as soon as an unknown is found
 	skipOptionsCopy bool               // skips copying options from parent to child. Required when doing wrapper commands.
-	Suggestions     []string           // Suggestions used for completions
-	SuggestionFns   []ArgCompletionsFn // SuggestionsFns used for completions
+	Suggestions     []string           // Suggestions used for argument completions
+	SuggestionFns   []ArgCompletionsFn // SuggestionsFns used for argument completions
 
 	mapKeysToLower bool // controls wether or not map keys are normalized to lowercase
 
@@ -228,6 +228,21 @@ ARGS_LOOP:
 							lastOpt = v
 							if lastOpt.SuggestedValues != nil && len(lastOpt.SuggestedValues) > 0 {
 								for _, e := range lastOpt.SuggestedValues {
+									c := fmt.Sprintf("--%s=%s", k, e)
+									if strings.HasPrefix(c, iterator.Value()) {
+										// NOTE: Bash completions have = as a special char and results should be trimmed form the = on.
+										if completionMode == "bash" {
+											tc := strings.SplitN(c, "=", 2)[1]
+											completions = append(completions, tc)
+										} else {
+											completions = append(completions, c)
+										}
+									}
+								}
+							}
+							// The entry is complete here and has a suggestion function
+							if strings.Contains(partialOption, "=") && lastOpt.SuggestedValuesFn != nil {
+								for _, e := range lastOpt.SuggestedValuesFn(completionMode, strings.SplitN(iterator.Value(), "=", 2)[1]) {
 									c := fmt.Sprintf("--%s=%s", k, e)
 									if strings.HasPrefix(c, iterator.Value()) {
 										// NOTE: Bash completions have = as a special char and results should be trimmed form the = on.

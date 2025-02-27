@@ -694,7 +694,7 @@ Then when the users go into the directory and run `source sourceme.bash` the aut
 
 The autocompletion will automatically autocomplete options and commands.
 
-You can add option values to the completion engine with `opt.SuggestedValues` and `opt.ValidValues`.
+You can add static option values to the completion engine with `opt.SuggestedValues` and `opt.ValidValues` or dynamically with `opt.SuggestedValuesFn`.
 
 For arguments, you can use `opt.ArgCompletions` for a static list of argument completions or use `opt.ArgCompletionsFns` for a dynamic list of argument completions.
 
@@ -964,6 +964,16 @@ This list will be added to the autocompletion engine.
 Limit the list of valid values for the option.
 This list will be added to the autocompletion engine.
 
+==== Suggested values function
+
+Lazily call the suggested values functions when the option is being autocompleted.
+The resulting list will be added to the autocompletion engine.
+
+`opt.StringVar(&str, "str", false, opt.SuggestedValuesFn(func(target string, s string) []string {
+	return []string{"a", "b", "c"}
+}))`
+
+
 ==== Set option as called
 
 `opt.StringVar(&str, "str", false, opt.SetCalled(true))`
@@ -1161,8 +1171,6 @@ Defaults to "--" and "-" but could include "/" to support Win32 style argument h
 Update test suite to accommodate for Windows.
 
 * Introduce a `opt.NoArgs` so there are no `[<args>]` listed in the help output.
-
-* Figure out how to have custom completions for option values.
 
 * Add OptionGroup to allow grouping options in the help output.
 
