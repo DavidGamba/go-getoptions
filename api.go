@@ -35,11 +35,11 @@ type programTree struct {
 	CommandFn       CommandFn
 	HelpCommandName string
 	mode            Mode
-	unknownMode     UnknownMode    // Unknown option mode
-	requireOrder    bool           // stop parsing args as soon as an unknown is found
-	skipOptionsCopy bool           // skips copying options from parent to child. Required when doing wrapper commands.
-	Suggestions     []string       // Suggestions used for completions
-	SuggestionFns   []CompletionFn // SuggestionsFns used for completions
+	unknownMode     UnknownMode        // Unknown option mode
+	requireOrder    bool               // stop parsing args as soon as an unknown is found
+	skipOptionsCopy bool               // skips copying options from parent to child. Required when doing wrapper commands.
+	Suggestions     []string           // Suggestions used for completions
+	SuggestionFns   []ArgCompletionsFn // SuggestionsFns used for completions
 
 	mapKeysToLower bool // controls wether or not map keys are normalized to lowercase
 
@@ -288,7 +288,7 @@ ARGS_LOOP:
 			// SuggestionFns
 			{
 				for _, fn := range currentProgramNode.SuggestionFns {
-					completions = append(completions, fn(completionMode, iterator.Value())...)
+					completions = append(completions, fn(completionMode, currentProgramNode.ChildText, iterator.Value())...)
 				}
 			}
 

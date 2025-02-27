@@ -187,18 +187,21 @@ func (gopt *GetOpt) ArgCompletions(list ...string) *GetOpt {
 	return gopt
 }
 
-// CompletionFn - Function receiver for custom completions.
+// ArgCompletionsFn - Function receiver for custom completions.
 // The `target` argument indicates "bash" or "zsh" for the completion targets.
 //
 // NOTE: Bash completions have = as a special char and results should be trimmed from the = on.
 // This should not be done for Zsh.
-type CompletionFn func(target, partialCompletion string) []string
+type ArgCompletionsFn func(target string, previousArgs []string, partialCompletion string) []string
 
-// CustomCompletionFn - Allows to define custom completion functions that get lazily called.
+// ArgCompletionsFns - Allows to define custom argument completion functions that get lazily called.
+//
+// All completion functions are called to build the total completion list.
+// Use the given list of previousArgs if you want to provide contextual completions based on number of args.
 //
 // NOTE: Bash completions have = as a special char and results should be trimmed from the = on.
 // This should not be done for Zsh.
-func (gopt *GetOpt) CustomCompletionFn(fn ...CompletionFn) *GetOpt {
+func (gopt *GetOpt) ArgCompletionsFns(fn ...ArgCompletionsFn) *GetOpt {
 	gopt.programTree.SuggestionFns = append(gopt.programTree.SuggestionFns, fn...)
 	return gopt
 }
