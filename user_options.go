@@ -142,6 +142,13 @@ func (gopt *GetOpt) SuggestedValues(values ...string) ModifyFn {
 	}
 }
 
+// SuggestedValuesFn - adds a dynamic list of suggestions to the autocompletion for the option.
+func (gopt *GetOpt) SuggestedValuesFn(fn option.ValueCompletionsFn) ModifyFn {
+	return func(parent *GetOpt, opt *option.Option) {
+		opt.SuggestedValuesFn = fn
+	}
+}
+
 // Called - Indicates if the option was passed on the command line.
 // If the `name` is an option that wasn't declared it will return false.
 func (gopt *GetOpt) Called(name string) bool {

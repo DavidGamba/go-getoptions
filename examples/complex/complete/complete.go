@@ -2,8 +2,10 @@ package complete
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/DavidGamba/go-getoptions"
@@ -15,6 +17,10 @@ var Logger = log.New(io.Discard, "log ", log.LstdFlags)
 func NewCommand(parent *getoptions.GetOpt) *getoptions.GetOpt {
 	opt := parent.NewCommand("complete", "Example completions")
 	opt.SetCommandFn(Run)
+	opt.String("completeme", "", opt.SuggestedValuesFn(func(target, partial string) []string {
+		fmt.Fprintf(os.Stderr, "\npartial: %v\n", partial)
+		return []string{"complete", "completeme", "completeme2"}
+	}))
 	opt.ArgCompletions("dev-east", "dev-west", "staging-east", "prod-east", "prod-west", "prod-south")
 	opt.ArgCompletionsFns(func(target string, prev []string, s string) []string {
 		if len(prev) == 0 {
