@@ -30,6 +30,10 @@ var ErrorMissingRequiredOption = errors.New("")
 // Handler - Signature for the function that handles saving to the option.
 type Handler func(optName string, argument string, usedAlias string) error
 
+// ValueCompletionsFn - Function receiver for custom completions.
+// The `target` argument indicates "bash" or "zsh" for the completion targets.
+type ValueCompletionsFn func(target string, partialCompletion string) []string
+
 // Type - Indicates the type of option.
 type Type int
 
@@ -72,8 +76,9 @@ type Option struct {
 
 	// SuggestedValues used for completions, suggestions don't necessarily limit
 	// the values you are able to use
-	SuggestedValues []string
-	ValidValues     []string // ValidValues that can be passed to Save
+	SuggestedValues   []string
+	ValidValues       []string // ValidValues that can be passed to Save
+	SuggestedValuesFn ValueCompletionsFn
 
 	// Help
 	DefaultStr   string // String representation of default value

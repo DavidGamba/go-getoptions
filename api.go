@@ -240,6 +240,20 @@ ARGS_LOOP:
 									}
 								}
 							}
+							if lastOpt.SuggestedValuesFn != nil {
+								for _, e := range lastOpt.SuggestedValuesFn(completionMode, strings.SplitN(iterator.Value(), "=", 2)[1]) {
+									c := fmt.Sprintf("--%s=%s", k, e)
+									if strings.HasPrefix(c, iterator.Value()) {
+										// NOTE: Bash completions have = as a special char and results should be trimmed form the = on.
+										if completionMode == "bash" {
+											tc := strings.SplitN(c, "=", 2)[1]
+											completions = append(completions, tc)
+										} else {
+											completions = append(completions, c)
+										}
+									}
+								}
+							}
 						}
 					}
 					sort.Strings(completions)
