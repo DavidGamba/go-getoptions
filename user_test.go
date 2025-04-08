@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/DavidGamba/go-getoptions/internal/option"
@@ -220,6 +221,8 @@ func TestCompletion(t *testing.T) {
 		{"command", func() { os.Setenv("COMP_LINE", "./program --profile=p") }, []string{}, "production\n", ""},
 		{"command", func() { os.Setenv("COMP_LINE", "./program lo ") }, []string{"./program", "lo", "./program"}, "log \n", ""},
 		{"command", func() { os.Setenv("COMP_LINE", "./program show sub-show ") }, []string{}, "hello\nhelp\npassword\nprofile\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program log sub-log ") }, []string{}, "debug\nerror\nhelp\ninfo\n", ""},
+		{"command", func() { os.Setenv("COMP_LINE", "./program log sub-log i") }, []string{}, "infinity\ninfo\ninformational\n", ""},
 
 		// zshell
 		{"zshell option", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --f") }, []string{}, "--f\n--flag\n--fleg\n", ""},
@@ -233,6 +236,8 @@ func TestCompletion(t *testing.T) {
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program --profile=p") }, []string{}, "--profile=production\n", ""},
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program lo ") }, []string{"./program", "lo", "./program"}, "log\n", ""},
 		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program show sub-show ") }, []string{}, "hello\nhelp\npassword\nprofile\n", ""},
+		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program log sub-log ") }, []string{}, "debug\nerror\nhelp\ninfo\n", ""},
+		{"zshell command", func() { os.Setenv("ZSHELL", "true"); os.Setenv("COMP_LINE", "./program log sub-log i") }, []string{}, "infinity\ninfo\ninformational\n", ""},
 	}
 	validValuesTests := []struct {
 		name     string
@@ -265,7 +270,12 @@ ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "prod
 			opt.Bool("debug", false)
 			opt.String("profile", "", opt.SuggestedValues("dev", "staging", "production"))
 			logCmd := opt.NewCommand("log", "").SetCommandFn(fn)
-			logCmd.NewCommand("sub-log", "").SetCommandFn(fn)
+			logCmd.NewCommand("sub-log", "").SetCommandFn(fn).ArgCompletionsFns(func(target string, prev []string, s string) []string {
+				if strings.HasPrefix(s, "i") {
+					return []string{"info", "informational", "infinity"}
+				}
+				return []string{"info", "debug", "error"}
+			})
 			showCmd := opt.NewCommand("show", "").SetCommandFn(fn)
 			showCmd.NewCommand("sub-show", "").SetCommandFn(fn).ArgCompletions("profile", "password", "hello")
 			opt.HelpCommand("help")
@@ -289,6 +299,7 @@ ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "prod
 			cleanup()
 		})
 	}
+	// TODO: Only difference between these two sets of tests is that the second one uses ValidValues rather than SuggestedValues.
 	for _, tt := range append(tests, validValuesTests...) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setup()
@@ -306,7 +317,12 @@ ERROR: wrong value for option 'profile', valid values are ["dev" "staging" "prod
 			opt.Bool("debug", false)
 			opt.String("profile", "", opt.ValidValues("dev", "staging", "production"))
 			logCmd := opt.NewCommand("log", "").SetCommandFn(fn)
-			logCmd.NewCommand("sub-log", "").SetCommandFn(fn)
+			logCmd.NewCommand("sub-log", "").SetCommandFn(fn).ArgCompletionsFns(func(target string, prev []string, s string) []string {
+				if strings.HasPrefix(s, "i") {
+					return []string{"info", "informational", "infinity"}
+				}
+				return []string{"info", "debug", "error"}
+			})
 			showCmd := opt.NewCommand("show", "").SetCommandFn(fn)
 			showCmd.NewCommand("sub-show", "").SetCommandFn(fn).ArgCompletions("profile", "password", "hello")
 			opt.HelpCommand("help")
