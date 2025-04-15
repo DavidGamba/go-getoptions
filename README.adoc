@@ -264,11 +264,11 @@ Zshell is also supported, by exporting `ZSHELL=true` in your environment and usi
 
 • Boolean, String, Int, Float64, Slice and Map type options.
 
-• Options with Array arguments.
-The same option can be used multiple times with different arguments.
-The list of arguments will be saved into an Slice.
+• Options with Array values.
+The same option can be used multiple times with different values.
+The list of values will be saved into an Slice.
 
-• Options with array arguments and multiple entries.
+• Options with array values and multiple entries.
 +
 For example, instead of writing:
 `color --r 10 --g 20 --b 30 --next-option`
@@ -277,7 +277,7 @@ or
 the input could be:
 `color --rgb 10 20 30 --next-option`
 
-• When using integer array options with multiple arguments, positive integer ranges are allowed.
+• When using integer array options with multiple values, positive integer ranges are allowed.
 +
 For example, Instead of writing:
 `csv --columns 1 2 3`
@@ -286,12 +286,12 @@ or
 The input could be:
 `csv --columns 1..3`
 
-• Options with Key Value arguments.
-This allows the same option to be used multiple times with arguments of key value type.
+• Options with Key Value values.
+This allows the same option to be used multiple times with values of key value type.
 +
 For example: `rpmbuild --define name=myrpm --define version=123`
 
-• Options with key value arguments and multiple entries.
+• Options with key value values and multiple entries.
 +
 For example, instead of writing:
 `connection --server hostname=serverIP --server port=123 --client hostname=localhost --client port=456`
@@ -302,14 +302,14 @@ the input could be:
 +
 For example: You can use `--string=mystring` and `--string mystring`.
 
-• Allows passing arguments to options that start with dash `-` when passed after equal.
+• Allows passing values to options that start with dash `-` when passed after equal.
 +
 For example: `--string=--hello` and `--int=-123`.
 
-• Supports passing `--` to stop parsing arguments (everything after will be left in the `remaining []string`).
+• Supports passing `--` to stop parsing options and arguments (everything after will be left in the `remaining []string`).
 
-• Options with optional arguments.
-If the default argument is not passed the default is set.
+• Options with optional values.
+If the default value is not passed the default is set.
 +
 For example: You can call `--int 123` which yields `123` or `--int` which yields the given default.
 
@@ -369,8 +369,14 @@ Only the last two versions of Go will be supported.
 NOTE: For a <<quick_overview>>, jump to that section in the TOC or review the http://godoc.org/github.com/DavidGamba/go-getoptions[GoDoc Documentation].
 
 Option parsing is the act of taking command line (CLI) arguments and converting them into meaningful structures within the program.
+go-getoptions refers to these arguments based on their meaning.
+A CLI argument can be a command, a subcommand, an option, an option value or an argument.
 
-First declare a `getoptions` instance:
+----
+program command subcommand --option_1 --option_2=value_2 --option_3 value_3 argument_1 argument_2
+----
+
+To parse CLI arguments, first declare a `getoptions` instance:
 
 [source, go]
 ----
@@ -384,7 +390,7 @@ Then declare the options you want to parse:
 opt.String("string", "default_value")
 ----
 
-Optionally, define option modifiers:
+Optionally, define option modifiers (See <<option_modifiers>> for a full list):
 
 [source, go]
 ----
@@ -401,7 +407,7 @@ opt.String("string", "default_value",
 )
 ----
 
-You can also define arguments:
+You can also define arguments (See <<arguments>> for more details):
 
 [source, go]
 ----
@@ -524,7 +530,7 @@ NOTE: When the first argument is empty, it will use the program name from `os.Ar
 For options help ensure you add option descriptions and argument names.
 
 - `opt.Description("This is a string option")`
-- `opt.ArgName("mystring")`
+- `opt.ArgName("my_arg")`
 
 The help command needs to be defined after all options, commands and subcommands.
 
@@ -544,8 +550,8 @@ Or through a helper:
 
 [source, go]
 ----
-func ForceUnlock(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
-	lockID, args, err := opt.GetRequiredArg(args)
+func Run(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	myArg, args, err := opt.GetRequiredArg(args)
 	if err != nil {
 		return err
 	}
@@ -554,9 +560,9 @@ func ForceUnlock(ctx context.Context, opt *getoptions.GetOpt, args []string) err
 In the code above, if there is no argument passed, the `GetRequiredArg` will print an error plus the synopsis:
 
 ----
-ERROR: Missing <lock-id>
+ERROR: Missing <my_arg>
 SYNOPSIS:
-    program [--help] <lock-id>
+    program [--help] <my_arg>
 ----
 
 The error return is `getoptions.ErrorHelpCalled` which signals the help is already printed.
@@ -893,6 +899,7 @@ In `go-getoptions` this is accomplished with:
 
 - `opt.SetUnknownMode(getoptions.Warn)`.
 
+[[option_modifiers]]
 === Option Modifiers (ModifyFn)
 
 ==== Aliases
@@ -1127,6 +1134,7 @@ But the following one is incorrect:
 
 	./program -pr <profile> -p <password> command
 
+[[arguments]]
 == Arguments
 
 Arguments are the non-option arguments passed to the program.
@@ -1149,6 +1157,32 @@ Dynamic completions receive the shell target (bash or zsh), the previous argumen
 ----
 opt.ArgCompletionsFns(func(target string, prev []string, partial string) []string {
 	return []string{}
+}
+----
+
+Inside a `CommandFn` function, use `opt.GetRequiredArg` to get the argument value and remove it from the remaining arguments.
+There are also `GetRequiredArgInt` and `GetRequiredArgFloat64` variants.
+These functions automatically print an error message if the argument is not found or if the type cast fails.
+
+[source, go]
+----
+func Name(ctx context.Context, opt *getoptions.GetOpt, args []string) error {
+	arg1, args, err := opt.GetRequiredArgInt(args)
+	if err != nil {
+		return err
+	}
+	arg2, args, err := opt.GetRequiredArgFloat64(args)
+	if err != nil {
+		return err
+	}
+	arg3, args, err := opt.GetRequiredArg(args)
+	if err != nil {
+		return err
+	}
+
+	// logic
+
+	return nil
 }
 ----
 
